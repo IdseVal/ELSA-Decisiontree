@@ -10,8 +10,8 @@ import { CODE_LICENCE_URL, datasetResponse } from '../../../../assets.ts'
  * so that a `/4` Tree a third party keeps has its contract to point at (ADR-171-elsa-tree-5);
  * **[#221]** `GET /schemas/elsa-tree-5.json` likewise, for a `/5` Tree (ADR-220-elsa-tree-6);
  * **[#232]** `GET /schemas/elsa-tree-6.json`, for a `/6` Tree (ADR-231-elsa-tree-7), **[#264]**
- * `GET /schemas/elsa-tree-7.json`, for a `/7` Tree (ADR-263-elsa-tree-8), **[#273]** and
- * `GET /schemas/elsa-tree-8.json`, for an `/8` Tree (ADR-273-tags).
+ * `GET /schemas/elsa-tree-7.json`, for a `/7` Tree (ADR-263-elsa-tree-8), **[#274]** and
+ * `GET /schemas/elsa-tree-8.json`, for an `/8` Tree (ADR-274-background-image; **[#273]** ADR-273-tags).
  *
  * **The route serves the published set, not the folder**, exactly as the theme route
  * serves what the Theme names and not what sits beside it (5.5): a draft or a note left in

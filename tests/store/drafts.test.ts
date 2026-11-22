@@ -15,7 +15,7 @@ import { isStoreError, type StoreError } from '../../src/store/errors.ts'
 import { openStore, type Store } from '../../src/store/index.ts'
 import { treeBytes } from '../../src/tree/serialise.ts'
 import { ADMIN } from './admin.ts'
-import { GIF, PNG, SVG, TEXT, WEBP } from './pictures.ts'
+import { GIF, JPEG, PNG, SVG, TEXT, WEBP } from './pictures.ts'
 
 let accountsFile: string
 let data: string
@@ -733,6 +733,37 @@ describe('**[#144]** the Theme (33.8)', () => {
     // A logo is never a font file (tree-format.md 3.6).
     expect((await refusal(drafts.write(cees, 't', null, { path: 'theme.logo', value: { light: face, alt: { en: 'x' } } }))).status).toBe(422)
     expect(Object.keys(JSON.parse(await text('t', 'draft.json')).theme)).toEqual(['logo', 'fonts', 'colours'])
+  })
+
+  test('**[#274]** the background picture is a part written whole: a file of theme/ and an opacity of the grammar, or a 422; a JPEG is no logo', async () => {
+    await drafts.create(cees, 't', ['en', 'nl'], { en: 'T', nl: 'T' })
+    const picture = await drafts.uploadThemeFile(cees, 't', JPEG, 'Field at dawn.JPG')
+    expect(picture.file).toMatch(/^field-at-dawn-[0-9a-f]{8}\.jpg$/)
+    expect(await readFile(file('t', path.join('theme', picture.file)))).toEqual(JPEG)
+
+    const value = { file: picture.file, opacity: '0.35' }
+    const written = await drafts.write(cees, 't', null, { path: 'theme.background-image', value })
+    expect(written.manifest!.theme!['background-image']).toEqual(value)
+    expect(written.violations.filter((violation) => violation.keyPath.startsWith('theme'))).toEqual([])
+    for (const opacity of ['0', '1', '0.5', '0.05', '0.99']) {
+      expect((await drafts.write(cees, 't', null, { path: 'theme.background-image', value: { ...value, opacity } })).manifest!.theme!['background-image']!.opacity).toBe(opacity)
+    }
+    // A string of at most two decimals and no trailing zero: one way to write each value (3.7 has no numbers).
+    for (const opacity of [0.3, '0.50', '1.0', '1.5', '.5', '-0', '0.123', '', '30%']) {
+      expect(await refusal(drafts.write(cees, 't', null, { path: 'theme.background-image', value: { ...value, opacity } })), String(opacity)).toMatchObject({ status: 422 })
+    }
+    expect((await refusal(drafts.write(cees, 't', null, { path: 'theme.background-image', value: { file: 'missing.jpg', opacity: '0.3' } }))).rules).toContain('V-THEME')
+    expect((await refusal(drafts.write(cees, 't', null, { path: 'theme.background-image', value: { file: picture.file } }))).status).toBe(422)
+    expect(drafts.draft(cees, 't').manifest.theme!['background-image']).toEqual({ ...value, opacity: '0.99' })
+    // A logo is PNG or WebP still (tree-format.md 3.6): a JPEG named as one is refused by the schema.
+    expect((await refusal(drafts.write(cees, 't', null, { path: 'theme.logo', value: { light: picture.file, alt: { en: 'x', nl: 'x' } } }))).status).toBe(422)
+
+    await drafts.write(cees, 't', null, { path: 'theme.colours', value: colours })
+    expect(Object.keys(JSON.parse(await text('t', 'draft.json')).theme)).toEqual(['colours', 'background-image'])
+    expect(Object.keys(JSON.parse(await text('t', 'draft.json')).theme['background-image'])).toEqual(['file', 'opacity'])
+    await drafts.write(cees, 't', null, { path: 'theme.colours', value: null })
+    const removed = await drafts.write(cees, 't', null, { path: 'theme.background-image', value: null })
+    expect(removed.manifest!.theme).toBeUndefined()
   })
 
   test('null removes a part; the last one removed takes the theme key with it; any other theme path is V-KEYS', async () => {

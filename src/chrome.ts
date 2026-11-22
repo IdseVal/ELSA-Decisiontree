@@ -365,6 +365,17 @@ export interface Chrome {
   colourDangerHint: string
   contrastHint: string
   logoAltHint: string
+  /**
+   * **[#274]** The Theme panel's background picture (33.8): its heading, its three actions, the
+   * opacity slider's label, the hint, and the line that says text over the picture is not measured.
+   */
+  backgroundImage: string
+  uploadBackgroundImage: string
+  replaceBackgroundImage: string
+  removeBackgroundImage: string
+  backgroundOpacity: string
+  backgroundImageHint: string
+  backgroundContrast: string
   fontBodyHint: string
   fontHeadingHint: string
   fontLicenceHint: string
@@ -618,7 +629,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     addFontFile: 'Add a file',
     removeFont: 'Remove this font',
     removeFontFile: 'Remove',
-    themeFileRefused: 'This file type is refused: PNG or WebP for a logo, WOFF2 for a font.',
+    themeFileRefused: 'This file type is refused: PNG or WebP for a logo, PNG, JPEG or WebP for a background picture, WOFF2 for a font.',
     settings: 'Decision-tree settings',
     todoCountOne: 'thing to do',
     todoNone: 'Nothing to do',
@@ -649,6 +660,13 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     colourDangerHint: 'Errors: a text over its limit or refused while you edit it. Also the buttons that delete a step or a side bubble.',
     contrastHint: 'Text needs enough difference from what is behind it to be read, also by people who see less well. These pairs fall below the WCAG minimum; your colours are saved all the same.',
     logoAltHint: 'A screen reader says this in place of the logo, for people who cannot see it: usually the name of the lab.',
+    backgroundImage: 'Background picture',
+    uploadBackgroundImage: 'Upload a background picture',
+    replaceBackgroundImage: 'Replace the picture',
+    removeBackgroundImage: 'Remove the picture',
+    backgroundOpacity: 'Opacity',
+    backgroundImageHint: 'A picture behind the whole page, over the Page colour, covering the window. The lower its opacity, the more of the Page colour shows through.',
+    backgroundContrast: 'Text on the page over the picture is not measured for contrast: a low opacity keeps it readable.',
     fontBodyHint: 'The font of the running text: descriptions, Sources, the side-bubble buttons and captions.',
     fontHeadingHint: "The font of the titles: the tree's name, each step's title, the Sources heading and the words on the Yes and No buttons.",
     fontLicenceHint: 'A font is shared with this tree, so its licence must allow that, and the tree says which it is. A font whose licence you cannot name does not belong in it.',
@@ -869,7 +887,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     addFontFile: 'Bestand toevoegen',
     removeFont: 'Dit lettertype verwijderen',
     removeFontFile: 'Verwijderen',
-    themeFileRefused: 'Dit bestandstype wordt geweigerd: PNG of WebP voor een logo, WOFF2 voor een lettertype.',
+    themeFileRefused: 'Dit bestandstype wordt geweigerd: PNG of WebP voor een logo, PNG, JPEG of WebP voor een achtergrondafbeelding, WOFF2 voor een lettertype.',
     settings: 'Beslisboominstellingen',
     todoCountOne: 'punt te doen',
     todoNone: 'Niets te doen',
@@ -900,6 +918,13 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     colourDangerHint: 'Fouten: een tekst boven zijn limiet of geweigerd terwijl je hem bewerkt. Ook de knoppen die een stap of een zijbubbel verwijderen.',
     contrastHint: 'Tekst moet genoeg verschillen van wat erachter staat om leesbaar te zijn, ook voor wie minder goed ziet. Deze paren blijven onder het WCAG-minimum; je kleuren worden toch bewaard.',
     logoAltHint: 'Een schermlezer leest dit voor in plaats van het logo, voor wie het niet kan zien: meestal de naam van het lab.',
+    backgroundImage: 'Achtergrondafbeelding',
+    uploadBackgroundImage: 'Een achtergrondafbeelding uploaden',
+    replaceBackgroundImage: 'Afbeelding vervangen',
+    removeBackgroundImage: 'Afbeelding verwijderen',
+    backgroundOpacity: 'Dekking',
+    backgroundImageHint: 'Een afbeelding achter de hele pagina, over de kleur Pagina, die het venster vult. Hoe lager de dekking, hoe meer van de kleur Pagina erdoor schijnt.',
+    backgroundContrast: 'Tekst op de pagina boven de afbeelding wordt niet op contrast gemeten: een lage dekking houdt hem leesbaar.',
     fontBodyHint: 'Het lettertype van de lopende tekst: beschrijvingen, bronnen, de knoppen van de zijbubbels en bijschriften.',
     fontHeadingHint: 'Het lettertype van de titels: de naam van de boom, de titel van elke stap, de kop Bronnen en de woorden op de knoppen Ja en Nee.',
     fontLicenceHint: 'Een lettertype wordt met deze boom gedeeld, dus de licentie moet dat toestaan, en de boom zegt welke het is. Een lettertype waarvan je de licentie niet kunt noemen, hoort er niet in.',

@@ -184,7 +184,7 @@ export function datasetHref(treeId: string): string {
  * **[#121]** Where the format's JSON Schema is published (15.1). The path carries the
  * format number, so **[#179]** `elsa-tree/5`'s is served beside `/4`'s and neither URL ever
  * moves; **[#221]** `elsa-tree/6`'s beside both, **[#232]** `elsa-tree/7`'s beside the three,
- * **[#264]** `elsa-tree/8`'s beside the four, **[#273]** and `elsa-tree/9`'s beside the five: every Tree
+ * **[#264]** `elsa-tree/8`'s beside the four, **[#274]** and `elsa-tree/9`'s beside the five (**[#273]** the tags' format too): every Tree
  * this application serves is `/9`.
  */
 export const SCHEMA_HREF = '/schemas/elsa-tree-9.json'

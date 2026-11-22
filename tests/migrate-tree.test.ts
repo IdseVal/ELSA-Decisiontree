@@ -5,8 +5,8 @@
  * just read changes no byte** (12.6.1, Idempotence). **[#179]** And the conversion of 12.7,
  * from `elsa-tree/4` to `elsa-tree/5`, which it runs before it writes; **[#221]** and 12.8's,
  * from `elsa-tree/5` to `elsa-tree/6`, after it; **[#232]** 12.9's, from `elsa-tree/6` to
- * `elsa-tree/7`, after that; **[#264]** 12.10's, from `elsa-tree/7` to `elsa-tree/8`; **[#273]** and
- * 12.11's, from `elsa-tree/8` to `elsa-tree/9`, last.
+ * `elsa-tree/7`, after that; **[#264]** 12.10's, from `elsa-tree/7` to `elsa-tree/8`, after that; **[#274]**
+ * and 12.11's, from `elsa-tree/8` to `elsa-tree/9`, last.
  *
  * Every Tree it writes is read back through `openTree`, as section 7 requires; no test
  * builds a `Node` by hand.
@@ -243,7 +243,7 @@ describe('the writer reports what the loader would', () => {
 
     const migration = await migrateTree(target)
 
-    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, answers: null, renamed: null, widened: null, tagged: null, notes: [note], violations: [] })
+    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, answers: null, renamed: null, widened: null, backed: null, notes: [note], violations: [] })
     expect(await readFile(file, 'utf8')).toBe(before)
   })
 
@@ -274,7 +274,7 @@ describe('the writer reports what the loader would', () => {
 
     const migration = await migrateTree(target)
 
-    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, answers: null, renamed: null, widened: null, tagged: null, notes: [note], violations: [] })
+    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, answers: null, renamed: null, widened: null, backed: null, notes: [note], violations: [] })
     expect(await readFile(file, 'utf8')).toBe(before)
     // The file is the evidence, so it must still be the file the loader refuses, with the
     // same message: the writer and the loader answer "may this be read" the same way.
@@ -299,7 +299,7 @@ describe('the writer reports what the loader would', () => {
   test('a folder that holds no tree.json is reported, not crashed on', async () => {
     const migration = await migrateTree(work)
 
-    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, answers: null, renamed: null, widened: null, tagged: null, notes: ['tree.json is missing'], violations: [] })
+    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, answers: null, renamed: null, widened: null, backed: null, notes: ['tree.json is missing'], violations: [] })
   })
 })
 
@@ -683,6 +683,7 @@ describe('**[#264]** the conversion from elsa-tree/7 to elsa-tree/8 (tree-format
 
     expect(migration.renamed).toBe(false)
     expect(migration.widened).toBe(true)
+    expect(migration.backed).toBe(true)
     expect(migration.conversion).toEqual({ format: 'elsa-tree/7', endings: 0, left: [] })
     expect(migration.violations).toEqual([])
     expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(original)
@@ -717,7 +718,7 @@ describe('**[#264]** the conversion from elsa-tree/7 to elsa-tree/8 (tree-format
   })
 })
 
-describe('**[#273]** the conversion from elsa-tree/8 to elsa-tree/9 (tree-format.md 12.11)', () => {
+describe('**[#274]** the conversion from elsa-tree/8 to elsa-tree/9 (tree-format.md 12.11)', () => {
   test('an /8 file gets the /9 format and $schema and no other byte, and a second run changes nothing (12.11.1 steps 2 to 6)', async () => {
     const original = await readFile(fixture('full-node', 'tree.json'), 'utf8')
     const target = await copyAs(8, fixture('full-node'))
@@ -725,13 +726,13 @@ describe('**[#273]** the conversion from elsa-tree/8 to elsa-tree/9 (tree-format
     const migration = await migrateTree(target)
 
     expect(migration.widened).toBe(false)
-    expect(migration.tagged).toBe(true)
+    expect(migration.backed).toBe(true)
     expect(migration.conversion).toEqual({ format: 'elsa-tree/8', endings: 0, left: [] })
     expect(migration.violations).toEqual([])
     expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(original)
 
     const again = await migrateTree(target)
-    expect(again.tagged).toBe(false)
+    expect(again.backed).toBe(false)
     expect(again.rewritten).toBe(false)
     expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(original)
   })
@@ -741,7 +742,7 @@ describe('**[#273]** the conversion from elsa-tree/8 to elsa-tree/9 (tree-format
 
     const migration = await migrateTree(target)
 
-    expect([migration.widened, migration.tagged]).toEqual([true, true])
+    expect([migration.widened, migration.backed]).toEqual([true, true])
     const written = JSON.parse(await readFile(path.join(target, 'tree.json'), 'utf8')) as Record<string, unknown>
     expect([written.$schema, written.format]).toEqual(['/schemas/elsa-tree-9.json', 'elsa-tree/9'])
   })
@@ -774,6 +775,16 @@ describe('**[#273]** the conversion from elsa-tree/8 to elsa-tree/9 (tree-format
     expect(keys.indexOf('tags')).toBe(keys.indexOf('metadata') - 1)
     expect(migration.rewritten).toBe(true)
     expect((await migrateTree(target)).rewritten).toBe(false)
+  })
+
+  test('no Theme is looked at: an /8 file with a background picture, which /8 refused, converts and validates (12.11.2)', async () => {
+    const target = await copyAs(8, fixture('background-image'))
+
+    const migration = await migrateTree(target)
+
+    expect(migration.backed).toBe(true)
+    expect(migration.violations).toEqual([])
+    expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(await readFile(fixture('background-image', 'tree.json'), 'utf8'))
   })
 })
 

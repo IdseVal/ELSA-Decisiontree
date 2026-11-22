@@ -47,10 +47,21 @@ export type ColourRole =
 /** Each `#rrggbb`, validated by the loader. */
 export type Colours = Record<ColourRole, string>
 
+/**
+ * **[#274]** A picture drawn behind the whole page over the `background` colour (tree-format.md
+ * 4.3.4): its file in `theme/`, and how much of it shows.
+ */
+export interface BackgroundImage {
+  file: string
+  /** `"0"` to `"1"`, at most two decimals and no trailing zero: a string, as every value of the format is (3.7). */
+  opacity: string
+}
+
 export interface Theme {
   logo?: Logo
   fonts?: FontFamily[]
   colours?: Colours
+  'background-image'?: BackgroundImage
 }
 
 export interface Manifest {

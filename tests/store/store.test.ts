@@ -88,12 +88,13 @@ async function writeAs7(file: string): Promise<void> {
   await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
 }
 
-/** **[#273]** Writes the Tree file `file` back as `elsa-tree/8` wrote it: the two names alone (12.11 in reverse). */
+/** **[#274]** Writes the Tree file `file` back as `elsa-tree/8` wrote it: the two names alone (12.11 in reverse). */
 async function writeAs8(file: string): Promise<void> {
   const tree = JSON.parse(await readFile(file, 'utf8')) as { $schema: string; format: string }
   tree.$schema = '/schemas/elsa-tree-8.json'
   tree.format = 'elsa-tree/8'
-  await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
+  await writeFile(file, `${JSON.stringify(tree, null, 2)}
+`)
 }
 
 /** **[#179]** Writes the Tree file `file` back after `edit` has changed what it holds. */
@@ -490,7 +491,7 @@ describe('**[#179]** a data directory written by a release before elsa-tree/5 (3
 
     const store = await openStore(data, ADMIN)
 
-    // **[#221]** A /4 file takes 12.7 and then 12.8, **[#232]** 12.9, **[#264]** 12.10, **[#273]** and 12.11, checked and written once, a line for each.
+    // **[#221]** A /4 file takes 12.7 and then 12.8, **[#232]** 12.9, **[#264]** 12.10, **[#274]** and 12.11, checked and written once, a line for each.
     expect(conversions(log)).toEqual([
       'Converted Tree "carousel" tree.json from elsa-tree/4 to elsa-tree/5: 1 endings',
       'Converted Tree "carousel" tree.json from elsa-tree/5 to elsa-tree/6: 3 steps',
@@ -620,25 +621,25 @@ describe('**[#179]** a data directory written by a release before elsa-tree/5 (3
     expect(conversions(log)).toEqual([])
   })
 
-  test('**[#273]** its elsa-tree/8 files are converted by 12.11, one line each, the format and $schema alone (12.11.4)', async () => {
+  test('**[#274]** its elsa-tree/8 files are converted by 12.11, one line each, the format and $schema alone, a background picture included (12.11.2, 12.11.4)', async () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {})
     const data = await folder()
-    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'cycle'), 'cycle']) })
-    const before = await readFile(path.join(data, 'trees', 'cycle', 'tree.json'), 'utf8')
-    await writeAs8(path.join(data, 'trees', 'cycle', 'tree.json'))
-    await writeAs8(path.join(data, 'trees', 'cycle', 'draft.json'))
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'background-image'), 'pictured']) })
+    const before = await readFile(path.join(data, 'trees', 'pictured', 'tree.json'), 'utf8')
+    await writeAs8(path.join(data, 'trees', 'pictured', 'tree.json'))
+    await writeAs8(path.join(data, 'trees', 'pictured', 'draft.json'))
     log.mockClear()
 
     const store = await openStore(data, ADMIN)
 
     expect(conversions(log)).toEqual([
-      'Converted Tree "cycle" tree.json from elsa-tree/8 to elsa-tree/9',
-      'Converted Tree "cycle" draft.json from elsa-tree/8 to elsa-tree/9',
+      'Converted Tree "pictured" tree.json from elsa-tree/8 to elsa-tree/9',
+      'Converted Tree "pictured" draft.json from elsa-tree/8 to elsa-tree/9',
     ])
     // The fixture is 12.11's own output, so converting its /8 form gives it back byte for byte.
-    expect(await readFile(path.join(data, 'trees', 'cycle', 'tree.json'), 'utf8')).toBe(before)
-    expect(await readFile(path.join(data, 'trees', 'cycle', 'draft.json'), 'utf8')).toBe(before)
-    expect(store.publishedIds()).toEqual(['cycle'])
+    expect(await readFile(path.join(data, 'trees', 'pictured', 'tree.json'), 'utf8')).toBe(before)
+    expect(await readFile(path.join(data, 'trees', 'pictured', 'draft.json'), 'utf8')).toBe(before)
+    expect(store.published('pictured')!.themePath('field.jpg')).toBe(path.join(data, 'trees', 'pictured', 'theme', 'field.jpg'))
     log.mockClear()
     await openStore(data, ADMIN)
     expect(conversions(log)).toEqual([])

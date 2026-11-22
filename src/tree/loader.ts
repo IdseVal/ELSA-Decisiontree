@@ -392,7 +392,7 @@ async function isFile(file: string): Promise<boolean> {
 function referencedThemeFiles(theme: Theme | undefined): Set<string> {
   const files = new Set<string>()
   if (!theme) return files
-  for (const file of [theme.logo?.light, theme.logo?.dark, theme.logo?.icon]) {
+  for (const file of [theme.logo?.light, theme.logo?.dark, theme.logo?.icon, theme['background-image']?.file]) {
     if (file) files.add(file)
   }
   for (const family of theme.fonts ?? []) {

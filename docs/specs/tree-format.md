@@ -1,4 +1,4 @@
-# Tree file format -- `elsa-tree/5` (**[#220]** `elsa-tree/6` from #221; **[#231]** `elsa-tree/7` from #232; **[#263]** `elsa-tree/8` from #264; **[#273]** `elsa-tree/9` from #273)
+# Tree file format -- `elsa-tree/5` (**[#220]** `elsa-tree/6` from #221; **[#231]** `elsa-tree/7` from #232; **[#263]** `elsa-tree/8` from #264; **[#274]** `elsa-tree/9`, **[#273]** with its tags)
 
 > Status: FROZEN -- 2026-10-02 (issue #171); `elsa-tree/5` replaces `elsa-tree/4` (frozen
 > 2026-09-21, issue #118). This document is the interoperability contract: any Tree that
@@ -7,18 +7,32 @@
 > serves at `/schemas/elsa-tree-5.json`. Changing this contract requires a new
 > `architecture` issue and a new format number.
 >
-> **[#273] Amended 2026-11-22: `elsa-tree/9`, built by #273.** The owner, on #273: "the option to
-> add tags to decision-trees and a filter in the main overview with a dropdown where people can
-> filter on all tags that exist in the published decision-trees". `elsa-tree/9` is `elsa-tree/8`
-> with **one change**: the manifest may carry **`tags`**, a list of at most 8 plain localised texts
-> of at most 30 counted characters each, no two the same in one language with letter case and the
-> spaces around them aside (4, 5.7, rules V-COUNT, V-LENGTH and the new V-TAGS). Every other key,
-> kind, limit and rule, and the byte form of 3.7 but the place of `tags` in it, are `/8`'s. An `/8`
-> file is converted by 12.11, which changes its `format` and its `$schema` and nothing else.
-> `schemas/elsa-tree-9.json` stands beside `elsa-tree-8.json`, which stays served. The decisions are
-> `docs/adrs/ADR-273-tags.md`. **This change came as a build issue, not the `architecture` issue the
-> paragraph above asks for**: #273 named the new format and left its limits to the run as PROPOSED
-> readings, and the run recorded them in that ADR rather than stop; its pull request says so.
+> **[#274] Amended and built 2026-11-22: `elsa-tree/9`.** The owner, on #274: "provide the option to
+> have the background be an image, with an opacity slider so the creator of a decision-tree can set it
+> to the desired opacity (in the editor mode)." `elsa-tree/9` is `elsa-tree/8` with **one change**: a
+> Theme may carry a fourth part, `background-image`, a picture of `theme/` and how much of it shows,
+> drawn behind the whole page over the `background` colour (3.6, 4.3.4, rule V-THEME). Every other
+> key, kind, limit and rule, and the byte form of 3.7, are `/8`'s. An `/8` file is converted by 12.11,
+> which changes its `format` and its `$schema` and nothing else. `schemas/elsa-tree-9.json` stands
+> beside `elsa-tree-8.json`, which stays served. The format change and the panel were decided and
+> built in one build issue, as the issue proposed them; the decisions are
+> `docs/adrs/ADR-274-background-image.md`. Issue #273, filed beside it, proposes tags in the manifest
+> under the same new number: whichever of the two lands second folds into this `/9` rather than
+> making a `/10` -- one conversion, not two -- since both only add an optional key.
+>
+> **[#273] Amended 2026-11-22: `tags` join `elsa-tree/9`, built by #273.** The owner, on #273: "the
+> option to add tags to decision-trees and a filter in the main overview with a dropdown where people
+> can filter on all tags that exist in the published decision-trees". #274 reached `dev` first, so by
+> its paragraph above the tags fold into its `/9`: the manifest may also carry **`tags`**, a list of
+> at most 8 plain localised texts of at most 30 counted characters each, no two the same in one
+> language with letter case and the spaces around them aside (4, 5.7, rules V-COUNT, V-LENGTH and
+> the new V-TAGS). Every other key, kind, limit and rule, and the byte form of 3.7 but the place of
+> `tags` in it, are as above; 12.11 converts an `/8` file unchanged, since an `/8` file has no tags.
+> No release that carries `/9` had reached the live server when they joined (`main` held no
+> `elsa-tree-9.json`). The decisions are `docs/adrs/ADR-273-tags.md`. **This change came as a build
+> issue, not the `architecture` issue the paragraph at the top asks for**: #273 named the new format
+> and left its limits to the run as PROPOSED readings, and the run recorded them in that ADR rather
+> than stop; its pull request says so.
 >
 > **[#263] Amended 2026-11-18: `elsa-tree/8`, frozen here, built by #264.** The owner, on #262:
 > "The 150 character limit that we picked is waaaaay too short sadly." `elsa-tree/8` is `elsa-tree/7`
@@ -334,7 +348,13 @@ per role, because a logo is never a font file and a font file is never a logo:
 ```
 logo or icon   ^[a-z0-9]+([._-][a-z0-9]+)*\.(svg|png|webp|ico)$   at most 128 characters
 font file      ^[a-z0-9]+([._-][a-z0-9]+)*\.woff2$                at most 128 characters
+background     ^[a-z0-9]+([._-][a-z0-9]+)*\.(png|jpg|jpeg|webp)$  at most 128 characters   [#274]
 ```
+
+**[#274]** (2026-11-22, `elsa-tree/9`) A third grammar, the background picture's (4.3.4): a
+photograph as often as a drawing, so JPEG beside PNG and WebP, and no SVG, for the reason a logo
+uploaded in the editor is no SVG (`docs/specs/application.md` 33.8). The schema carries it as
+`backgroundImageFileName`.
 
 A logo or icon is `.svg`, `.png`, `.webp` or `.ico`; a font file is `.woff2` and nothing
 else (one modern, compressed format; every browser the application supports reads it).
@@ -640,8 +660,8 @@ Node; V-ROOT, the root must exist).
 
 **[#231]** (2026-10-10) `elsa-tree/7` and `elsa-tree-7.json` from #232 (12.9).
 
-**[#263]** (2026-11-18) `elsa-tree/8` and `elsa-tree-8.json` from #264 (12.10). **[#273]** (2026-11-22)
-`elsa-tree/9` and `elsa-tree-9.json` from #273 (12.11), with `tags` after `description`.
+**[#263]** (2026-11-18) `elsa-tree/8` and `elsa-tree-8.json` from #264 (12.10). **[#274]** (2026-11-22)
+`elsa-tree/9` and `elsa-tree-9.json` from #274 (12.11); **[#273]** `tags` stand after `description`.
 
 ### 4.2 The Tree's id
 
@@ -774,6 +794,34 @@ whose `text` reads on `background` and on `surface`; the validator does not meas
 contrast.
 
 Absent `colours`: the frontend's default palette.
+
+#### 4.3.4 `background-image` (**[#274]**, `elsa-tree/9`)
+
+A fourth part, independent of the three as they are of each other: a picture drawn behind the
+whole page, over the `background` colour, so that the colour shows through it. A Theme may now
+carry any one to all four parts, and still at least one (V-THEME).
+
+```json
+"theme": {
+  "background-image": {
+    "file": "field-1a2b3c4d.jpg",
+    "opacity": "0.3"
+  }
+}
+```
+
+| Key | Required | Type | Meaning |
+|---|---|---|---|
+| `file` | yes | theme file name (3.6), a background extension | The picture. Must exist in `theme/`. |
+| `opacity` | yes | string: `"0"`, `"1"`, or `0.` and one or two digits with no trailing zero (`^(?:0\|1\|0\.[0-9]?[1-9])$`) | How much of the picture shows, from none to all; the `background` colour shows through at the rest. A string, as every value of the format is (3.7); one way to write each value, so `"0.5"` and never `"0.50"`. |
+
+The part is complete or absent, as the other three: a picture without its opacity, or an opacity
+without a picture, is refused by the schema. Where and how it is drawn -- covering the window,
+fixed, from its centre, under everything else -- is the frontend's (`docs/specs/application.md`
+13.1), not the file's. The validator does not measure text over it, as it does not measure the
+palette (4.3.3). There is no `alt`: the picture is decoration, and says nothing a reader needs said.
+
+Absent `background-image`: the `background` colour alone, as before `elsa-tree/9`.
 
 ## 5. A Node: one element of `nodes`
 
@@ -1225,7 +1273,7 @@ The **Where** column below says which of the two a rule belongs to.
 | V-KEYS | schema | no keys other than those listed in sections 4 and 5, at every level except inside `metadata`. `$schema`, `format`, `languages`, `root`, `theme` and `nodes` only at the top level; `id` never at the top level. | blocking |
 | V-REACH | rules | every Node reachable from `root` by following Answers and Options. An unreachable Node is almost always a misspelt target. | advisory |
 | **[#273]** V-TAGS | rules | from `elsa-tree/9`: no two entries of `tags` the same text in one language once the spaces around each are dropped and both are in lower case (`tagKey` of `src/tree/grammar.ts`, by which the overview's filter matches: `docs/specs/application.md` 26.6). An empty text repeats nothing: it is V-L10N's. The message names the later entry and the earlier one. The shape -- a non-empty list of localised texts -- is the schema's, the 8 entries V-COUNT's and the 30 characters V-LENGTH's. | blocking, and V-COUNT for a ninth tag is blocking too: one Tree naming one tag twice is a defect of the list, not an unfinished state, and the editor writes the list whole (`application.md` 33.5) |
-| V-THEME | schema, rules | `theme`, when present, an object with at least one of `logo`, `fonts`, `colours`, each as section 4.3 defines it: the schema checks the keys, the grammars, the seven colour roles and every font file's `weight` and `style`; the rules check that the files exist in `theme/` and that there is at most one font family per `role`. | blocking |
+| V-THEME | schema, rules | `theme`, when present, an object with at least one of `logo`, `fonts`, `colours` and **[#274]** `background-image`, each as section 4.3 defines it: the schema checks the keys, the grammars, the seven colour roles, every font file's `weight` and `style` and the picture's `opacity`; the rules check that the files exist in `theme/` and that there is at most one font family per `role`. | blocking |
 
 ### Text
 
@@ -1418,6 +1466,13 @@ exactly these lines:
 +    "en": "A small example Tree that exercises every element of the `elsa-tree/8` format.\nIts legal content is simplified and not to be relied on.",
 +    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/8`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
 ```
+
+**[#274] Done (2026-11-22).** #274 converted `trees/ai-act-example/tree.json` by 12.11, changed the
+same sentence by hand, and put the result in the block above in the same commit: the `elsa-tree/9`
+file, valid against `schemas/elsa-tree-9.json`, differing from the `/8` block in its `$schema`, its
+`format` and that sentence's two languages, `elsa-tree/8` to `elsa-tree/9`. It carries no
+`background-image`: the first Tree's page and the contrast it is measured at stay as they were, and
+`tests/fixtures/background-image` carries one (4.3.4).
 
 Folder layout:
 
@@ -1936,10 +1991,13 @@ one, is shown in the frontend's plain default look.
   name the limit, not the format (`docs/adrs/ADR-263-elsa-tree-8.md`). `schemas/elsa-tree-8.json`
   stands beside the `/7`, `/6`, `/5` and `/4` files, the loader accepts `/8` alone and the store
   converts a `/7` file it finds (12.10). The next change will be `elsa-tree/9`.
-  **[#273] And on 2026-11-22 (built by #273):** the manifest may carry `tags` (4, 5.7, V-TAGS). A
-  new key, so by the rule above it is `elsa-tree/9` (`docs/adrs/ADR-273-tags.md`).
-  `schemas/elsa-tree-9.json` stands beside the `/8` to `/4` files, the loader accepts `/9` alone and
-  the store converts an `/8` file it finds (12.11). The next change will be `elsa-tree/10`.
+  **[#274] And on 2026-11-22:** a Theme may carry a background picture (4.3.4). A new key, so by the
+  rule above it is `elsa-tree/9` (`docs/adrs/ADR-274-background-image.md`). `schemas/elsa-tree-9.json`
+  stands beside the five before it, the loader accepts `/9` alone and the store converts an `/8` file
+  it finds (12.11). The next change will be `elsa-tree/10`, or #273's tags inside this `/9` if they
+  land after it (the header).
+  **[#273] And on the same day (built by #273):** they did: the manifest may carry `tags` (4, 5.7,
+  V-TAGS) under this `/9` (`docs/adrs/ADR-273-tags.md`). The next change will be `elsa-tree/10`.
 - **Where an edited Tree is stored.** ~~The round after this one edits Trees through the
   frontend. Whether the edited `tree.json` is written back into the repository through
   git, or into a store of some other kind, is the owner's to define (core document open
@@ -2024,7 +2082,8 @@ Decisions carried over unchanged from `elsa-tree/1` (issue #4):
 | **[#231]** `answers` holds up to five, `elsa-tree/7`, and 12.9 | `docs/adrs/ADR-231-elsa-tree-7.md` |
 | **[#263]** A Node description of 600 characters and 8 estimated lines | `docs/adrs/ADR-263-description-limit.md` |
 | **[#263]** `elsa-tree/8`, and 12.10 | `docs/adrs/ADR-263-elsa-tree-8.md` |
-| **[#273]** `tags` on the manifest, V-TAGS, `elsa-tree/9`, 12.11, and the overview's filter | `docs/adrs/ADR-273-tags.md` |
+| **[#274]** A background picture in the Theme at an opacity, `elsa-tree/9`, and 12.11 | `docs/adrs/ADR-274-background-image.md` |
+| **[#273]** `tags` on the manifest, V-TAGS, joining `elsa-tree/9`, and the overview's filter | `docs/adrs/ADR-273-tags.md` |
 
 ## 12. Migrations
 
@@ -2048,9 +2107,10 @@ store, whenever it opens a `/6` file (12.9.4); a `/4` file takes 12.7, 12.8 and 
 description. It runs over the repository once (#264) and in every deployment, by the store, whenever
 it opens a `/7` file (12.10.4); a `/4` file takes 12.7 to 12.10 in that order.
 
-**[#273] And 12.11, since 2026-11-22, runs after 12.10**: `elsa-tree/8` to `elsa-tree/9`, the tags.
-It runs over the repository once (#273) and in every deployment, by the store, whenever it opens an
-`/8` file (12.11.4); a `/4` file takes 12.7 to 12.11 in that order.
+**[#274] And 12.11, since 2026-11-22, runs after 12.10**: `elsa-tree/8` to `elsa-tree/9`, the
+background picture. It ran over the repository once (#274) and runs in every deployment, by the
+store, whenever it opens an `/8` file (12.11.4); a `/4` file takes 12.7 to 12.11 in that order.
+**[#273]** The tags joined `/9` after it, with nothing more to convert: an `/8` file has none.
 
 **12.1 to 12.4: from `elsa-tree/1` to `elsa-tree/2`.**
 A Tree folder written against `elsa-tree/1` -- `tree.yaml` plus `nodes/<id>.yaml` files
@@ -2759,66 +2819,63 @@ decision 5).
 
 ### 12.11 From `elsa-tree/8` to `elsa-tree/9`
 
-**[#273], new -- 2026-11-22.** `elsa-tree/9` adds one optional manifest key, `tags` (4, 5.7, V-TAGS);
-no key, kind or value of an `/8` file changes meaning, and an `/8` file has no tags, so the
-conversion renames the format and nothing else. `docs/adrs/ADR-273-tags.md` has the reasoning; it is
-built in the module that writes the byte form (`src/tree/convert.ts`, `convertTags`), beside 12.7 to
-12.10, so that the migration command and the store run one function.
+**[#274], new -- 2026-11-22.** `elsa-tree/9` adds one optional key, the Theme's `background-image`
+(4.3.4); no key, kind or value of an `/8` file changes meaning, so the conversion renames the format
+and nothing else, as 12.9 and 12.10 do. `docs/adrs/ADR-274-background-image.md` has the reasoning;
+`convertBackground` in `src/tree/convert.ts` is the one function the migration command and the store
+run, beside 12.7 to 12.10. **[#273]** `/9`'s other optional key, the manifest's `tags` (4, 5.7,
+V-TAGS), joined it before a `/9` release reached the live server; an `/8` file has no tags, so the
+procedure is the same (`docs/adrs/ADR-273-tags.md` decision 6).
 
 #### 12.11.1 The procedure
 
-Input: one `tree.json`, or a store's `draft.json`, as bytes. Output: the same file converted, or a
-report and no write.
-
-1. **Read the bytes with the loader's own reader** (3.7, V-JSON), as 12.10.1 step 1.
-2. **Only an `elsa-tree/8` file is converted.** Any other `format` -- `elsa-tree/9` included -- does
-   nothing and reports what it found. A `/7` file is converted by 12.10 first, and a `/4` to `/6`
-   file by 12.7 to 12.10 first: the store and `npm run migrate` run the five in that order.
-3. **`format`** becomes `elsa-tree/9`.
-4. **`$schema`**: `/schemas/elsa-tree-8.json`, or an http(s) URL whose path ends so, gets
-   `elsa-tree-9.json` in its place and no other change. Any other value is left, to fail V-SCHEMA.
-5. **Nothing else changes.** No `tags` is written: the creator adds them (`application.md` 33.5).
-6. **Write** the result in the byte form of 3.7.
-7. **Validate** the result against `schemas/elsa-tree-9.json` and the rules of section 7, and
-   **report every violation**. Shorten nothing, drop nothing, silence nothing.
+12.10.1's seven steps with the numbers moved by one: only an `elsa-tree/8` file is converted (an
+older one by 12.7 to 12.10 first, `elsa-tree/9` not at all); `format` becomes `elsa-tree/9`; a
+`$schema` of `/schemas/elsa-tree-8.json`, or an http(s) URL whose path ends so, gets
+`elsa-tree-9.json` in its place, and any other value is left to fail V-SCHEMA; nothing else changes;
+the result is written in the byte form of 3.7 and validated against `schemas/elsa-tree-9.json` and
+section 7, every violation reported. `npm run migrate <tree-folder>` runs it after 12.10.
+**[#273]** No `tags` is written: the creator adds them (`application.md` 33.5).
 
 #### 12.11.2 What the procedure guarantees, and what it does not
 
-**Guaranteed.** Every Node, id, Node reference, text, label and file name is what it was, so every
-URL, every shared link, every picture and every button keeps working and says what it said. A valid
-`elsa-tree/8` Tree converts to a valid `elsa-tree/9` Tree, which has no tags.
+**Guaranteed.** Every Node, id, reference, text and file is what it was, and a valid `elsa-tree/8`
+Tree converts to a valid `elsa-tree/9` Tree, since `/9` only adds an optional key.
 
-**Not guaranteed, on purpose.** An `/8` file that was not in the byte form of 3.7 is written in it.
-An `/8` file that holds a `tags` key, which `/8` refused (V-KEYS), converts and is then judged as
-`/9` judges tags.
+**Not guaranteed, on purpose.** A file not in the byte form is written in it. An `/8` file that
+already carried a `background-image`, which `/8` refused, converts and then validates if the part is
+well formed and its file is in `theme/`: the procedure does not look at the Theme
+(`tests/migrate-tree.test.ts`). **[#273]** Likewise an `/8` file holding a `tags` key, which `/8`
+refused (V-KEYS), converts and is then judged as `/9` judges tags.
 
-#### 12.11.3 What it does for the Trees and fixtures on `dev`
+#### 12.11.3 What it did for the Trees and fixtures on `dev`
 
-**[#273] Done (2026-11-22), counted on `dev` at `f17b6a7`.** Before: 63 files under `trees/` and
-`tests/fixtures/` name a format, 62 of them `elsa-tree/8`, all but `invalid/v-format` (`elsa-tree/3`),
-and 62 name `/schemas/elsa-tree-8.json`, all but `invalid/v-schema` (`elsa-tree-3.json`). `npm run
-migrate` over the 62 `/8` folders converted 58 files ("converted from elsa-tree/8 to elsa-tree/9");
-the two Trees and every valid fixture validate. Re-fitted by hand, the two strings edited in place
-with each defect kept, as at #221, #232 and #264: `broken/byte-order-mark`, `broken/duplicate-key`
-and `invalid/v-json` (step 1 refuses them), `broken/metadata-all-digits` (12.6.1 step 5 refuses it)
-and `invalid/v-format`, which keeps its `elsa-tree/3` and gains the `/9` `$schema`. After: 62 files
-say `elsa-tree/9`, 62 name `elsa-tree-9.json`, none names `elsa-tree/8` or `elsa-tree-8.json`, and
-`git diff` changes 124 lines, 62 `format` and 62 `$schema`, and nothing else in any file but the
-example Tree's description, whose sentence names the format and says `elsa-tree/9`, changed by hand
-as at #179, #221, #232 and #264. In a commit of its own the example Tree then gains two tags, `AI
-Act` / `AI-verordening` and `Agrifood`, so that section 8 exercises every element of the format;
-section 8's block is that file (`tests/migrate-tree.test.ts`). No other Tree or fixture is tagged:
-the browser spec of the filter tags copies of its own (`tests/browser/tags.spec.ts`).
+**[#274] Done (2026-11-22), counted on `dev` at `f17b6a7`.** Before: 63 files under `trees/` and
+`tests/fixtures/` name a format, 62 of them `elsa-tree/8`, all but `invalid/v-format`
+(`elsa-tree/3`), and 62 name `/schemas/elsa-tree-8.json`, all but `invalid/v-schema`
+(`elsa-tree-3.json`). `npm run migrate` over the folders converted 58 files ("converted from
+elsa-tree/8 to elsa-tree/9"); the two Trees and the valid fixtures validate. Re-fitted by hand, the
+two strings edited in place with each defect kept, as at #221, #232 and #264:
+`broken/byte-order-mark`, `broken/duplicate-key` and `invalid/v-json` (step 1 refuses them),
+`broken/metadata-all-digits` (12.6.1 step 5 refuses it) and `invalid/v-format`, which keeps its
+`elsa-tree/3` and gains the `/9` `$schema`. After: none says `elsa-tree/8` or names
+`elsa-tree-8.json`; `git diff` changes 62 `format` and 62 `$schema` lines and nothing else in any
+file but the example Tree's description, whose sentence about the format says `elsa-tree/9`, by hand
+as at #179, #221, #232 and #264, in section 8's block too. Then, in a commit of its own,
+`tests/fixtures/background-image/`: `full-node` with a Theme of the one new part, a JPEG at `"0.3"`;
+with it 63 files say `elsa-tree/9`. The example Tree carries no picture (its `NOTES.md` says why).
+**[#273]** #273 had converted the same 62 files on its branch, byte for byte as #274 did, so the
+merge kept #274's; in a commit of its own the example Tree then gains two tags, `AI Act` /
+`AI-verordening` and `Agrifood`, so that section 8 exercises every element of the format; section
+8's block is that file (`tests/migrate-tree.test.ts`). No other Tree or fixture is tagged: the
+browser spec of the filter tags copies of its own (`tests/browser/tags.spec.ts`).
 
 #### 12.11.4 What it does for a deployment's data directory
 
-`openStore` (`docs/specs/application.md` 17.5) runs 12.11.1 on every `tree.json` and `draft.json`
-under `trees/` whose `format` is `elsa-tree/8` -- after 12.7.4 to 12.10.4, so an older file takes
-each in turn -- **before it opens any Tree**, and logs one line per file it converted:
-`Converted Tree "<id>" <file> from elsa-tree/8 to elsa-tree/9`. The write rules are 12.7.4's: a
-converted `draft.json` is written when it passes the draft schema and every blocking rule, a
-`tree.json` when it passes in full, each replaced atomically; `meta.json` is not touched; a file that
-would not pass is left, and its Tree is refused or uneditable with the violations. `importTree`
-converts an `/8` folder's `tree.json` in its staging copy, never in the source folder. On the live
-server this is the write of core document 10.45, OPEN for the owner, as 12.10.4's is
-(`ADR-273-tags.md` decision 6).
+12.10.4's rules, after it: `openStore` runs 12.11.1 on every `tree.json` and `draft.json` whose
+`format` is `elsa-tree/8` before it opens any Tree, and logs `Converted Tree "<id>" <file> from
+elsa-tree/8 to elsa-tree/9` per file; an older file takes 12.7.4 to 12.10.4 first, a line each.
+`importTree` converts in its staging copy. On the live server this is again the one rewrite a
+format change makes, after the pre-deploy copy of the data directory (core document 9, `[#247]`).
+**[#273]** It is the write core document 10.45 asks the owner about, still OPEN, as 12.10.4's is
+(`ADR-273-tags.md` decision 6): one write for the background picture and the tags together.

@@ -37,7 +37,7 @@ const MANIFEST_FIELD = /^(?:(title|description)\.([^.[\]]+)|root)$/
  * whole or removed, never a key at a time, because each part is complete or absent and a
  * write that left half a palette would be refused by the schema anyway.
  */
-const THEME_PART = /^theme\.(logo|fonts|colours)$/
+const THEME_PART = /^theme\.(logo|fonts|colours|background-image)$/
 
 /**
  * A Node's fields (22.2), each with the key path's segments as capture groups. A language

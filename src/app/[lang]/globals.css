@@ -153,6 +153,23 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
+/*
+ * [#274] The Theme's background picture (13.1, tree-format.md 4.3.4): one layer the size of the
+ * window, fixed, over the page's `background` colour -- which the body hands to the canvas -- and
+ * under everything else, the picture covering it from its centre, at the Theme's opacity, so the
+ * colour shows through at the rest. Out of the grid, since it is fixed, and never a target. A
+ * Theme without a picture writes `none` and 0: nothing drawn.
+ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--elsa-background-image, none) center / cover no-repeat;
+  opacity: var(--elsa-background-image-opacity, 0);
+}
+
 main {
   min-height: 0;
   padding: 0 var(--page-inset);
@@ -5582,6 +5599,37 @@ fieldset:disabled .admin-submit {
   border: 1px solid var(--rule);
   border-radius: 4px;
   background: var(--elsa-background);
+}
+
+/* [#274] The background picture as a thumbnail, its shape kept, no taller than the logo's room twice. */
+.theme-background-image {
+  max-width: 100%;
+  max-height: 88px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+
+/* [#274] The opacity's label, its slider taking the room left, and the percent it is at. */
+.theme-opacity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: stretch;
+  font-size: var(--small);
+  line-height: var(--small-line);
+}
+
+.theme-opacity input {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--elsa-accent-secondary);
+}
+
+.theme-opacity output {
+  flex: none;
+  min-width: 4ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 /* A file input dressed as a link: the label is the control, the input itself is invisible. */

@@ -137,8 +137,8 @@ test("without a public base URL the canonical link is the request's own origin",
  * `/llms.txt`, **[#179]** and `/schemas/elsa-tree-5.json`, the schema every served Tree named
  * then, beside the `/4` one, which stays served (15.1); **[#221]** `/schemas/elsa-tree-6.json`,
  * beside both; **[#232]** `/schemas/elsa-tree-7.json`, beside the three; **[#264]**
- * `/schemas/elsa-tree-8.json`, beside the four; **[#273]** `/schemas/elsa-tree-9.json`, the one every
- * Tree names now, beside the five.
+ * `/schemas/elsa-tree-8.json`, beside the four; **[#274]** `/schemas/elsa-tree-9.json`, the one
+ * every Tree names now, beside the five.
  */
 const DOCUMENT_ROUTES = ['/robots.txt', '/sitemap.xml', '/llms.txt', DATASET, SCHEMA, '/schemas/elsa-tree-8.json', '/schemas/elsa-tree-7.json', '/schemas/elsa-tree-6.json', '/schemas/elsa-tree-5.json', '/schemas/elsa-tree-4.json']
 
@@ -258,7 +258,7 @@ test.describe('the dataset endpoint (15)', () => {
     expect((await request.get('/schemas/../package.json')).status()).not.toBe(200)
   })
 
-  test('**[#179]** the published set is the schemas, each its file byte for byte: **[#273]** /9, which every Tree names, and /8, /7, /6, /5 and /4, kept (15.1)', async ({ request }) => {
+  test('**[#179]** the published set is the schemas, each its file byte for byte: **[#274]** /9, which every Tree names, and /8, /7, /6, /5 and /4, kept (15.1)', async ({ request }) => {
     for (const name of ['elsa-tree-9.json', 'elsa-tree-8.json', 'elsa-tree-7.json', 'elsa-tree-6.json', 'elsa-tree-5.json', 'elsa-tree-4.json']) {
       const served = await request.get(`/schemas/${name}`)
       expect(served.status(), name).toBe(200)
