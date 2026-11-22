@@ -6,7 +6,9 @@
  * on hover; the ninth `mark` is disabled; a 201-character text is stored and shown over the
  * limit at the field with V-LENGTH, and Publish is refused with the same rule id; `unmark` in
  * one language leaves the explainer and the Sheet says `notMarkedIn`, and in the last removes
- * it, so the published `tree.json` has no `explainers` key on the Node.
+ * it, so the published `tree.json` has no `explainers` key on the Node. **[#271]** A mark deleted
+ * by hand leaves its explainer (32.4); the to-do names each of its empty fields apart and offers
+ * `remove` on its lines, which removes it and its lines (33.3).
  *
  * Against a data directory of its own holding `tests/fixtures/explainers` as the hidden Tree
  * `marking`, whose root has eight explainers and whose `no-end` has none. The tests run in
@@ -24,6 +26,8 @@ import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-141') : path.join(RESULTS, 'shots')
+/** **[#271]** Its two screenshots, in a folder of their own, so that issue-141's are not rewritten with them. */
+const SHOTS_271 = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-271') : path.join(RESULTS, 'shots')
 const PORT = BASE_PORT + 105
 
 const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
@@ -40,6 +44,7 @@ test.describe.configure({ mode: 'serial' })
 
 test.beforeAll(async () => {
   await mkdir(SHOTS, { recursive: true })
+  await mkdir(SHOTS_271, { recursive: true })
   dir = await buildDataDir({
     trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'explainers'), id: 'marking', hidden: true, creator: ANNA.email }],
     accounts: [ANNA],
@@ -99,9 +104,9 @@ async function saved(page: Page): Promise<void> {
   await expect(status(page)).toContainText(/^(Saved|Opgeslagen) /)
 }
 
-async function shoot(page: Page, name: string): Promise<void> {
+async function shoot(page: Page, name: string, folder = SHOTS): Promise<void> {
   await page.evaluate(() => document.fonts.ready)
-  await page.screenshot({ path: path.join(SHOTS, `${name}.png`) })
+  await page.screenshot({ path: path.join(folder, `${name}.png`) })
 }
 
 test('marking "provider" writes the mark and an explainer; both languages are written in the Sheet; published, the public page shows the panel on hover', async ({ browser }) => {
@@ -268,4 +273,35 @@ test('**[#159]** keys typed right after mark, before the store has answered add-
   await page.keyboard.press('Escape')
   await saved(page)
   expect((await nodeOf(page, cookie, 'no-end')).explainers).toEqual([{ id: 'walk', term: { en: 'walk', nl: '' }, text: { en: EN_TEXT, nl: '' } }])
+})
+
+test('**[#271]** a mark deleted by hand leaves its explainer; the to-do names each empty field apart and offers remove, which takes the explainer and its lines away', async ({ browser }) => {
+  const { page, cookie } = await loggedIn(browser)
+  // #159's test left `walk` marked in English only, its Dutch term and text empty: the owner's Node.
+  await page.goto(`${origin}/admin/trees/marking/start/no-end`)
+  await field(page, 'no-end', 'description.en').locator('.editor-rendered').click({ position: { x: 2, y: 2 } })
+  await field(page, 'no-end', 'description.en').locator('textarea').fill('The walk ends here.')
+  await page.keyboard.press('Tab')
+  await saved(page)
+  await expect(field(page, 'no-end', 'description.en').locator('.term')).toHaveCount(0)
+  // 32.4: deleting the syntax by hand does nothing to the explainer.
+  expect((await nodeOf(page, cookie, 'no-end')).explainers.map((explainer) => explainer.id)).toEqual(['walk'])
+
+  await page.locator('.todo-sheet > .sheet-open').click()
+  // no-end's lines, by the title the line links with.
+  const lines = page.locator('.todo-sheet .todo-list li').filter({ has: page.locator('a.todo-where', { hasText: 'It does not fit' }) })
+  const unmarked = lines.filter({ hasText: '"walk" is not marked' })
+  await expect(unmarked).toHaveCount(2)
+  await expect(lines.filter({ hasText: 'Word or phrase 1 (nl): missing or empty text' })).toHaveCount(1)
+  await expect(lines.filter({ hasText: 'What it means 1 (nl): missing or empty text' })).toHaveCount(1)
+  const said = await lines.allTextContents()
+  expect(new Set(said).size).toBe(said.length)
+  await shoot(page, 'todo-before-remove', SHOTS_271)
+
+  await unmarked.first().getByRole('button', { name: 'remove' }).click()
+  await expect(lines.filter({ hasText: 'walk' })).toHaveCount(0)
+  await expect(lines.filter({ hasText: /Word or phrase|What it means/ })).toHaveCount(0)
+  await expect.poll(async () => (await nodeOf(page, cookie, 'no-end')).explainers).toEqual([])
+  expect((await nodeOf(page, cookie, 'no-end')).description.en).toBe('The walk ends here.')
+  await shoot(page, 'todo-after-remove', SHOTS_271)
 })
