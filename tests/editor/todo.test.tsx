@@ -221,8 +221,8 @@ test('a refused publish points at the bubble, which opens on the refusal’s lis
 function ownersLines(): Violation[] {
   const text = (en: string, nl: string): Record<string, string> => ({ en, nl })
   const tree: Mapping = {
-    $schema: '/schemas/elsa-tree-8.json',
-    format: 'elsa-tree/8',
+    $schema: '/schemas/elsa-tree-9.json',
+    format: 'elsa-tree/9',
     languages: ['en', 'nl'],
     root: 'start',
     title: text('A Tree', 'Een boom'),
