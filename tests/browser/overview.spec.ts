@@ -287,6 +287,36 @@ test("**[#272]** the bar stands one column wide at the grid's inset above the bo
   await expect(field).toBeInViewport({ ratio: 1 })
   await expect(page.locator('a.tile').last()).toBeInViewport({ ratio: 1 })
   expect(await page.evaluate(() => document.scrollingElement!.scrollTop)).toBe(0)
+
+  // Below 360 wide the box's inset is 16, and the field's with it, still 16 under the chrome bar,
+  // which is 36 tall below 480 (10.5).
+  await page.setViewportSize({ width: 320, height: 640 })
+  const [narrow, narrowFirst, bar] = await Promise.all([
+    field.boundingBox(),
+    page.locator('a.tile').first().boundingBox(),
+    page.locator('header.page-chrome').boundingBox(),
+  ])
+  expect([narrow!.x, narrow!.y, narrowFirst!.x]).toEqual([16, bar!.y + bar!.height + 16, 16])
+})
+
+test('**[#272]** the page hydrates the bar with nothing logged, with `q` given or not', async ({ page }) => {
+  const logged: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error' || message.type() === 'warning') logged.push(message.text())
+  })
+  page.on('pageerror', (error) => logged.push(error.message))
+
+  await page.goto(`${showcase}/?q=fixture`)
+  await page.waitForLoadState('networkidle')
+  expect(await tileIds(page)).toEqual(FIXTURES)
+  // Hydrated: the field now narrows in the page.
+  await page.getByRole('searchbox').fill('overlay')
+  expect(await tileIds(page)).toEqual(['overlay'])
+  await page.goto(`${showcase}/?lang=nl`)
+  await page.waitForLoadState('networkidle')
+  await page.getByRole('searchbox').fill('cycle')
+  expect(await tileIds(page)).toEqual(['cycle'])
+  expect(logged).toEqual([])
 })
 
 test('**[#272]** no bar where nothing is published', async ({ page }) => {
