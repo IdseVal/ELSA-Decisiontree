@@ -1448,8 +1448,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
 
 ```json
 {
-  "$schema": "/schemas/elsa-tree-8.json",
-  "format": "elsa-tree/8",
+  "$schema": "/schemas/elsa-tree-9.json",
+  "format": "elsa-tree/9",
   "languages": [
     "en",
     "nl"
@@ -1460,8 +1460,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
     "nl": "Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)"
   },
   "description": {
-    "en": "A small example Tree that exercises every element of the `elsa-tree/8` format.\nIts legal content is simplified and not to be relied on.",
-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/8`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+    "en": "A small example Tree that exercises every element of the `elsa-tree/9` format.\nIts legal content is simplified and not to be relied on.",
+    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/9`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
   },
   "metadata": {
     "version": "2.0",
