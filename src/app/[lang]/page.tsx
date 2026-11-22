@@ -4,10 +4,12 @@ import { chrome, chromeLanguage } from '../../chrome.ts'
 import { Disclaimer } from '../../components/Disclaimer.tsx'
 import { ChromeLanguageSwitch } from '../../components/LanguageSwitch.tsx'
 import { Overview } from '../../components/Overview.tsx'
+import { TagFilter, TagScope } from '../../components/TagFilter.tsx'
 import { ThemeStyle } from '../../components/ThemeStyle.tsx'
 import { ToEditor } from '../../components/ToEditor.tsx'
 import { baseUrl, store } from '../../config.ts'
-import { overviewAddressSet, overviewHref } from '../../url.ts'
+import { chosenTags, TAG_PARAMETER, tagOptions, treeTagKeys } from '../../tags.ts'
+import { contentLanguage, overviewAddressSet, overviewHref } from '../../url.ts'
 
 /**
  * Rendered per request: which Trees are published is the store's, and changes without a
@@ -20,28 +22,48 @@ export const dynamic = 'force-dynamic'
  * served Tree in id order, in the chrome language the page asks for, in the default Theme.
  * It no longer redirects to a Tree (18.1). **[#197]** Each tile names its Tree's Authors (39.5).
  * **[#204]** "Editor" at the right end of the bar leads to `/admin` (24.3).
+ * **[#273]** The bar's `tags` pill lists every tag of the served Trees -- a hidden Tree's are in no
+ * list, since it serves nothing -- and a choice in the query's `tag` narrows the tiles (26.5).
  */
-export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
+export default async function Home({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ lang: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
   const lang = chromeLanguage((await params).lang)
   const served = await store()
   const trees = served.publishedIds().map((id) => served.published(id)!)
+  const tagged = trees.map((tree) => ({ tree, tags: tree.manifest.tags, shown: contentLanguage(tree, lang) }))
+  const options = tagOptions(tagged, lang)
+  const requested = (await searchParams)[TAG_PARAMETER] ?? []
+  const ui = chrome(lang)
   return (
-    <>
+    <TagScope initial={chosenTags(typeof requested === 'string' ? [requested] : requested, options)}>
       <ThemeStyle tree={null} />
       <header className="page-chrome">
         <h1 className="tree-title site-title" id="site-title">
-          {chrome(lang).siteTitle}
+          {ui.siteTitle}
         </h1>
         <div className="page-controls">
+          {options.length > 0 && (
+            <TagFilter
+              options={options}
+              words={{ tags: ui.tags, filterByTag: ui.filterByTag, applyTags: ui.applyTags, showAllTrees: ui.showAllTrees }}
+              lang={overviewHref(lang) === '/' ? null : lang}
+              allHref={overviewHref(lang)}
+            />
+          )}
           <ChromeLanguageSwitch lang={lang} href={overviewHref} />
           <ToEditor lang={lang} />
         </div>
       </header>
       <main className="overview-page">
-        <Overview tiles={trees.map((tree) => ({ tree, authors: served.authors(tree.id) }))} lang={lang} />
+        <Overview tiles={tagged.map(({ tree, tags, shown }) => ({ tree, authors: served.authors(tree.id), tags: treeTagKeys(tags, shown) }))} lang={lang} />
       </main>
       <Disclaimer lang={lang} />
-    </>
+    </TagScope>
   )
 }
 

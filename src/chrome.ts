@@ -378,6 +378,26 @@ export interface Chrome {
    */
   languageTag: string
   /**
+   * **[#273]** A Tree's tags (application.md 26.5, 33.5): the name of the overview's filter pill
+   * and of the field in the top panel's "This Tree".
+   */
+  tags: string
+  /** **[#273]** The filter's list, named for a screen reader and over its check boxes. */
+  filterByTag: string
+  /** **[#273]** The filter's button without script, which sends the ticks as a plain form. */
+  applyTags: string
+  /** **[#273]** The filter's way back to every tile. */
+  showAllTrees: string
+  /** **[#273]** The top panel's tags field: what it is for, under its hint mark. */
+  tagsHint: string
+  /** **[#273]** The new tag's field, its placeholder while empty, and its button. */
+  placeholderTag: string
+  addTag: string
+  /** **[#273]** A tag's cross, followed by the tag. */
+  removeTag: string
+  /** **[#273]** A tag refused because the Tree has it already (V-TAGS). */
+  tagTaken: string
+  /**
    * **[#197]** The mention of a Tree's Authors (39.4, 39.5): "By" and the names in the order they
    * joined it, a comma between all but the last two, which the language's own "and" joins. A
    * function of the names, as `up` is of a title (3.2).
@@ -630,6 +650,15 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     fontFileHint: 'The weight is how bold this file draws: 400 regular, 700 bold, or a range such as 400 700 for a variable font. Tick Italic when the file is the slanted face.',
     endingText: 'Text of the ending',
     languageTag: 'Language tag',
+    tags: 'Tags',
+    filterByTag: 'Show the trees tagged',
+    applyTags: 'Show',
+    showAllTrees: 'Show all trees',
+    tagsHint: 'Words a visitor can choose on the overview to find this tree among the others, such as a topic or a law: at most 8, each in every language of the tree.',
+    placeholderTag: 'New tag',
+    addTag: 'Add',
+    removeTag: 'Remove tag',
+    tagTaken: 'This tree has that tag already.',
     byAuthors: (names) => `By ${listed(names, 'and')}`,
     nameShownPublicly: 'Shown on the public pages of the trees you create or collaborate on.',
   },
@@ -870,6 +899,15 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     fontFileHint: 'Het gewicht is hoe vet dit bestand tekent: 400 normaal, 700 vet, of een bereik zoals 400 700 voor een variabel lettertype. Vink Cursief aan als het bestand de schuine letter is.',
     endingText: 'Tekst van het einde',
     languageTag: 'Taalcode',
+    tags: 'Labels',
+    filterByTag: 'Toon de bomen met het label',
+    applyTags: 'Toon',
+    showAllTrees: 'Toon alle bomen',
+    tagsHint: 'Woorden die een bezoeker op het overzicht kan kiezen om deze boom tussen de andere te vinden, zoals een onderwerp of een wet: hoogstens 8, elk in elke taal van de boom.',
+    placeholderTag: 'Nieuw label',
+    addTag: 'Toevoegen',
+    removeTag: 'Label verwijderen',
+    tagTaken: 'Deze boom heeft dat label al.',
     byAuthors: (names) => `Door ${listed(names, 'en')}`,
     nameShownPublicly: "Wordt getoond op de openbare pagina's van de bomen die u maakt of waaraan u meewerkt.",
   },

@@ -309,6 +309,7 @@ a {
 .language,
 .share,
 .to-editor,
+.tag-filter-button,
 .admin-chrome:not(.editor-chrome) .admin-link {
   display: inline-block;
   padding: 3px 12px;
@@ -328,6 +329,8 @@ a {
 a.language:hover,
 .share:hover,
 .to-editor:hover,
+.tag-filter-button:hover,
+.tag-filter[open] > .tag-filter-button,
 .admin-chrome:not(.editor-chrome) .admin-link:hover {
   color: var(--elsa-text);
   border-color: var(--accent-secondary-read);
@@ -342,6 +345,7 @@ a.language:hover,
 
 .share,
 .to-editor,
+.tag-filter-button,
 .admin-chrome:not(.editor-chrome) .admin-link {
   border-color: var(--rule);
 }
@@ -1916,6 +1920,112 @@ a.language:hover,
   color: var(--elsa-text-muted);
 }
 
+/*
+ * **[#273]** The overview's tag filter (26.5): a pill of the bar, in the share button's look, whose
+ * list drops under the bar's right end over the grid -- not a row above the box, which would take
+ * the box's third row of tiles at 1280 x 640 (26.2). The list scrolls inside its own bounds when
+ * the tags outnumber the window, between the bar and the disclaimer; it is shut until asked for.
+ */
+.tag-filter {
+  position: relative;
+}
+
+.tag-filter-button {
+  list-style: none;
+}
+
+.tag-filter-button::-webkit-details-marker {
+  display: none;
+}
+
+/* How many tags are ticked, after the word, in the colours of the + tile's `accent-secondary`. */
+.tag-filter-count {
+  display: inline-block;
+  min-width: 16px;
+  margin-left: 6px;
+  padding: 0 4px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+  color: var(--elsa-on-accent-secondary);
+  background: var(--elsa-accent-secondary);
+}
+
+.tag-filter-panel {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  width: max-content;
+  min-width: 200px;
+  max-width: min(320px, calc(100vw - 16px));
+  max-height: calc(100dvh - var(--chrome-row) - var(--disclaimer-row) - 16px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--elsa-surface);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--elsa-text) 14%, transparent);
+}
+
+.tag-filter-panel fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.tag-filter-panel legend {
+  margin-bottom: 8px;
+  padding: 0;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  color: var(--elsa-text-muted);
+}
+
+.tag-filter-panel ul {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag-filter-panel label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  font-size: 14px;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.tag-filter-panel input[type='checkbox'] {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--elsa-accent-secondary);
+}
+
+.tag-filter-actions:has(.tag-filter-all, .tag-filter-apply) {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule-soft);
+}
+
+.tag-filter-all {
+  font-size: var(--small);
+  line-height: var(--small-line);
+  color: var(--elsa-text);
+}
+
 /* The narrowest phones: a 280-pixel column still fits in the box, padded 16 instead of 24. */
 @media (max-width: 359px) {
   .overview {
@@ -3076,6 +3186,7 @@ fieldset:disabled .admin-submit {
   .language,
   .share,
   .to-editor,
+  .tag-filter-button,
   .admin-chrome:not(.editor-chrome) .admin-link {
     padding: 3px 5px;
     font-size: 11px;
