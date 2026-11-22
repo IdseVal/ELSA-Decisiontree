@@ -404,12 +404,13 @@ function referencedThemeFiles(theme: Theme | undefined): Set<string> {
 function toManifest(raw: Mapping): Manifest {
   const languages = raw.languages as string[]
   return {
-    format: 'elsa-tree/8',
+    format: 'elsa-tree/9',
     languages,
     defaultLanguage: languages[0]!,
     root: raw.root as string,
     title: raw.title as LocalisedText,
     description: raw.description as LocalisedText | undefined,
+    tags: raw.tags as LocalisedText[] | undefined,
     metadata: raw.metadata as Manifest['metadata'],
     theme: raw.theme as Theme | undefined,
   }

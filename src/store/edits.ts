@@ -65,8 +65,8 @@ const LOCALISED = new Set(['title', 'description', 'label', 'term', 'text'])
  */
 export function newDraft(languages: string[], title: Mapping): Mapping {
   return {
-    $schema: '/schemas/elsa-tree-8.json',
-    format: 'elsa-tree/8',
+    $schema: '/schemas/elsa-tree-9.json',
+    format: 'elsa-tree/9',
     languages,
     root: 'start',
     title: localisedInput(title, languages, 'manifest', 'title'),
