@@ -89,19 +89,21 @@ function webp(bytes: Uint8Array, view: DataView, ascii: (start: number, length: 
   return width > 0 && height > 0 ? { extension: 'webp', width, height } : null
 }
 
-/** **[#144]** What the first bytes say a theme file is: a logo (PNG or WebP) or a font (woff2). */
-export type ThemeKind = 'png' | 'webp' | 'woff2'
+/** **[#144]** What the first bytes say a theme file is: a logo (PNG or WebP) or a font (woff2); **[#274]** or a background picture (PNG, JPEG or WebP). */
+export type ThemeKind = 'png' | 'jpg' | 'webp' | 'woff2'
 
 /**
  * **[#144]** The theme file `bytes` hold (33.8), or null for anything else. A logo is PNG or
  * WebP, sniffed as a picture is; SVG is refused here as it is for pictures (22.6), though
  * tree-format.md 3.6 allows it in a hand-made Tree, because the editor has no way to show a
  * creator that a file is only a picture. `.ico` is the tab icon's, which the panel does not
- * offer. A font is WOFF2, whose file begins with the signature `wOF2`.
+ * offer. A font is WOFF2, whose file begins with the signature `wOF2`. **[#274]** A JPEG is a
+ * background picture's (tree-format.md 4.3.4): the logo's grammar still refuses it, so a JPEG
+ * named as a logo is the 422 of the part's write.
  */
 export function sniffTheme(bytes: Uint8Array): ThemeKind | null {
   const picture = sniff(bytes)?.extension
-  if (picture === 'png' || picture === 'webp') return picture
+  if (picture === 'png' || picture === 'jpg' || picture === 'webp') return picture
   if (bytes.length >= 48 && String.fromCharCode(...bytes.subarray(0, 4)) === 'wOF2') return 'woff2'
   return null
 }

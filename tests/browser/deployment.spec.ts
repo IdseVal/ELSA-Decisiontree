@@ -30,7 +30,7 @@ import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 const here = path.dirname(fileURLToPath(import.meta.url))
 const START = '/ai-act-example/start'
 const DATASET = '/ai-act-example/tree.json'
-const SCHEMA = '/schemas/elsa-tree-8.json'
+const SCHEMA = '/schemas/elsa-tree-9.json'
 
 /**
  * Every host the page asked for something from, and every Set-Cookie it was answered.
@@ -137,9 +137,10 @@ test("without a public base URL the canonical link is the request's own origin",
  * `/llms.txt`, **[#179]** and `/schemas/elsa-tree-5.json`, the schema every served Tree named
  * then, beside the `/4` one, which stays served (15.1); **[#221]** `/schemas/elsa-tree-6.json`,
  * beside both; **[#232]** `/schemas/elsa-tree-7.json`, beside the three; **[#264]**
- * `/schemas/elsa-tree-8.json`, the one every Tree names now, beside the four.
+ * `/schemas/elsa-tree-8.json`, beside the four; **[#274]** `/schemas/elsa-tree-9.json`, the one
+ * every Tree names now, beside the five.
  */
-const DOCUMENT_ROUTES = ['/robots.txt', '/sitemap.xml', '/llms.txt', DATASET, SCHEMA, '/schemas/elsa-tree-7.json', '/schemas/elsa-tree-6.json', '/schemas/elsa-tree-5.json', '/schemas/elsa-tree-4.json']
+const DOCUMENT_ROUTES = ['/robots.txt', '/sitemap.xml', '/llms.txt', DATASET, SCHEMA, '/schemas/elsa-tree-8.json', '/schemas/elsa-tree-7.json', '/schemas/elsa-tree-6.json', '/schemas/elsa-tree-5.json', '/schemas/elsa-tree-4.json']
 
 test('the documents of sections 15 and 16 set no cookie and leave the jar empty', async ({ page, context }) => {
   const seen = watch(page)
@@ -194,7 +195,7 @@ test.describe('the dataset endpoint (15)', () => {
     // The licence travels with the bytes. The Tree is content and the schema is a file of
     // the repository, so they carry different ones (core document 8).
     expect(dataset.headers()['link']).toBe(
-      '<https://creativecommons.org/licenses/by/4.0/>; rel="license", </schemas/elsa-tree-8.json>; rel="describedby"',
+      '<https://creativecommons.org/licenses/by/4.0/>; rel="license", </schemas/elsa-tree-9.json>; rel="describedby"',
     )
     expect(schema.headers()['link']).toBe('<https://opensource.org/license/mit>; rel="license"')
   })
@@ -211,7 +212,7 @@ test.describe('the dataset endpoint (15)', () => {
 
     expect(downloaded.equals(inStore)).toBe(true)
     expect(downloaded.equals(inRepository)).toBe(true)
-    expect(JSON.parse(downloaded.toString('utf8')).format).toBe('elsa-tree/8')
+    expect(JSON.parse(downloaded.toString('utf8')).format).toBe('elsa-tree/9')
   })
 
   test('the ETag answers 304, so a crawler that re-fetches downloads nothing', async ({ request }) => {
@@ -257,8 +258,8 @@ test.describe('the dataset endpoint (15)', () => {
     expect((await request.get('/schemas/../package.json')).status()).not.toBe(200)
   })
 
-  test('**[#179]** the published set is the schemas, each its file byte for byte: **[#264]** /8, which every Tree names, and /7, /6, /5 and /4, kept (15.1)', async ({ request }) => {
-    for (const name of ['elsa-tree-8.json', 'elsa-tree-7.json', 'elsa-tree-6.json', 'elsa-tree-5.json', 'elsa-tree-4.json']) {
+  test('**[#179]** the published set is the schemas, each its file byte for byte: **[#274]** /9, which every Tree names, and /8, /7, /6, /5 and /4, kept (15.1)', async ({ request }) => {
+    for (const name of ['elsa-tree-9.json', 'elsa-tree-8.json', 'elsa-tree-7.json', 'elsa-tree-6.json', 'elsa-tree-5.json', 'elsa-tree-4.json']) {
       const served = await request.get(`/schemas/${name}`)
       expect(served.status(), name).toBe(200)
       expect((await served.body()).equals(await readFile(path.join(here, '..', '..', 'schemas', name))), name).toBe(true)

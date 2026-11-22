@@ -52,7 +52,7 @@ describe('a Tree in two languages', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.id).toBe('ai-act-example')
-    expect(tree.manifest.format).toBe('elsa-tree/8')
+    expect(tree.manifest.format).toBe('elsa-tree/9')
     expect(tree.manifest.languages).toEqual(['en', 'nl'])
     expect(tree.manifest.defaultLanguage).toBe('en')
     expect(tree.manifest.root).toBe('start')
@@ -281,6 +281,24 @@ describe('the Theme the Tree carries', () => {
 
     expect(tree.themePath('logo.svg')).toBe(path.join(fixture('other-languages'), 'theme', 'logo.svg'))
     expect(tree.themePath('unused.svg')).toBeNull()
+  })
+
+  test('**[#274]** a background picture is a theme file the Theme names: themePath resolves it, and V-THEME refuses one theme/ lacks', async () => {
+    const tree = await openTree(fixture('background-image'))
+
+    expect(tree.manifest.theme).toEqual({ 'background-image': { file: 'field.jpg', opacity: '0.3' } })
+    expect(tree.themePath('field.jpg')).toBe(path.join(fixture('background-image'), 'theme', 'field.jpg'))
+
+    // Under the fixture's own name, as the folder name is the Tree's id (V-DIR).
+    const work = await mkdtemp(path.join(tmpdir(), 'elsa-picture-'))
+    const dir = path.join(work, 'background-image')
+    try {
+      await cp(fixture('background-image'), dir, { recursive: true })
+      await rm(path.join(dir, 'theme', 'field.jpg'))
+      expect(await violationsOf(dir)).toEqual([expect.objectContaining({ rule: 'V-THEME', keyPath: 'theme.background-image.file' })])
+    } finally {
+      await rm(work, { recursive: true, force: true })
+    }
   })
 
   test('a Tree without a Theme has none, and resolves no theme file', async () => {
@@ -757,7 +775,7 @@ describe('the Node index the sitemap reads (#118)', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.filePath).toBe(path.join(exampleTree, 'tree.json'))
-    expect(JSON.parse(await readFile(tree.filePath, 'utf8')).format).toBe('elsa-tree/8')
+    expect(JSON.parse(await readFile(tree.filePath, 'utf8')).format).toBe('elsa-tree/9')
   })
 })
 

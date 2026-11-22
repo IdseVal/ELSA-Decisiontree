@@ -392,7 +392,7 @@ async function isFile(file: string): Promise<boolean> {
 function referencedThemeFiles(theme: Theme | undefined): Set<string> {
   const files = new Set<string>()
   if (!theme) return files
-  for (const file of [theme.logo?.light, theme.logo?.dark, theme.logo?.icon]) {
+  for (const file of [theme.logo?.light, theme.logo?.dark, theme.logo?.icon, theme['background-image']?.file]) {
     if (file) files.add(file)
   }
   for (const family of theme.fonts ?? []) {
@@ -404,7 +404,7 @@ function referencedThemeFiles(theme: Theme | undefined): Set<string> {
 function toManifest(raw: Mapping): Manifest {
   const languages = raw.languages as string[]
   return {
-    format: 'elsa-tree/8',
+    format: 'elsa-tree/9',
     languages,
     defaultLanguage: languages[0]!,
     root: raw.root as string,

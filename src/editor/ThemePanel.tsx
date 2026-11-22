@@ -23,6 +23,11 @@
  * name and takes a licence from a second dropdown (37.4, 37.5). A name the other role uses for
  * other files is refused before anything is sent. And every item a creator without a design
  * background would not understand alone has an information hint (#174's `Hint`).
+ *
+ * **[#274]** And a background picture behind the whole page (tree-format.md 4.3.4): uploaded,
+ * replaced or removed, its opacity on a slider written 400 ms after the last change as a colour
+ * is. Text over the picture cannot be measured without reading its pixels, so the panel says so
+ * beside the slider rather than pretending to a ratio.
  */
 import { useRouter } from 'next/navigation'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
@@ -101,6 +106,13 @@ export type ThemeWords = Pick<
   | 'colourDangerHint'
   | 'contrastHint'
   | 'logoAltHint'
+  | 'backgroundImage'
+  | 'uploadBackgroundImage'
+  | 'replaceBackgroundImage'
+  | 'removeBackgroundImage'
+  | 'backgroundOpacity'
+  | 'backgroundImageHint'
+  | 'backgroundContrast'
   | 'fontBodyHint'
   | 'fontHeadingHint'
   | 'fontLicenceHint'
@@ -114,8 +126,24 @@ export interface LibraryChoice {
   entry: FontFamily
 }
 
-/** How long a colour waits for the next change before it is saved: a picker dragged is one write, not fifty. */
+/** How long a colour waits for the next change before it is saved: a picker dragged is one write, not fifty. **[#274]** The opacity slider waits as long. */
 const COLOUR_SETTLE_MS = 400
+
+/** **[#274]** How opaque a new background picture starts: low, so the text over it reads from the first moment. */
+const FIRST_OPACITY = '0.3'
+
+/**
+ * **[#274]** The opacity the format writes (4.3.4) for the slider's whole percent: `String` writes
+ * the shortest form, so 30 is `"0.3"`, 5 `"0.05"` and 100 `"1"`, the one way each is written.
+ */
+function opacityOf(percent: number): string {
+  return String(percent / 100)
+}
+
+/** **[#274]** The slider's whole percent for an opacity the format wrote. */
+function percentOf(opacity: string): number {
+  return Math.round(Number(opacity) * 100)
+}
 
 /** The seven roles in the format's order (4.3.3), each with the word that says what it paints, and **[#180]** its hint. */
 const ROLES: readonly [ColourRole, keyof ThemeWords, keyof ThemeWords][] = [
@@ -161,9 +189,17 @@ export function ThemePanel({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const settle = useRef<ReturnType<typeof setTimeout> | null>(null)
+  /** **[#274]** The opacity's own wait, so a colour and the opacity changed together are two writes, neither lost. */
+  const settleOpacity = useRef<ReturnType<typeof setTimeout> | null>(null)
   const disabled = busy || readOnly
 
-  useEffect(() => () => clearTimeout(settle.current ?? undefined), [])
+  useEffect(
+    () => () => {
+      clearTimeout(settle.current ?? undefined)
+      clearTimeout(settleOpacity.current ?? undefined)
+    },
+    [],
+  )
 
   /** What a refused request is told: the rules it broke, or the upload's reason, or the network. */
   const refusal = (answer: Typed<unknown>): string => {
@@ -185,8 +221,8 @@ export function ThemePanel({
         return false
       }
       const written = answer.body as WriteResponse
-      // A colour still settling is newer than the answer: the answer must not paint it back.
-      if (!settle.current) setTheme(written.manifest?.theme ?? {})
+      // A colour or **[#274]** an opacity still settling is newer than the answer: the answer must not paint it back.
+      if (!settle.current && !settleOpacity.current) setTheme(written.manifest?.theme ?? {})
       setTree(written.tree)
       router.refresh()
       return true
@@ -217,6 +253,11 @@ export function ThemePanel({
   const uploadLogo = async (file: File | undefined): Promise<void> => {
     const light = (await upload(file))?.file
     if (!light) return
+    // **[#274]** The upload takes a JPEG for a background picture; a logo is PNG or WebP still (3.6).
+    if (light.endsWith('.jpg')) {
+      setError(words.themeFileRefused)
+      return
+    }
     // A new logo's alternative text is still to write in every language: the to-do list says so (19.2).
     const next: Logo = logo ? { ...logo, light } : { light, alt: Object.fromEntries(languages.map((language) => [language, ''])) }
     await save('logo', next)
@@ -239,6 +280,33 @@ export function ThemePanel({
     clearTimeout(settle.current ?? undefined)
     settle.current = null
     return save('colours', null)
+  }
+
+  const background = theme['background-image']
+  // An opacity still settling would otherwise land after a replace or a removal and write the old part back.
+  const settledOpacity = (): void => {
+    clearTimeout(settleOpacity.current ?? undefined)
+    settleOpacity.current = null
+  }
+  const uploadBackground = async (file: File | undefined): Promise<void> => {
+    const uploaded = (await upload(file))?.file
+    if (!uploaded) return
+    settledOpacity()
+    await save('background-image', { file: uploaded, opacity: background?.opacity ?? FIRST_OPACITY })
+  }
+  const changeOpacity = (percent: number): void => {
+    if (!background) return
+    const next = { ...background, opacity: opacityOf(percent) }
+    setTheme((held) => ({ ...held, 'background-image': next }))
+    clearTimeout(settleOpacity.current ?? undefined)
+    settleOpacity.current = setTimeout(() => {
+      settleOpacity.current = null
+      void save('background-image', next)
+    }, COLOUR_SETTLE_MS)
+  }
+  const removeBackground = (): Promise<boolean> => {
+    settledOpacity()
+    return save('background-image', null)
   }
 
   const families = theme.fonts ?? []
@@ -288,6 +356,45 @@ export function ThemePanel({
           <button type="button" className="admin-submit" disabled={disabled} onClick={() => save('colours', defaults)}>
             {words.chooseColours}
           </button>
+        )}
+      </div>
+
+      <div className="theme-part" data-part="background-image">
+        <div className="theme-font-head">
+          <h5>{words.backgroundImage}</h5>
+          <Hint id="theme-background-image-hint" text={words.backgroundImageHint} name={words.hint} />
+        </div>
+        {background ? (
+          <>
+            {/* Decorative here as on the page: the picture says nothing the Tree needs said. */}
+            <img className="theme-background-image" src={`${filesHref}${encodeURIComponent(background.file)}`} alt="" />
+            <div className="theme-opacity">
+              <label htmlFor="theme-background-opacity">{words.backgroundOpacity}</label>
+              <input
+                type="range"
+                id="theme-background-opacity"
+                min={0}
+                max={100}
+                step={1}
+                value={percentOf(background.opacity)}
+                aria-valuetext={`${percentOf(background.opacity)} %`}
+                disabled={readOnly}
+                onChange={(event) => changeOpacity(event.currentTarget.valueAsNumber)}
+              />
+              <output htmlFor="theme-background-opacity">{`${percentOf(background.opacity)} %`}</output>
+            </div>
+            <p className="theme-contrast" role="status" data-background-contrast="">
+              {words.backgroundContrast}
+            </p>
+            <div className="panel-actions">
+              <FilePicker label={words.replaceBackgroundImage} accept="image/png,image/jpeg,image/webp" disabled={disabled} onFile={uploadBackground} />
+              <button type="button" className="admin-link" disabled={disabled} onClick={removeBackground}>
+                {words.removeBackgroundImage}
+              </button>
+            </div>
+          </>
+        ) : (
+          <FilePicker label={words.uploadBackgroundImage} accept="image/png,image/jpeg,image/webp" disabled={disabled} onFile={uploadBackground} />
         )}
       </div>
 

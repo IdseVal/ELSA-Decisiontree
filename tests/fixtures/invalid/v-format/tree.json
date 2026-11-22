@@ -1,5 +1,5 @@
 {
-  "$schema": "/schemas/elsa-tree-8.json",
+  "$schema": "/schemas/elsa-tree-9.json",
   "format": "elsa-tree/3",
   "languages": [
     "en"

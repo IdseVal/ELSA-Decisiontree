@@ -941,6 +941,12 @@ four headers as 5.3 and a `Content-Type` from its extension:
 | `.webp` | `image/webp` |
 | `.ico` | `image/x-icon` |
 | `.woff2` | `font/woff2` |
+| `.jpg`, `.jpeg` | `image/jpeg` (**[#274]**, a background picture, tree-format.md 4.3.4) |
+
+**[#274]** (2026-11-22) A background picture is a file the Theme names like a logo or a font, so
+`themePath` resolves it, the public route serves it only while the published Theme names it, and the
+admin route only while the draft's does; a picture replaced or removed stays in `theme/` unserved, as
+a replaced logo does (33.8, "Not done").
 
 **Path safety, the same rule as the image route and stated once here for both.** The
 name is a single path segment that must match the file-name grammar of
@@ -2767,6 +2773,24 @@ published Tree's paints a public page; the bar's logo is the variant for the dra
   `--elsa-font-body`, the `heading` family `--elsa-font-heading`; a Theme that gives
   only one role gets the documented fallback of `tree-format.md` 4.3.2.
 
+**[#274] Amended 2026-11-22: the background picture** (tree-format.md 4.3.4,
+`docs/adrs/ADR-274-background-image.md`). `theme.ts` writes two more properties in the `:root`
+block: `--elsa-background-image`, the picture's address as `url('<themeHref or adminThemeHref>')`,
+and `--elsa-background-image-opacity`, the Theme's opacity verbatim; for a Theme without the part, or
+one whose file name or opacity fails its grammar at the sink, `none` and `0`. Written either way:
+the editor adds an element per write that overrides the earlier ones declaration for declaration, so
+a picture removed must be overridden by a declaration or the older element goes on drawing it.
+`globals.css` draws one layer, the body's `::before`: fixed, the size of the window, `z-index: -1`,
+`pointer-events: none`, the picture `center / cover` at that opacity. The body hands its `background`
+colour to the canvas, so the layer lies over the colour and under everything else; the colour shows
+through at 1 minus the opacity. The chrome bar, the Bubble, the side bubbles and the disclaimer's band
+keep their own `surface` and `background` fills over it, so the text they hold is still on the colours
+the contrast rule measures; what stands straight on the page stands on the picture too. Fixed rather
+than scrolling, because the document never scrolls (10.6); covering, because a window of any shape
+must be filled without a seam. No colour and no address enters the stylesheet: both are the Theme's
+(13.5). In the editor the picture is the draft's, behind the panel, through the admin route, as the
+fonts are.
+
 ### 13.2 The logo
 
 In the chrome bar: `<img src="/theme/<light or dark>" alt="<logo.alt in the content
@@ -2820,6 +2844,7 @@ independent (`tree-format.md` 4.3), and each is taken whole or not at all:
 | `colours` only | Those seven colours; the default type stack; the title as text. |
 | `fonts` only | The default palette; those families for the roles they declare, the default stack for a role they do not. |
 | `logo` only | The default palette and type stack; that logo. |
+| **[#274]** `background-image` only | The default palette, its `background` under the picture; the default type stack; the title as text. |
 | a `colours` block missing a role | Cannot happen: the loader rejects it (`tree-format.md` 4.3.3 is a closed set). |
 
 The frontend never merges half a palette with half a default, because a palette is
@@ -5841,6 +5866,35 @@ around it."
   line, "Licence: SIL Open Font License 1.1". The store checks a library file's SHA-256 before
   it copies it: a release whose `fonts/` was altered answers 500 rather than writing other bytes
   under the listed name. A WOFF2 collection (`ttcf`) proposes no name.
+
+**[#274], built -- 2026-11-22.** The owner, on #274: "provide the option to have the background be
+an image, with an opacity slider so the creator of a decision-tree can set it to the desired opacity
+(in the editor mode)." A fourth part of the panel, after the colours, edits tree-format.md 4.3.4
+(`docs/adrs/ADR-274-background-image.md`).
+
+- **Upload, replace, remove.** "Upload a background picture" sends the file by the rules above --
+  `POST .../theme` now types a **JPEG** too, so a photograph needs no conversion; a logo is still
+  PNG or WebP, and a JPEG chosen at the logo's picker is refused in the panel with the refusal's
+  sentence, which names the picture's types -- then writes `PATCH { path: 'theme.background-image',
+  value: { file, opacity: '0.3' } }`. A first opacity of 30 %: low, so text over the picture reads
+  from the first moment. Replacing keeps the opacity; removing is `value: null`, and the last part
+  removed takes `theme` with it (V-EMPTY).
+- **The opacity slider.** A range of whole percents, 0 to 100, labelled "Opacity", its value shown
+  beside it ("30 %") and said to a screen reader the same way. Each change is held 400 ms and written
+  after the last, as a colour is, on a wait of its own so a colour and the opacity changed together
+  are both written; the percent is written as the format's string, `String(percent / 100)`, the one
+  way of each value (`"0.05"`, `"0.3"`, `"1"`). Seen at once as every Theme write is: the answer
+  refreshes the page and the draft's element of 13.1 draws the new opacity behind the panel.
+- **The contrast warning and the picture.** Text over a picture cannot be measured without reading
+  its pixels, and the panel does not pretend to a ratio: while the Theme has a picture, a line under
+  the slider, in the warning's look, says "Text on the page over the picture is not measured for
+  contrast: a low opacity keeps it readable." The palette's pairings of the warning above are
+  unchanged and still measured on the colours, which the Bubble and the bars keep (13.1).
+- **A hint**, #174's "i", behind the part's heading: what the picture is and what the opacity does.
+- **Not done.** No crop, position or size control: the picture covers the window from its centre
+  (13.1). No `alt` and no credit: the picture is decoration (tree-format.md 4.3.4); a creator who
+  must credit a photograph does so in the Tree's own words. A replaced or removed picture's file stays
+  in `theme/`, unserved, and no publish sweeps it, as for a logo or a font (above).
 
 ## 34. The reuse rule
 

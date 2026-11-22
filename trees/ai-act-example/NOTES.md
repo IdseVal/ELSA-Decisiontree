@@ -2,7 +2,7 @@
 
 `tree.json` is section 8 of `docs/specs/tree-format.md` verbatim -- byte for byte, which
 `tests/migrate-tree.test.ts` and the section's own words hold it to: the complete example
-Tree of the `elsa-tree/8` contract, in English and Dutch. It is the development default
+Tree of the `elsa-tree/9` contract, in English and Dutch. It is the development default
 and the Tree the loader tests load, so it is kept identical to the spec -- change the
 spec first, then this file. Its legal content is simplified and not to be relied on.
 
@@ -26,6 +26,12 @@ Issue #232 converted it from `elsa-tree/6` to `elsa-tree/7` by the procedure of 
 Issue #264 converted it from `elsa-tree/7` to `elsa-tree/8` by the procedure of 12.10: its
 `format` and `$schema` alone, and the same sentence now says `elsa-tree/8`, changed by hand again.
 No description of it was lengthened: `/8`'s 600 characters are room, not content.
+
+Issue #274 converted it from `elsa-tree/8` to `elsa-tree/9` by the procedure of 12.11: its
+`format` and `$schema` alone, and the same sentence now says `elsa-tree/9`, changed by hand again.
+Its Theme carries no `background-image`, the one optional part of the format it leaves out, so the
+first Tree's page and the contrast it is measured at (`tests/first-tree/contrast.spec.ts`) stay as
+they were; `tests/fixtures/background-image` carries one.
 
 It was written rather than converted from its `elsa-tree/1` folder, as
 `docs/specs/tree-format.md` 12.3 asks (#39): its old Nodes exceeded the new length
