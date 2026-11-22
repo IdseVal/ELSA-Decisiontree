@@ -577,7 +577,8 @@ test('**[#179]** an ending typed to its limit in English and in Dutch is the bad
   const todo = page.locator('.todo-list li')
   await expect(todo).toHaveCount(1)
   await expect(todo).toHaveAttribute('data-rule', 'V-L10N')
-  await expect(todo).toContainText('A safeguard is needed: missing or empty text for the declared language "nl"')
+  // **[#271]** The line names the field: the ending's words, by their placeholder, in Dutch (33.3).
+  await expect(todo).toContainText('A safeguard is needed: Text of the ending (nl): missing or empty text for the declared language "nl"')
   await page.keyboard.press('Escape')
   // Focused, the words as typed, the counter and the missing language's tag on the right rim (28.3).
   await en.locator('textarea').click()
