@@ -20,9 +20,18 @@ export const dynamic = 'force-dynamic'
  * served Tree in id order, in the chrome language the page asks for, in the default Theme.
  * It no longer redirects to a Tree (18.1). **[#197]** Each tile names its Tree's Authors (39.5).
  * **[#204]** "Editor" at the right end of the bar leads to `/admin` (24.3).
+ * **[#272]** A search bar above the tiles narrows them; `?q` is its text, sent by the field's form
+ * when the page runs without its script (26.5).
  */
-export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
+export default async function Home({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ lang: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
   const lang = chromeLanguage((await params).lang)
+  const { q } = await searchParams
   const served = await store()
   const trees = served.publishedIds().map((id) => served.published(id)!)
   return (
@@ -38,7 +47,11 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
         </div>
       </header>
       <main className="overview-page">
-        <Overview tiles={trees.map((tree) => ({ tree, authors: served.authors(tree.id) }))} lang={lang} />
+        <Overview
+          tiles={trees.map((tree) => ({ tree, authors: served.authors(tree.id) }))}
+          lang={lang}
+          query={typeof q === 'string' ? q : ''}
+        />
       </main>
       <Disclaimer lang={lang} />
     </>
