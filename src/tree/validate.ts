@@ -25,7 +25,7 @@
  */
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020.js'
 import { explainerMarks } from '../markdown.ts'
-import { countedLength, isId } from './grammar.ts'
+import { countedLength, isId, tagKey } from './grammar.ts'
 import { estimatedLines } from './measure.ts'
 import type { LocalisedText, NodeKind, Violation } from './types.ts'
 import schemaDocument from '../../schemas/elsa-tree-9.json' with { type: 'json' }
@@ -124,6 +124,9 @@ export const MAX = {
   explainerText: 200,
   fontFamilies: 2,
   fontFiles: 8,
+  /* **[#273]** A tag is a word or two in the overview's filter list, and a Tree names a handful (ADR-273-tags decision 2). */
+  tag: 30,
+  tags: 8,
 }
 
 /** Tree-format.md 3.5: a bare lowercase image file name, at most 128 characters. */
@@ -204,6 +207,7 @@ function contentViolations(tree: RawTree, mode: Mode): Violation[] {
     c.localised(top.description, 'description', true, MAX.treeDescription, MAX.treeLines)
     checkMarks(c, top.description, null)
   }
+  if ('tags' in top) checkTags(c, top.tags as Mapping[], context.languages)
   if ('theme' in top) checkTheme(c, top.theme as Mapping)
 
   const shapes = new Map<string, NodeShape>()
@@ -437,6 +441,29 @@ function checkOptions(c: DocumentChecker, options: Mapping[]): Link[] {
     }
   })
   return links
+}
+
+/**
+ * **[#273]** The manifest's tags (tree-format.md 4, 5.7, 7): at most eight, each a plain text of
+ * at most 30 characters in every declared language, and V-TAGS -- no two the same in one
+ * language, letter case and the spaces around them aside, since the overview's filter lists
+ * them so and one Tree would otherwise name one tag twice. An empty text is V-L10N's to-do and
+ * repeats nothing.
+ */
+function checkTags(c: DocumentChecker, tags: Mapping[], languages: string[]): void {
+  c.count(tags, 'tags', MAX.tags, false)
+  tags.forEach((tag, i) => c.localised(tag, `tags[${i}]`, false, MAX.tag))
+  for (const lang of languages) {
+    const seen = new Map<string, number>()
+    tags.forEach((tag, i) => {
+      const text = tag[lang]
+      if (typeof text !== 'string' || text.trim() === '') return
+      const key = tagKey(text)
+      const first = seen.get(key)
+      if (first === undefined) seen.set(key, i)
+      else c.fail(`tags[${i}].${lang}`, 'V-TAGS', `"${text.trim()}" is tags[${first}] already`, false)
+    })
+  }
 }
 
 /**

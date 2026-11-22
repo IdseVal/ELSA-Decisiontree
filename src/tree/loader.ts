@@ -410,6 +410,7 @@ function toManifest(raw: Mapping): Manifest {
     root: raw.root as string,
     title: raw.title as LocalisedText,
     description: raw.description as LocalisedText | undefined,
+    tags: raw.tags as LocalisedText[] | undefined,
     metadata: raw.metadata as Manifest['metadata'],
     theme: raw.theme as Theme | undefined,
   }

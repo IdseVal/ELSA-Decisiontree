@@ -7,7 +7,8 @@ import { Overview } from '../../components/Overview.tsx'
 import { ThemeStyle } from '../../components/ThemeStyle.tsx'
 import { ToEditor } from '../../components/ToEditor.tsx'
 import { baseUrl, store } from '../../config.ts'
-import { overviewAddressSet, overviewHref } from '../../url.ts'
+import { chosenTags, TAG_PARAMETER, tagOptions, treeTagKeys } from '../../tags.ts'
+import { contentLanguage, overviewAddressSet, overviewHref } from '../../url.ts'
 
 /**
  * Rendered per request: which Trees are published is the store's, and changes without a
@@ -22,6 +23,8 @@ export const dynamic = 'force-dynamic'
  * **[#204]** "Editor" at the right end of the bar leads to `/admin` (24.3).
  * **[#272]** A search bar above the tiles narrows them; `?q` is its text, sent by the field's form
  * when the page runs without its script (26.5).
+ * **[#273]** The search bar's `tags` pill lists every tag of the served Trees -- a hidden Tree's are
+ * in no list, since it serves nothing -- and a choice in the query's `tag` narrows the tiles too (26.6).
  */
 export default async function Home({
   params,
@@ -31,9 +34,11 @@ export default async function Home({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const lang = chromeLanguage((await params).lang)
-  const { q } = await searchParams
+  const { q, [TAG_PARAMETER]: requested = [] } = await searchParams
   const served = await store()
   const trees = served.publishedIds().map((id) => served.published(id)!)
+  const tagged = trees.map((tree) => ({ tree, tags: tree.manifest.tags, shown: contentLanguage(tree, lang) }))
+  const options = tagOptions(tagged, lang)
   return (
     <>
       <ThemeStyle tree={null} />
@@ -48,9 +53,10 @@ export default async function Home({
       </header>
       <main className="overview-page">
         <Overview
-          tiles={trees.map((tree) => ({ tree, authors: served.authors(tree.id) }))}
+          tiles={tagged.map(({ tree, tags, shown }) => ({ tree, authors: served.authors(tree.id), tags: treeTagKeys(tags, shown) }))}
           lang={lang}
           query={typeof q === 'string' ? q : ''}
+          tags={{ options, chosen: chosenTags(typeof requested === 'string' ? [requested] : requested, options) }}
         />
       </main>
       <Disclaimer lang={lang} />

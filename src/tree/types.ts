@@ -72,6 +72,8 @@ export interface Manifest {
   root: string
   title: LocalisedText
   description?: LocalisedText
+  /** **[#273]** What the public overview's filter lists, each a short plain text (tree-format.md 4, 5.7); absent, none. */
+  tags?: LocalisedText[]
   metadata: Metadata
   theme?: Theme
 }

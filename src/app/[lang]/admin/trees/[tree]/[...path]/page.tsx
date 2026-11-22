@@ -21,6 +21,7 @@ import { LogoutButton } from '../../../../../../editor/LogoutButton.tsx'
 import { Panel, PanelButton, type PanelRole, type PanelWords } from '../../../../../../editor/Panel.tsx'
 import { PreviewButton } from '../../../../../../editor/PreviewButton.tsx'
 import { ThemePanel, type ThemeWords } from '../../../../../../editor/ThemePanel.tsx'
+import { TagsField } from '../../../../../../editor/TagsField.tsx'
 import { FONT_LIBRARY, FONT_LICENCES, libraryEntry } from '../../../../../../fonts.ts'
 import { Todo, TodoButton, type TodoWords } from '../../../../../../editor/Todo.tsx'
 import type { Account } from '../../../../../../store/accounts.ts'
@@ -193,6 +194,24 @@ function TopPanel({
             lang={address.lang}
             written={entry.written}
             overviewHref={adminHref('/admin', chromeLanguage(address.lang))}
+            tags={
+              <TagsField
+                treeId={draft.id}
+                lang={address.lang}
+                defaultLanguage={draft.manifest.defaultLanguage}
+                tags={draft.manifest.tags ?? []}
+                words={{
+                  tags: ui.tags,
+                  tagsHint: ui.tagsHint,
+                  placeholderTag: ui.placeholderTag,
+                  addTag: ui.addTag,
+                  removeTag: ui.removeTag,
+                  tagTaken: ui.tagTaken,
+                  hint: ui.hint,
+                  requestFailed: ui.requestFailed,
+                }}
+              />
+            }
             theme={
               <ThemePanel
                 treeId={draft.id}

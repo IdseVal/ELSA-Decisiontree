@@ -85,6 +85,9 @@ const ADVISORY: Array<[string, string, (tree: Mapping) => void]> = [
   // **[#179]** V-TERMINAL's Draft column: the words' empty languages and length advise.
   ['an ending not written yet in one language', 'V-L10N', (t) => (label(t, 'yes-end').nl = '')],
   ['an ending over its 19 characters', 'V-LENGTH', (t) => (label(t, 'yes-end').en = 'Mandatory safeguards')],
+  // **[#273]** A tag is a text like any other: an empty language is the to-do, 31 characters advise.
+  ['a tag not written yet in one language', 'V-L10N', (t) => (t.tags = [{ en: 'Food', nl: '' }])],
+  ['a tag over its 30 characters', 'V-LENGTH', (t) => (t.tags = [{ en: 'x'.repeat(31), nl: 'Voedsel' }])],
 ]
 
 /** One state per blocking row: refused in a draft as in full. */
@@ -120,6 +123,12 @@ const BLOCKING: Array<[string, string, (tree: Mapping) => void]> = [
   ['a language the manifest does not declare', 'V-L10N', (t) => ((node(t, 'aside').title as Record<string, string>).de = 'x')],
   ['a title on two lines', 'V-PLAIN', (t) => ((node(t, 'aside').title as Record<string, string>).en = 'a\nb')],
   ['raw HTML', 'V-HTML', (t) => ((node(t, 'aside').description as Record<string, string>).en = '<b>x</b>')],
+  // **[#273]** The tags' shape and count block, and so does one tag twice in one language (V-TAGS).
+  ['an empty tags list', 'schema', (t) => (t.tags = [])],
+  ['a tag that is no localised text', 'schema', (t) => (t.tags = ['Food'])],
+  ['a tag on two lines', 'V-PLAIN', (t) => (t.tags = [{ en: 'Food\nsafety', nl: 'Voedsel' }])],
+  ['nine tags', 'V-COUNT', (t) => (t.tags = Array.from({ length: 9 }, (_, i) => ({ en: `Tag ${i}`, nl: `Label ${i}` })))],
+  ['one tag twice in one language, letter case and spaces aside', 'V-TAGS', (t) => (t.tags = [{ en: 'Food', nl: 'Voedsel' }, { en: ' food ', nl: 'Eten' }])],
   ['nine explainers', 'V-COUNT', (t) => {
     const ids = Array.from({ length: 9 }, (_, i) => `e${i}`)
     node(t, 'aside').explainers = ids.map((id) => ({ id, term: { en: 'a', nl: 'b' }, text: { en: 'c', nl: 'd' } }))
@@ -155,6 +164,33 @@ describe('the draft schema (19.2)', () => {
       expect(check(tree, 'published'), String(count)).toEqual([])
       expect(check(tree, 'draft'), String(count)).toEqual([])
     }
+  })
+})
+
+describe('**[#273]** tags (tree-format.md 4, 5.7, 7)', () => {
+  test('eight tags of 30 characters, two alike in one language only, are valid in both modes', () => {
+    const tree = validTree()
+    tree.tags = Array.from({ length: 8 }, (_, i) => ({ en: `${i}`.padEnd(30, 'x'), nl: i < 2 ? 'Voedsel' + ' '.repeat(i) : `Label ${i}` }))
+    // The two Dutch texts are one tag: only that pair is refused, and in Dutch.
+    expect(check(tree, 'published').map((v) => [v.rule, v.keyPath])).toEqual([['V-TAGS', 'tags[1].nl']])
+    ;(tree.tags as Array<Record<string, string>>)[1]!.nl = 'Eten'
+    expect(check(tree, 'published')).toEqual([])
+    expect(check(tree, 'draft')).toEqual([])
+  })
+
+  test('two tags not written yet in one language repeat nothing: each is V-L10N\'s to-do, not V-TAGS', () => {
+    const tree = validTree()
+    tree.tags = [{ en: 'Food', nl: '' }, { en: 'Safety', nl: '' }]
+    expect(check(tree, 'draft').map((v) => [v.rule, v.keyPath, v.advisory])).toEqual([
+      ['V-L10N', 'tags[0].nl', true],
+      ['V-L10N', 'tags[1].nl', true],
+    ])
+  })
+
+  test('V-TAGS names the earlier tag', () => {
+    const tree = validTree()
+    tree.tags = [{ en: 'Food', nl: 'Voedsel' }, { en: 'Safety', nl: 'Veiligheid' }, { en: 'FOOD', nl: 'Eten' }]
+    expect(check(tree, 'draft')).toEqual([{ file: 'manifest', keyPath: 'tags[2].en', rule: 'V-TAGS', message: '"FOOD" is tags[0] already', advisory: false }])
   })
 })
 

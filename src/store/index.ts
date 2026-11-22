@@ -11,7 +11,7 @@
  * is converted to `elsa-tree/5` before it is opened (application.md 36.4), **[#221]** and every
  * `/5` file to `elsa-tree/6` (tree-format.md 12.8.4), **[#232]** and every `/6` file to
  * `elsa-tree/7` (12.9.4), **[#264]** and every `/7` file to `elsa-tree/8` (12.10.4), **[#274]** and
- * every `/8` file to `elsa-tree/9` (12.11.4). **[#197]** Every
+ * every `/8` file to `elsa-tree/9` (12.11.4), **[#273]** the format of the tags too. **[#197]** Every
  * `meta.json` records the order in which its Tree's accounts joined it (39.2), and `authors`
  * names a published Tree's Authors to the public routes (39.8).
  */

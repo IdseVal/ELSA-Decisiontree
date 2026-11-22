@@ -14,7 +14,7 @@
  * table in sections 4 and 5, not alphabetical.
  */
 const ORDER = {
-  tree: ['$schema', 'format', 'languages', 'root', 'title', 'description', 'metadata', 'theme', 'nodes'],
+  tree: ['$schema', 'format', 'languages', 'root', 'title', 'description', 'tags', 'metadata', 'theme', 'nodes'],
   node: ['id', 'title', 'description', 'metadata', 'sources', 'images', 'answers', 'options', 'explainers', 'terminal'],
   theme: ['logo', 'fonts', 'colours', 'background-image'],
   logo: ['light', 'dark', 'icon', 'alt', 'url'],
@@ -38,13 +38,15 @@ export type ObjectName = keyof typeof ORDER
  * text wherever it occurs, `source` is always the id of a Source, `sources` always a list
  * of them. A key absent here holds a string, or a list of strings, and is written as it is.
  */
-export const VALUE: Record<string, 'text' | 'metadata' | ObjectName | { each: ObjectName }> = {
+export const VALUE: Record<string, 'text' | 'texts' | 'metadata' | ObjectName | { each: ObjectName }> = {
   title: 'text',
   description: 'text',
   label: 'text',
   alt: 'text',
   term: 'text',
   text: 'text',
+  /* **[#273]** The manifest's tags: a list of localised texts, each in the order of 3.7. */
+  tags: 'texts',
   metadata: 'metadata',
   theme: 'theme',
   logo: 'logo',
@@ -104,6 +106,7 @@ function canonicalValue(key: string, value: unknown, languages: string[]): Json 
   const kind = VALUE[key]
   if (kind === undefined || value === null || typeof value !== 'object') return value as Json
   if (kind === 'text') return localised(value as Record<string, unknown>, languages)
+  if (kind === 'texts') return (value as Array<Record<string, unknown>>).map((text) => localised(text, languages))
   if (kind === 'metadata') return metadata(value as Record<string, unknown>)
   if (typeof kind === 'object') {
     return (value as Array<Record<string, unknown>>).map((entry) => canonical(entry, kind.each, languages))

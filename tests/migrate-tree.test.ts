@@ -611,7 +611,8 @@ describe('**[#221]** the conversion from elsa-tree/5 to elsa-tree/6 (tree-format
 /**
  * **[#232]** `source`'s `tree.json` as `elsa-tree/6` wrote it, in a temporary copy: the two names
  * alone (12.9 in reverse). **[#264]** Generalised to any older number `n`, since 12.10 is 12.9's
- * renaming again: `copyAs(7, ...)` is the file as `elsa-tree/7` wrote it.
+ * renaming again: `copyAs(7, ...)` is the file as `elsa-tree/7` wrote it. **[#273]** The fixtures are
+ * `/9`, so `copyAs(8, ...)` is the file as `elsa-tree/8` wrote it.
  */
 async function copyAs(n: number, source: string, edit: (tree: Record<string, unknown>) => void = () => {}): Promise<string> {
   const target = await copyTree(source)
@@ -736,6 +737,16 @@ describe('**[#274]** the conversion from elsa-tree/8 to elsa-tree/9 (tree-format
     expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(original)
   })
 
+  test('an older file takes 12.11 last: a /7 file ends /9', async () => {
+    const target = await copyAs(7, fixture('single-language'))
+
+    const migration = await migrateTree(target)
+
+    expect([migration.widened, migration.backed]).toEqual([true, true])
+    const written = JSON.parse(await readFile(path.join(target, 'tree.json'), 'utf8')) as Record<string, unknown>
+    expect([written.$schema, written.format]).toEqual(['/schemas/elsa-tree-9.json', 'elsa-tree/9'])
+  })
+
   test.each([
     ['$schema as the origin-relative path', '/schemas/elsa-tree-8.json', '/schemas/elsa-tree-9.json'],
     ['$schema as an absolute URL, in place', 'https://lab.example.org/elsa/schemas/elsa-tree-8.json', 'https://lab.example.org/elsa/schemas/elsa-tree-9.json'],
@@ -747,6 +758,23 @@ describe('**[#274]** the conversion from elsa-tree/8 to elsa-tree/9 (tree-format
 
     expect((JSON.parse(await readFile(path.join(target, 'tree.json'), 'utf8')) as Record<string, unknown>).$schema).toBe(after)
     expect(migration.violations.map((violation) => violation.keyPath)).toEqual(before === after ? ['/$schema'] : [])
+  })
+
+  test('a /9 file with tags is written with them after the description, each in the manifest\'s language order (3.7)', async () => {
+    const target = await copyTree(fixture('single-language'))
+    const file = path.join(target, 'tree.json')
+    const tree = JSON.parse(await readFile(file, 'utf8')) as Record<string, unknown>
+    const { nodes, metadata, ...head } = tree
+    // Out of order on purpose: the tags last and a tag's languages reversed, as a hand might write them.
+    await writeFile(file, `${JSON.stringify({ ...head, metadata, nodes, tags: [{ nl: 'Landbouw' }] }, null, 2)}\n`, 'utf8')
+
+    const migration = await migrateTree(target)
+
+    expect(migration.violations).toEqual([])
+    const keys = Object.keys(JSON.parse(await readFile(file, 'utf8')) as Record<string, unknown>)
+    expect(keys.indexOf('tags')).toBe(keys.indexOf('metadata') - 1)
+    expect(migration.rewritten).toBe(true)
+    expect((await migrateTree(target)).rewritten).toBe(false)
   })
 
   test('no Theme is looked at: an /8 file with a background picture, which /8 refused, converts and validates (12.11.2)', async () => {

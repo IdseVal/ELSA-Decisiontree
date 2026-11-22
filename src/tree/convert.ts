@@ -11,7 +11,8 @@
  * names alone again, since `/8` only widens a Node's `description` to 600 characters and 8
  * lines. A `/4` file takes all four. **[#274]** And 12.11's, from `elsa-tree/8` to `elsa-tree/9`
  * (ADR-274-background-image): the two names alone once more, since `/9` only adds an optional
- * part to the Theme. A `/4` file takes all five.
+ * part to the Theme **[#273]** and the manifest's optional `tags` (ADR-273-tags). A `/4` file takes
+ * all five.
  * Pure: one parsed file in, the converted file and what was done out. The migration
  * (`npm run migrate`) and the store, which converts the files it opens (application.md
  * 36.4), both run it; each then validates the result and writes it in the byte form of 3.7
@@ -179,7 +180,8 @@ export function convertLimit(tree: Mapping): Mapping | null {
  * `convertLimit`'s answer. A file that is not `elsa-tree/8` -- `elsa-tree/9` included -- is
  * answered with null. Otherwise the answer is a copy with `format` and `$schema` naming `/9` and
  * nothing else changed: every `/8` file is a `/9` file, since `/9` only adds an optional key, the
- * Theme's `background-image`, so no Theme is looked at.
+ * Theme's `background-image`, so no Theme is looked at. **[#273]** The same holds for `/9`'s other
+ * optional key, the manifest's `tags`: an `/8` file is a `/9` file without tags.
  */
 export function convertBackground(tree: Mapping): Mapping | null {
   return renamed(tree, 8)

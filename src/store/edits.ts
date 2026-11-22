@@ -93,6 +93,7 @@ export function applyField(tree: Mapping, nodeId: string | null, field: Field): 
   if (typeof path !== 'string') throw malformed(where, '', 'V-KEYS', 'a field write names a path')
   const part = nodeId === null ? THEME_PART.exec(path)?.[1] : undefined
   if (part) return setThemePart(tree, part, value)
+  if (nodeId === null && path === 'tags') return setTags(tree, value)
   if (typeof value !== 'string') throw malformed(where, path, 'schema', 'a field holds a string')
   const segments = nodeId === null ? manifestSegments(path) : nodeSegments(path)
   if (!segments) throw malformed(where, path, 'V-KEYS', `"${path}" is not a field the editor writes`)
@@ -133,6 +134,21 @@ function setThemePart(tree: Mapping, part: string, value: unknown): void {
   else theme[part] = value
   if (Object.keys(theme).length > 0) tree.theme = theme
   else delete tree.theme
+}
+
+/**
+ * **[#273]** The manifest's tags replaced by `value`, a list of localised texts, written whole as a
+ * Theme part is (application.md 33.5): adding, removing and rewording a tag are one write each,
+ * and a list is never half one Tree's and half another's. Each text is copied with every declared
+ * language it lacks as `""`, V-L10N's to-do; an empty list or null takes the key away (V-EMPTY).
+ * What the texts hold -- their line, length, count and V-TAGS -- is the validator's to judge.
+ */
+function setTags(tree: Mapping, value: unknown): void {
+  if (value !== null && !Array.isArray(value)) throw malformed('manifest', 'tags', 'schema', 'tags are a list of localised texts')
+  const languages = tree.languages as string[]
+  const tags = (value ?? []).map((tag, i) => localisedInput(tag, languages, 'manifest', `tags[${i}]`))
+  if (tags.length > 0) tree.tags = tags
+  else delete tree.tags
 }
 
 /**
@@ -323,14 +339,15 @@ export function applyLanguageOperation(tree: Mapping, operation: Operation): str
 
 /**
  * **[#147]** Calls `visit` on every localised text of the draft (3.3, 3.4): the manifest's
- * title, description and logo text, and each Node's title, description, Source labels, Image
+ * title, description, **[#273]** tags and logo text, and each Node's title, description, Source labels, Image
  * descriptions, Option titles and explainers, **[#179]** a Terminal's words and **[#221]** each
  * next step's (22.2). Answers
  * the ids of the Nodes for which `visit` said it changed something.
  */
 export function eachText(tree: Mapping, visit: (text: Mapping) => boolean): string[] {
   const logo = (tree.theme as Mapping | undefined)?.logo as Mapping | undefined
-  for (const text of [tree.title, tree.description, logo?.alt]) if (text) visit(text as Mapping)
+  const tags = (tree.tags as Mapping[] | undefined) ?? []
+  for (const text of [tree.title, tree.description, ...tags, logo?.alt]) if (text) visit(text as Mapping)
   const changed: string[] = []
   for (const node of tree.nodes as Mapping[]) {
     const list = (key: string): Mapping[] => (node[key] as Mapping[] | undefined) ?? []

@@ -14,6 +14,16 @@
     "en": "A small example Tree that exercises every element of the `elsa-tree/9` format.\nIts legal content is simplified and not to be relied on.",
     "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/9`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
   },
+  "tags": [
+    {
+      "en": "AI Act",
+      "nl": "AI-verordening"
+    },
+    {
+      "en": "Agrifood",
+      "nl": "Agrifood"
+    }
+  ],
   "metadata": {
     "version": "2.0",
     "author": "ELSA-Lab for sustainable food systems, Wageningen University",

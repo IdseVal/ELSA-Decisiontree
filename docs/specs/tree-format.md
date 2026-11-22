@@ -1,4 +1,4 @@
-# Tree file format -- `elsa-tree/5` (**[#220]** `elsa-tree/6` from #221; **[#231]** `elsa-tree/7` from #232; **[#263]** `elsa-tree/8` from #264; **[#274]** `elsa-tree/9`)
+# Tree file format -- `elsa-tree/5` (**[#220]** `elsa-tree/6` from #221; **[#231]** `elsa-tree/7` from #232; **[#263]** `elsa-tree/8` from #264; **[#274]** `elsa-tree/9`, **[#273]** with its tags)
 
 > Status: FROZEN -- 2026-10-02 (issue #171); `elsa-tree/5` replaces `elsa-tree/4` (frozen
 > 2026-09-21, issue #118). This document is the interoperability contract: any Tree that
@@ -19,6 +19,20 @@
 > `docs/adrs/ADR-274-background-image.md`. Issue #273, filed beside it, proposes tags in the manifest
 > under the same new number: whichever of the two lands second folds into this `/9` rather than
 > making a `/10` -- one conversion, not two -- since both only add an optional key.
+>
+> **[#273] Amended 2026-11-22: `tags` join `elsa-tree/9`, built by #273.** The owner, on #273: "the
+> option to add tags to decision-trees and a filter in the main overview with a dropdown where people
+> can filter on all tags that exist in the published decision-trees". #274 reached `dev` first, so by
+> its paragraph above the tags fold into its `/9`: the manifest may also carry **`tags`**, a list of
+> at most 8 plain localised texts of at most 30 counted characters each, no two the same in one
+> language with letter case and the spaces around them aside (4, 5.7, rules V-COUNT, V-LENGTH and
+> the new V-TAGS). Every other key, kind, limit and rule, and the byte form of 3.7 but the place of
+> `tags` in it, are as above; 12.11 converts an `/8` file unchanged, since an `/8` file has no tags.
+> No release that carries `/9` had reached the live server when they joined (`main` held no
+> `elsa-tree-9.json`). The decisions are `docs/adrs/ADR-273-tags.md`. **This change came as a build
+> issue, not the `architecture` issue the paragraph at the top asks for**: #273 named the new format
+> and left its limits to the run as PROPOSED readings, and the run recorded them in that ADR rather
+> than stop; its pull request says so.
 >
 > **[#263] Amended 2026-11-18: `elsa-tree/8`, frozen here, built by #264.** The owner, on #262:
 > "The 150 character limit that we picked is waaaaay too short sadly." `elsa-tree/8` is `elsa-tree/7`
@@ -612,6 +626,7 @@ lines name `elsa-tree/5` and its schema since 2026-10-02; they named `/4` before
 | `root` | yes | Node reference | The Node the walk starts at. Must be a question Node or a Terminal, never an explanation Node. |
 | `title` | yes | localised text, plain, at most 80 characters | The Tree's name, shown by the frontend. |
 | `description` | no | localised text, rich, at most 600 characters and 8 estimated lines (**[#102]** as a Node's description until 2026-09-19; the Tree's is not drawn in the Bubble and kept these) | What the Tree is about. Also what the dataset record and `llms.txt` say the Tree is (`docs/specs/application.md` 16.4, 16.5), so a Tree that omits it is described by its root Node instead. |
+| **[#273]** `tags` | no, from `elsa-tree/9` | array of localised text, plain, each at most 30 characters; at most 8 entries; never empty (V-EMPTY); no two the same in one language, letter case and the spaces around them aside (V-TAGS) | Words a reader can filter the public overview by (`docs/specs/application.md` 26.6), such as a topic or a law. Written after `description` in the byte form of 3.7, each tag's languages in the manifest's order. |
 | `metadata` | yes | object | `version` (non-empty string) is required. A key made only of digits is refused (3.7). Any other keys are the author's own; the loader keeps them and does not interpret them. This is where a note that would have been a comment goes. |
 | `theme` | no | Theme (4.3) | The look the frontend shows for this Tree. Absent: the frontend's plain default look. |
 | `nodes` | yes | array of Node (section 5), non-empty | Every Node of the Tree, in the author's order. |
@@ -644,6 +659,9 @@ Node; V-ROOT, the root must exist).
 **[#220]** (2026-10-09) `format` is `elsa-tree/6` and `$schema` names `elsa-tree-6.json` from #221 (12.8).
 
 **[#231]** (2026-10-10) `elsa-tree/7` and `elsa-tree-7.json` from #232 (12.9).
+
+**[#263]** (2026-11-18) `elsa-tree/8` and `elsa-tree-8.json` from #264 (12.10). **[#274]** (2026-11-22)
+`elsa-tree/9` and `elsa-tree-9.json` from #274 (12.11); **[#273]** `tags` stand after `description`.
 
 ### 4.2 The Tree's id
 
@@ -1061,6 +1079,8 @@ language**.
 | Explainer `text` (any language) | 200 characters | V-LENGTH |
 | `explainers` on a Node | 8 entries | V-COUNT |
 | `fonts` in a Theme | 2 families, 8 files each | V-COUNT |
+| **[#273]** A tag of `tags` (any language), from `elsa-tree/9` | 30 characters | V-LENGTH |
+| **[#273]** `tags` in the manifest, from `elsa-tree/9` | 8 entries | V-COUNT |
 
 `metadata` values and URLs have no length rule beyond their own grammar; they are not
 shown in the Bubble. **[#118]** An **id** is capped at **64** characters and an image,
@@ -1252,6 +1272,7 @@ The **Where** column below says which of the two a rule belongs to.
 | V-META | schema | `metadata` as an object whose `version` is a non-empty string (at the top level and on every Node), and **no key made only of digits** -- an integer-like key sorts to the front of a JavaScript object and would break the key order and the idempotence of 3.7. | blocking |
 | V-KEYS | schema | no keys other than those listed in sections 4 and 5, at every level except inside `metadata`. `$schema`, `format`, `languages`, `root`, `theme` and `nodes` only at the top level; `id` never at the top level. | blocking |
 | V-REACH | rules | every Node reachable from `root` by following Answers and Options. An unreachable Node is almost always a misspelt target. | advisory |
+| **[#273]** V-TAGS | rules | from `elsa-tree/9`: no two entries of `tags` the same text in one language once the spaces around each are dropped and both are in lower case (`tagKey` of `src/tree/grammar.ts`, by which the overview's filter matches: `docs/specs/application.md` 26.6). An empty text repeats nothing: it is V-L10N's. The message names the later entry and the earlier one. The shape -- a non-empty list of localised texts -- is the schema's, the 8 entries V-COUNT's and the 30 characters V-LENGTH's. | blocking, and V-COUNT for a ninth tag is blocking too: one Tree naming one tag twice is a defect of the list, not an unfinished state, and the editor writes the list whole (`application.md` 33.5) |
 | V-THEME | schema, rules | `theme`, when present, an object with at least one of `logo`, `fonts`, `colours` and **[#274]** `background-image`, each as section 4.3 defines it: the schema checks the keys, the grammars, the seven colour roles, every font file's `weight` and `style` and the picture's `opacity`; the rules check that the files exist in `theme/` and that there is at most one font family per `role`. | blocking |
 
 ### Text
@@ -1263,7 +1284,7 @@ The **Where** column below says which of the two a rule belongs to.
 | V-HTML | rules | no raw HTML in rich text: the sequence `<` followed by a letter, `/` or `!` is rejected. | blocking |
 | V-LENGTH | rules | every text field within the maximum characters of 5.7, per language, measured as 3.8 says. The message names the field, the language, the actual length and the maximum. | advisory |
 | V-LINES | rules | every rich text within its estimated lines (3.8, 5.7): 2 for a Node description, 8 for the Tree's, per language. The message names the estimate and the maximum. | advisory |
-| V-COUNT | rules | every array within the maximum entries of 5.7. | advisory. **Amended 2026-10-02 (#175):** blocking for a ninth Option: a write that would add one is refused with V-COUNT and stores nothing (`application.md` 22.3 and 30.4, amended the same day); a file that already holds nine, written by hand, still opens with it advisory |
+| V-COUNT | rules | every array within the maximum entries of 5.7. | advisory. **Amended 2026-10-02 (#175):** blocking for a ninth Option: a write that would add one is refused with V-COUNT and stores nothing (`application.md` 22.3 and 30.4, amended the same day); a file that already holds nine, written by hand, still opens with it advisory. **[#273]** Blocking for a ninth tag, from `elsa-tree/9`: `tags` in the manifest is counted with V-COUNT blocking in every file, a draft written by hand included, and a write that would store nine is refused with it and stores nothing (the V-TAGS row; `application.md` 33.5; `docs/adrs/ADR-273-tags.md` decision 2) |
 
 ### Node level
 
@@ -1517,6 +1538,16 @@ reader of the contract finds it; what an author needs to keep beside the data go
     "en": "A small example Tree that exercises every element of the `elsa-tree/9` format.\nIts legal content is simplified and not to be relied on.",
     "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/9`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
   },
+  "tags": [
+    {
+      "en": "AI Act",
+      "nl": "AI-verordening"
+    },
+    {
+      "en": "Agrifood",
+      "nl": "Agrifood"
+    }
+  ],
   "metadata": {
     "version": "2.0",
     "author": "ELSA-Lab for sustainable food systems, Wageningen University",
@@ -1965,6 +1996,8 @@ one, is shown in the frontend's plain default look.
   stands beside the five before it, the loader accepts `/9` alone and the store converts an `/8` file
   it finds (12.11). The next change will be `elsa-tree/10`, or #273's tags inside this `/9` if they
   land after it (the header).
+  **[#273] And on the same day (built by #273):** they did: the manifest may carry `tags` (4, 5.7,
+  V-TAGS) under this `/9` (`docs/adrs/ADR-273-tags.md`). The next change will be `elsa-tree/10`.
 - **Where an edited Tree is stored.** ~~The round after this one edits Trees through the
   frontend. Whether the edited `tree.json` is written back into the repository through
   git, or into a store of some other kind, is the owner's to define (core document open
@@ -2050,6 +2083,7 @@ Decisions carried over unchanged from `elsa-tree/1` (issue #4):
 | **[#263]** A Node description of 600 characters and 8 estimated lines | `docs/adrs/ADR-263-description-limit.md` |
 | **[#263]** `elsa-tree/8`, and 12.10 | `docs/adrs/ADR-263-elsa-tree-8.md` |
 | **[#274]** A background picture in the Theme at an opacity, `elsa-tree/9`, and 12.11 | `docs/adrs/ADR-274-background-image.md` |
+| **[#273]** `tags` on the manifest, V-TAGS, joining `elsa-tree/9`, and the overview's filter | `docs/adrs/ADR-273-tags.md` |
 
 ## 12. Migrations
 
@@ -2076,6 +2110,7 @@ it opens a `/7` file (12.10.4); a `/4` file takes 12.7 to 12.10 in that order.
 **[#274] And 12.11, since 2026-11-22, runs after 12.10**: `elsa-tree/8` to `elsa-tree/9`, the
 background picture. It ran over the repository once (#274) and runs in every deployment, by the
 store, whenever it opens an `/8` file (12.11.4); a `/4` file takes 12.7 to 12.11 in that order.
+**[#273]** The tags joined `/9` after it, with nothing more to convert: an `/8` file has none.
 
 **12.1 to 12.4: from `elsa-tree/1` to `elsa-tree/2`.**
 A Tree folder written against `elsa-tree/1` -- `tree.yaml` plus `nodes/<id>.yaml` files
@@ -2788,7 +2823,9 @@ decision 5).
 (4.3.4); no key, kind or value of an `/8` file changes meaning, so the conversion renames the format
 and nothing else, as 12.9 and 12.10 do. `docs/adrs/ADR-274-background-image.md` has the reasoning;
 `convertBackground` in `src/tree/convert.ts` is the one function the migration command and the store
-run, beside 12.7 to 12.10.
+run, beside 12.7 to 12.10. **[#273]** `/9`'s other optional key, the manifest's `tags` (4, 5.7,
+V-TAGS), joined it before a `/9` release reached the live server; an `/8` file has no tags, so the
+procedure is the same (`docs/adrs/ADR-273-tags.md` decision 6).
 
 #### 12.11.1 The procedure
 
@@ -2798,6 +2835,7 @@ older one by 12.7 to 12.10 first, `elsa-tree/9` not at all); `format` becomes `e
 `elsa-tree-9.json` in its place, and any other value is left to fail V-SCHEMA; nothing else changes;
 the result is written in the byte form of 3.7 and validated against `schemas/elsa-tree-9.json` and
 section 7, every violation reported. `npm run migrate <tree-folder>` runs it after 12.10.
+**[#273]** No `tags` is written: the creator adds them (`application.md` 33.5).
 
 #### 12.11.2 What the procedure guarantees, and what it does not
 
@@ -2807,7 +2845,8 @@ Tree converts to a valid `elsa-tree/9` Tree, since `/9` only adds an optional ke
 **Not guaranteed, on purpose.** A file not in the byte form is written in it. An `/8` file that
 already carried a `background-image`, which `/8` refused, converts and then validates if the part is
 well formed and its file is in `theme/`: the procedure does not look at the Theme
-(`tests/migrate-tree.test.ts`).
+(`tests/migrate-tree.test.ts`). **[#273]** Likewise an `/8` file holding a `tags` key, which `/8`
+refused (V-KEYS), converts and is then judged as `/9` judges tags.
 
 #### 12.11.3 What it did for the Trees and fixtures on `dev`
 
@@ -2825,6 +2864,11 @@ file but the example Tree's description, whose sentence about the format says `e
 as at #179, #221, #232 and #264, in section 8's block too. Then, in a commit of its own,
 `tests/fixtures/background-image/`: `full-node` with a Theme of the one new part, a JPEG at `"0.3"`;
 with it 63 files say `elsa-tree/9`. The example Tree carries no picture (its `NOTES.md` says why).
+**[#273]** #273 had converted the same 62 files on its branch, byte for byte as #274 did, so the
+merge kept #274's; in a commit of its own the example Tree then gains two tags, `AI Act` /
+`AI-verordening` and `Agrifood`, so that section 8 exercises every element of the format; section
+8's block is that file (`tests/migrate-tree.test.ts`). No other Tree or fixture is tagged: the
+browser spec of the filter tags copies of its own (`tests/browser/tags.spec.ts`).
 
 #### 12.11.4 What it does for a deployment's data directory
 
@@ -2833,3 +2877,5 @@ with it 63 files say `elsa-tree/9`. The example Tree carries no picture (its `NO
 elsa-tree/8 to elsa-tree/9` per file; an older file takes 12.7.4 to 12.10.4 first, a line each.
 `importTree` converts in its staging copy. On the live server this is again the one rewrite a
 format change makes, after the pre-deploy copy of the data directory (core document 9, `[#247]`).
+**[#273]** It is the write core document 10.45 asks the owner about, still OPEN, as 12.10.4's is
+(`ADR-273-tags.md` decision 6): one write for the background picture and the tags together.
