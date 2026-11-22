@@ -5452,6 +5452,12 @@ marked again or unmarked everywhere. Deleting the syntax by hand does the same t
 description and nothing to the explainer (then the to-do, with `remove` beside it). The id
 is stable and shown only in the source and the Sheet's title while the term is empty.
 
+**[#271]** (2026-11-22) The to-do's `remove` is built (33.3): until then a V-EXPLAINER line had
+no action, and the Sheet opens only from a marked term (32.3), so an explainer whose last mark was
+deleted by hand could be neither reached nor removed in the editor. Deleting a mark still leaves
+its explainer, as above; the owner's reading on #271, that the explainer goes with its last mark,
+was not built.
+
 ## 33. The top panel
 
 **[#133], new -- 2026-09-26.** Recorded in `docs/adrs/ADR-133-top-panel.md`.
@@ -5641,6 +5647,25 @@ header bar)"). Recorded in `docs/adrs/ADR-176-floating-settings-and-to-do.md`.
   rather than a Node, and the response's otherwise.
 
 **[#220]** (2026-10-09) "Fewer than two next steps" is a to-do of a step with one (41.1, 41.7 item 5).
+
+**[#271]** (2026-11-22, PROPOSED in #271 after the owner's report that day: on the live Tree an
+explainer whose marks they had deleted stayed on the list with no way to remove it, and two lines
+read `missing or empty text for the declared language "nl"` alike)
+
+- **A V-EXPLAINER line offers `remove` too** -- the line that says an explainer is not marked in a
+  language's description -- for everyone who may edit the Tree, the collaborator included, as
+  the Sheet's `unmark` is theirs (32.4). It sends `remove-explainer { id }` through the editor's
+  queue, as the Sheet does, so a description write still on its way goes first; then the list is
+  re-read, and every line of that explainer has gone with it. A refusal says `requestFailed` under
+  the list and keeps it. The id is the one the line's message quotes; nothing else in a line
+  carries it.
+- **Each line names the field it is about**, between the title and the message, when its key path
+  names a field: the field's placeholder (28.2) in the page's language -- the word an empty field
+  shows -- then, for an entry of a list, its place counted from one, then the language: `Text
+  (nl)`, `Word or phrase 1 (nl)`, `What it means 1 (nl)`, `Words on the button 2 (en)`, `Maker and
+  licence 1`. So two empty fields of one Node never read as the same line. A key path that names
+  no field (`answers`, `explainers[0]`, the full validation's JSON Pointers) gets nothing there:
+  its message says what it is about. The messages stay as the validator writes them.
 
 ### 33.4 Collaborators
 
