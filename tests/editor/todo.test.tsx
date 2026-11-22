@@ -167,7 +167,7 @@ test('the control says the count in the words for one and for more, and is a qui
 
 test('opening the bubble re-reads the list and the count', async () => {
   mount(1, todoSheet([missing('a')]))
-  expect(lines()).toEqual(['a: a has no Dutch title'])
+  expect(lines()).toEqual(['a: placeholderTitle (nl): a has no Dutch title'])
   advisory = [missing('a'), missing('b')]
 
   act(() => {
@@ -176,7 +176,7 @@ test('opening the bubble re-reads the list and the count', async () => {
   await settle()
 
   expect(rereads()).toBe(1)
-  expect(lines()).toEqual(['a: a has no Dutch title', 'b: b has no Dutch title'])
+  expect(lines()).toEqual(['a: placeholderTitle (nl): a has no Dutch title', 'b: placeholderTitle (nl): b has no Dutch title'])
   expect(todoName()).toBe('2 todoCount')
 })
 
@@ -196,7 +196,7 @@ test('a refused publish points at the bubble, which opens on the refusal’s lis
   await settle()
 
   expect(todoDetails().open).toBe(true)
-  expect(lines()).toEqual(['thisTree: tree.json has no Dutch title'])
+  expect(lines()).toEqual(['thisTree: placeholderTitle (nl): tree.json has no Dutch title'])
   expect(rereads()).toBe(before)
 
   // Closed and opened again by its own control, it re-reads: the refusal is not the draft's list.
