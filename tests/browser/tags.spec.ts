@@ -170,8 +170,19 @@ test.describe('the overview filter (26.5)', () => {
         expect(overflow.right, `${width} ${query}`).toBeGreaterThanOrEqual(0)
       }
     }
+    // Below 480 a funnel stands for the word, which stays the pill's name; the current language's pill stays (24.3).
+    await page.setViewportSize({ width: 320, height: 480 })
+    await page.goto(`${origin}/?lang=nl&tag=Voedsel`)
+    await expect(pill(page).locator('.tag-filter-icon')).toBeVisible()
+    await expect(pill(page).locator('.tag-filter-word')).toBeHidden()
+    await expect(pill(page)).toHaveAccessibleName('Labels 1')
+    await expect(page.locator('header.page-chrome .language--current')).toBeVisible()
+    await page.setViewportSize({ width: 480, height: 640 })
+    await expect(pill(page).locator('.tag-filter-icon')).toBeHidden()
+    await expect(pill(page).locator('.tag-filter-word')).toBeVisible()
     await page.setViewportSize({ width: 320, height: 480 })
     await page.goto(`${origin}/?lang=nl`)
+    await expect(pill(page)).toHaveAccessibleName('Labels')
     await pill(page).click()
     await page.screenshot({ path: path.join(SHOTS, 'overview-tags-open-nl-320x480.png') })
   })

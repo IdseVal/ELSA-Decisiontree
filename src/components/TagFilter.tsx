@@ -78,8 +78,12 @@ export function TagFilter({
 
   return (
     <details className="tag-filter" ref={sheet}>
-      <summary className="tag-filter-button">
-        {words.tags}
+      {/* Named by its word and the count, which below 480 pixels wide a funnel and the count stand for. */}
+      <summary className="tag-filter-button" aria-label={chosen.length > 0 ? `${words.tags} ${chosen.length}` : words.tags}>
+        <svg className="tag-filter-icon" viewBox="0 0 12 18" aria-hidden="true">
+          <path d="M1 4.5h10L7 9.5v4l-2 1.5v-5.5z" />
+        </svg>
+        <span className="tag-filter-word">{words.tags}</span>
         {chosen.length > 0 && <span className="tag-filter-count">{chosen.length}</span>}
       </summary>
       <form className="tag-filter-panel" method="get" action="/">

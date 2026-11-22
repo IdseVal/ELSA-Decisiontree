@@ -1936,6 +1936,18 @@ a.language:hover,
   display: none;
 }
 
+/* The funnel is the pill's below 480 pixels wide only, where it stands for the word. */
+.tag-filter-icon {
+  display: none;
+  width: 12px;
+  height: 18px;
+  vertical-align: top;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
 /* How many tags are ticked, after the word, in the colours of the + tile's `accent-secondary`. */
 .tag-filter-count {
   display: inline-block;
@@ -1948,6 +1960,15 @@ a.language:hover,
   text-align: center;
   color: var(--elsa-on-accent-secondary);
   background: var(--elsa-accent-secondary);
+}
+
+/*
+ * Shut, out of layout: Chromium lays a closed <details>' content out in a contained slot, which
+ * would be the list's containing block and put it left of a narrow window, where the bar's own
+ * measures (10.6) find it.
+ */
+.tag-filter:not([open]) > .tag-filter-panel {
+  display: none;
 }
 
 .tag-filter-panel {
@@ -3151,6 +3172,19 @@ fieldset:disabled .admin-submit {
 
   .tag-filter-panel {
     right: 8px;
+  }
+
+  /*
+   * **[#273]** The overview keeps its current language's pill at every width (24.3), so below 480
+   * the tag pill draws a funnel for its word, which stays its name for a screen reader (its
+   * `aria-label`): at 320 the site title took a second line beside the word.
+   */
+  .tag-filter-icon {
+    display: inline-block;
+  }
+
+  .tag-filter-word {
+    display: none;
   }
 
   .share-said {
