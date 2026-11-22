@@ -26,6 +26,7 @@ import { Hint } from '../editor/Hint.tsx'
 import { ImageControls } from '../editor/ImageControls.tsx'
 import { ImageSlot, type PickerWords } from '../editor/ImageSlot.tsx'
 import type { EditMode, EditorSlots, EditorWords } from '../editor/mode.ts'
+import { placeholderOf } from '../editor/placeholders.ts'
 import { DeleteStep, RemoveEnd } from '../editor/StepButtons.tsx'
 import { AnswerMoves, SideAdd, SideDelete, WordsForm } from '../editor/Structure.tsx'
 import { MAX_ASIDES, MAX_NEXT_STEPS } from '../neighbourhood.ts'
@@ -88,23 +89,6 @@ export function editorWords(ui: Chrome): EditorWords {
  * **[#179]** a Terminal's words on its badge (36.3), and **[#222]** a next step's on its button (41.7 item 2).
  */
 const EDITED = /^(title|description|sources\[\d+\]\.(label|kind|url)|images\[\d+\]\.(description|credit)|options\[\d+\]\.title|answers\[\d+\]\.label|terminal\.label)$/
-
-/**
- * **[#172]** What belongs in the field at a path, its placeholder while it is empty (28.2,
- * amended): the chrome word for it, or none for a select.
- */
-function placeholderOf(path: string, ui: Chrome): string {
-  if (path === 'title') return ui.placeholderTitle
-  if (path === 'description') return ui.placeholderText
-  if (/^sources\[\d+\]\.label$/.test(path)) return ui.placeholderSourceLabel
-  if (/^sources\[\d+\]\.url$/.test(path)) return ui.placeholderUrl
-  if (/^options\[\d+\]\.title$/.test(path)) return ui.placeholderOptionTitle
-  if (/^images\[\d+\]\.description$/.test(path)) return ui.placeholderImageDescription
-  if (/^images\[\d+\]\.credit$/.test(path)) return ui.placeholderCredit
-  if (path === 'terminal.label') return ui.endingText
-  if (/^answers\[\d+\]\.label$/.test(path)) return ui.nextStepWords
-  return ''
-}
 
 /** Which paths hold a localised text: the page's language is appended to their key path (22.2). */
 const LOCALISED = /^(title|description|sources\[\d+\]\.label|images\[\d+\]\.description|options\[\d+\]\.title|answers\[\d+\]\.label|terminal\.label)$/
