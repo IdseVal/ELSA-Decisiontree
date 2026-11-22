@@ -37,7 +37,7 @@ const MANIFEST_FIELD = /^(?:(title|description)\.([^.[\]]+)|root)$/
  * whole or removed, never a key at a time, because each part is complete or absent and a
  * write that left half a palette would be refused by the schema anyway.
  */
-const THEME_PART = /^theme\.(logo|fonts|colours)$/
+const THEME_PART = /^theme\.(logo|fonts|colours|background-image)$/
 
 /**
  * A Node's fields (22.2), each with the key path's segments as capture groups. A language
@@ -65,8 +65,8 @@ const LOCALISED = new Set(['title', 'description', 'label', 'term', 'text'])
  */
 export function newDraft(languages: string[], title: Mapping): Mapping {
   return {
-    $schema: '/schemas/elsa-tree-8.json',
-    format: 'elsa-tree/8',
+    $schema: '/schemas/elsa-tree-9.json',
+    format: 'elsa-tree/9',
     languages,
     root: 'start',
     title: localisedInput(title, languages, 'manifest', 'title'),

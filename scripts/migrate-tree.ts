@@ -1,8 +1,9 @@
 /**
  * `npm run migrate <tree-folder>`: converts a Tree's `tree.json` from `elsa-tree/4` to
  * `elsa-tree/5` (docs/specs/tree-format.md 12.7) and **[#221]** from `elsa-tree/5` to
- * `elsa-tree/6` (12.8), **[#232]** from `elsa-tree/6` to `elsa-tree/7` (12.9) **[#264]** and from
- * `elsa-tree/7` to `elsa-tree/8` (12.10), in that order, writes it in the canonical byte form of 3.7 and
+ * `elsa-tree/6` (12.8), **[#232]** from `elsa-tree/6` to `elsa-tree/7` (12.9), **[#264]** from
+ * `elsa-tree/7` to `elsa-tree/8` (12.10) **[#274]** and from `elsa-tree/8` to `elsa-tree/9` (12.11),
+ * in that order, writes it in the canonical byte form of 3.7 and
  * validates the result.
  *
  * **[#179]** The conversion is `convertTree` of `src/tree/convert.ts`, the function the store
@@ -11,7 +12,8 @@
  * converted, and the report says what format it found; the byte form is written all the same.
  * **[#221]** `convertAnswers` runs after it, on its result: a `/4` file takes both.
  * **[#232]** `convertFormat` runs after them, on theirs: a `/4` file takes all three.
- * **[#264]** `convertLimit` runs last, on its result: a `/4` file takes all four.
+ * **[#264]** `convertLimit` runs after them, on its result: a `/4` file takes all four.
+ * **[#274]** `convertBackground` runs last, on its result: a `/4` file takes all five.
  *
  * This is what is left of the migration of section 12 after issue #119 ran it. Its steps 5
  * to 8 -- the key order, the byte form, the read-back and the validation -- are these; its
@@ -35,7 +37,7 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { formatViolation, openTree, readTreeText, TreeInvalid } from '../src/tree/loader.ts'
 import type { Violation } from '../src/tree/types.ts'
-import { convertAnswers, convertFormat, convertLimit, convertTree, type AnswersConversion, type Conversion } from '../src/tree/convert.ts'
+import { convertAnswers, convertBackground, convertFormat, convertLimit, convertTree, type AnswersConversion, type Conversion } from '../src/tree/convert.ts'
 import { bytes, treeBytes, VALUE } from '../src/tree/serialise.ts'
 import { isMapping } from '../src/tree/validate.ts'
 
@@ -61,6 +63,8 @@ export interface Migration {
   renamed: boolean | null
   /** **[#264]** Whether 12.10 made the file `elsa-tree/8`, on the result of 12.9's. Null as above. */
   widened: boolean | null
+  /** **[#274]** Whether 12.11 made the file `elsa-tree/9`, on the result of 12.10's. Null as above. */
+  backed: boolean | null
   /**
    * What stopped the job before anything was written (12.6.1): a text the loader will not
    * read -- a syntax error, a byte-order mark or a duplicate key (step 1) -- a `metadata`
@@ -91,7 +95,7 @@ export interface Migration {
 export async function migrateTree(dir: string): Promise<Migration> {
   const file = path.join(path.resolve(dir), 'tree.json')
   const before = await readFile(file, 'utf8').catch(() => null)
-  const stop = (notes: string[]): Migration => ({ rewritten: false, ids: [], conversion: null, answers: null, renamed: null, widened: null, notes, violations: [] })
+  const stop = (notes: string[]): Migration => ({ rewritten: false, ids: [], conversion: null, answers: null, renamed: null, widened: null, backed: null, notes, violations: [] })
   if (before === null) return stop([`${path.basename(file)} is missing`])
 
   const { value: parsed, problem } = readTreeText(before)
@@ -102,7 +106,8 @@ export async function migrateTree(dir: string): Promise<Migration> {
   const { tree: converted, ...answers } = convertAnswers(ended ?? parsed)
   const renamed = convertFormat(converted ?? ended ?? parsed)
   const widened = convertLimit(renamed ?? converted ?? ended ?? parsed)
-  const tree = widened ?? renamed ?? converted ?? ended ?? parsed
+  const backed = convertBackground(widened ?? renamed ?? converted ?? ended ?? parsed)
+  const tree = backed ?? widened ?? renamed ?? converted ?? ended ?? parsed
   const stopped = refusals(tree)
   if (stopped.length > 0) return stop(stopped)
 
@@ -117,6 +122,7 @@ export async function migrateTree(dir: string): Promise<Migration> {
     answers,
     renamed: renamed !== null,
     widened: widened !== null,
+    backed: backed !== null,
     notes: [],
     violations: await validated(path.dirname(file)),
   }
@@ -207,24 +213,26 @@ function report(treeId: string, migration: Migration): void {
   for (const note of migration.notes) console.error(`${treeId}  ${note}`)
   for (const left of [...(migration.conversion?.left ?? []), ...(migration.answers?.left ?? [])]) console.error(`${treeId}  ${left}`)
   for (const violation of migration.violations) console.error(formatViolation(treeId, violation))
-  if (migration.conversion === null || migration.answers === null || migration.renamed === null || migration.widened === null) return
+  if (migration.conversion === null || migration.answers === null || migration.renamed === null || migration.widened === null || migration.backed === null) return
   const counts = new Map<string, number>()
   for (const violation of migration.violations) counts.set(violation.rule, (counts.get(violation.rule) ?? 0) + 1)
   const summary = [...counts].map(([rule, count]) => `${count} ${rule}`).join(', ')
   const wrote = migration.rewritten ? 'rewritten' : 'already in the canonical byte form'
   const { format, endings } = migration.conversion
   const { steps } = migration.answers
-  // 12.7.1 to 12.10.1 step 2: a file that is not `/4`, `/5`, `/6` or `/7` is reported with what it found.
+  // 12.7.1 to 12.11.1 step 2: a file that is not `/4` to `/8` is reported with what it found.
   const converted =
     format === 'elsa-tree/4'
-      ? `converted from elsa-tree/4 to elsa-tree/5, ${endings} endings, to elsa-tree/6, ${steps} steps, to elsa-tree/7 and to elsa-tree/8`
+      ? `converted from elsa-tree/4 to elsa-tree/5, ${endings} endings, to elsa-tree/6, ${steps} steps, to elsa-tree/7, to elsa-tree/8 and to elsa-tree/9`
       : format === 'elsa-tree/5'
-        ? `converted from elsa-tree/5 to elsa-tree/6, ${steps} steps, to elsa-tree/7 and to elsa-tree/8`
+        ? `converted from elsa-tree/5 to elsa-tree/6, ${steps} steps, to elsa-tree/7, to elsa-tree/8 and to elsa-tree/9`
         : migration.renamed
-          ? 'converted from elsa-tree/6 to elsa-tree/7 and to elsa-tree/8'
+          ? 'converted from elsa-tree/6 to elsa-tree/7, to elsa-tree/8 and to elsa-tree/9'
           : migration.widened
-            ? 'converted from elsa-tree/7 to elsa-tree/8'
-            : `format ${JSON.stringify(format)}, not converted`
+            ? 'converted from elsa-tree/7 to elsa-tree/8 and to elsa-tree/9'
+            : migration.backed
+              ? 'converted from elsa-tree/8 to elsa-tree/9'
+              : `format ${JSON.stringify(format)}, not converted`
   console.log(`${treeId}: ${converted}; ${migration.ids.length} Nodes, ${wrote}; ${summary || 'valid'}`)
 }
 

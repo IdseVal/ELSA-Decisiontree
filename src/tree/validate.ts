@@ -28,7 +28,7 @@ import { explainerMarks } from '../markdown.ts'
 import { countedLength, isId } from './grammar.ts'
 import { estimatedLines } from './measure.ts'
 import type { LocalisedText, NodeKind, Violation } from './types.ts'
-import schemaDocument from '../../schemas/elsa-tree-8.json' with { type: 'json' }
+import schemaDocument from '../../schemas/elsa-tree-9.json' with { type: 'json' }
 
 /**
  * **[#137]** The grammars and the counted length of 3.8 moved to `grammar.ts`, which a client
@@ -92,7 +92,7 @@ const validateDraftShape = new Ajv2020({ allErrors: true }).compile(draftSchema(
 const ADVISORY = new Set(['V-L10N', 'V-LENGTH', 'V-LINES', 'V-COUNT', 'V-REACH', 'V-ORPHAN', 'V-MARK'])
 
 const IMAGE_FILE = /^[a-z0-9]+([._-][a-z0-9]+)*\.(png|jpg|jpeg|gif|webp|svg)$/
-const THEME_FILE = /^[a-z0-9]+([._-][a-z0-9]+)*\.(svg|png|webp|ico|woff2)$/
+const THEME_FILE = /^[a-z0-9]+([._-][a-z0-9]+)*\.(svg|png|jpg|jpeg|webp|ico|woff2)$/
 const RAW_HTML = /<[a-zA-Z/!]/
 
 /** The maximum lengths and counts of tree-format.md 5.7; the same for every language. */
@@ -319,6 +319,11 @@ class DocumentChecker {
 function checkTheme(c: DocumentChecker, theme: Mapping): void {
   if ('logo' in theme) checkLogo(c, theme.logo as Mapping)
   if ('fonts' in theme) checkFonts(c, theme.fonts as Mapping[])
+  // **[#274]** The background picture's file is in `theme/` (4.3.4); its grammar and opacity are the schema's.
+  const background = theme['background-image'] as Mapping | undefined
+  if (background && typeof background.file === 'string' && !c.hasThemeFile(background.file)) {
+    c.fail('theme.background-image.file', 'V-THEME', `"${background.file}" is not in the Tree's theme/ folder`)
+  }
 }
 
 /** V-THEME for the logo (4.3.1): its files are in `theme/`, and its alt text fits. */

@@ -27,10 +27,12 @@ export const IMAGE_TYPES: Record<string, string> = {
   svg: 'image/svg+xml',
 }
 
-/** The types the theme route serves: a logo or icon, and the one font format (3.6). */
+/** The types the theme route serves: a logo or icon, the one font format, **[#274]** and a background picture (3.6). */
 export const THEME_TYPES: Record<string, string> = {
   svg: 'image/svg+xml',
   png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
   webp: 'image/webp',
   ico: 'image/x-icon',
   woff2: 'font/woff2',

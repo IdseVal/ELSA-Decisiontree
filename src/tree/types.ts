@@ -1,5 +1,5 @@
 /**
- * The types of the `elsa-tree/8` format (docs/specs/tree-format.md) as the loader hands
+ * The types of the `elsa-tree/9` format (docs/specs/tree-format.md) as the loader hands
  * them out (docs/specs/application.md section 5.1). Two normalisations against the
  * file: `id` and `kind` are added, and absent lists become empty arrays.
  */
@@ -47,14 +47,25 @@ export type ColourRole =
 /** Each `#rrggbb`, validated by the loader. */
 export type Colours = Record<ColourRole, string>
 
+/**
+ * **[#274]** A picture drawn behind the whole page over the `background` colour (tree-format.md
+ * 4.3.4): its file in `theme/`, and how much of it shows.
+ */
+export interface BackgroundImage {
+  file: string
+  /** `"0"` to `"1"`, at most two decimals and no trailing zero: a string, as every value of the format is (3.7). */
+  opacity: string
+}
+
 export interface Theme {
   logo?: Logo
   fonts?: FontFamily[]
   colours?: Colours
+  'background-image'?: BackgroundImage
 }
 
 export interface Manifest {
-  format: 'elsa-tree/8'
+  format: 'elsa-tree/9'
   languages: string[]
   /** The first declared language: what the frontend shows before the user chooses. */
   defaultLanguage: string
