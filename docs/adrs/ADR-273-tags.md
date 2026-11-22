@@ -1,4 +1,4 @@
-# ADR-273-tags: a Tree carries up to eight short localised tags in `elsa-tree/9`, edited in "This Tree", and the public overview's bar filters its tiles by any ticked tag, the choice in the address
+# ADR-273-tags: a Tree carries up to eight short localised tags in `elsa-tree/9`, edited in "This Tree", and a filter beside the public overview's search field narrows its tiles by any ticked tag, the choice in the address
 
 - Status: ACCEPTED -- 2026-11-22, built by #273 in the same pull request
 - Issue: #273 -- Tags on a Tree, added in the editor, and a filter dropdown on the main overview over
@@ -47,12 +47,16 @@ request, so that a reviewer or the owner who wants the architecture issue can se
    whole list at the manifest path `tags`, as a Theme part is written whole (33.8): the list is
    small, its order and its distinctness are properties of the whole, and one path keeps the
    interface's set of fields closed. The language operations reach the tags as every other text.
-4. **The filter is a pill in the public overview's chrome bar**, first of its controls, whose list
-   drops over the grid. It was put there before #272's search bar merged, to keep the box's third
-   row of tiles at 1280 x 640 (26.2); #272 then gave the box a row above it whose column after the
-   search field is left for this filter (26.5). Moving the pill into that row is not done here. Below 480 pixels wide a funnel
-   stands for its word, which stays its accessible name: the overview keeps its current language's
-   pill at every width (24.3), and the site title took a second line at 320 beside the word.
+4. **The filter is a pill beside #272's search field, in its row and its form** (26.5, 26.6), as
+   the issue asked ("a dropdown beside the search bar"); its list drops from the pill's right end
+   over the grid. One form holds the field's `q`, the tag boxes and `lang`, so that without script
+   Enter in the field and the list's button each send the other's state too. One component,
+   `OverviewSearch`, holds the field's text and the ticks and leaves out a tile unless it matches
+   both, so #272's `noMatch` covers a search the ticks empty, and a tile stays a server component
+   with no knowledge of tags. Below 480 pixels wide a funnel stands for the pill's word, which stays
+   its accessible name, so that the field beside it keeps its placeholder whole at 320.
+   *Amended in the same pull request:* the first build put the pill in the chrome bar, before #272
+   merged; review sent it back (PR #278).
 5. **A tick narrows the tiles to the Trees carrying any ticked tag**, at once, in the browser. "Any"
    rather than "all": a choice of tags the overview lists can then never leave it empty, and the
    list is one facet, where ticking a second value widens. The choice is the query's `tag`, once per
@@ -80,6 +84,9 @@ request, so that a reviewer or the owner who wants the architecture issue can se
   a list of at most eight, and a write could leave two tags the same between two calls.
 - **All ticked tags must match**: ticking a second tag of the same list would narrow to nothing as
   often as not; one facet widens.
+- **The pill in the chrome bar**, as first built: away from the search it narrows the tiles with,
+  against the issue's "beside the search bar"; and two forms, each dropping the other's query
+  without script.
 - **Server-side filtering by navigation on every tick**: a request per tick, and the choice sent to
   the server while the reader is still choosing; the server reads it only from an address loaded.
 

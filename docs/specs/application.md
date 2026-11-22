@@ -4211,8 +4211,9 @@ Zero served Trees: the page says so, in the chrome language.
 **[#272]** (2026-11-22) A search bar stands above the tiles and narrows them as the visitor types
 (26.5); `/?q=...` is the address its form asks for without the script, with this page's head.
 
-**[#273]** (2026-11-22) A served Tree's tags are listed by the bar's tag filter and narrow the tiles
-(26.6); a choice is the query's `tag`, which the canonical link and the `hreflang` set do not carry.
+**[#273]** (2026-11-22) A served Tree's tags are listed by the tag filter beside the search field and
+narrow the tiles with it (26.6); a choice is the query's `tag`, which the canonical link and the
+`hreflang` set do not carry.
 
 ### 23.3 `robots.txt`
 
@@ -4340,7 +4341,7 @@ published Tree's preview is a 307 to its editor at the same path and `?lang`; an
 | Page | Left | Right | Theme |
 |---|---|---|---|
 | Public Node page | **[#204]** (2026-10-09) #163's arrow, `toOverview`, a link to the public overview in the chrome language, which #164 added and this row did not name; then the Tree's logo or title; **[#195]** (2026-10-03) then the mention of its Authors, between the mark and the controls (39.4) | language switch, share button; **[#204]** (2026-10-09) then `editor` ("Editor"), a link to `/admin` in the chrome language, in the share button's look, last. Below 768 pixels wide the switch gives up the current language's pill with its list item, and in a Tree of one language the whole switch (10.5) | The published Tree's |
-| Public overview `/` | `siteTitle` as text | **[#273]** (2026-11-22) the tag filter's pill (26.6), when a served Tree has a tag; then the language switch; **[#204]** (2026-10-09) then `editor`, as on a Node page, last. The current language's pill at every width; **[#273]** below 480 pixels wide the tag pill draws a funnel for its word `tags`, which stays its accessible name | The default (13.4) |
+| Public overview `/` | `siteTitle` as text | The language switch; **[#204]** (2026-10-09) then `editor`, as on a Node page, last. The current language's pill at every width. **[#273]** (2026-11-22) The tag filter is not in the bar: it stands beside the search field (26.5, 26.6) | The default (13.4) |
 | Login page | `siteTitle` | language switch; **[#204]** (2026-10-09) at the address `/admin` only, then `website` ("Website"), a link to the public overview in the chrome language (`/`, `/?lang=nl`), in ~~the `account` link's look~~ **[#249]** (2026-10-13) `editor`'s look (the share button's), last. Not on the login page shown at any other admin address | The default |
 | **[#204]** (2026-10-09) Creators' overview, `/admin` with a session | `siteTitle`, not drawn below ~~600~~ **[#249]** (2026-10-13) 660 pixels wide | language switch, its current language's pill not drawn below ~~600~~ **[#249]** 660; `account`, `accounts` (administrator only) and `logout`, as in the row below; then `website`, as on the login page, last. **[#249]** All four in `editor`'s look (the share button's) | The default |
 | ~~Creators' overview,~~ **[#204]** (2026-10-09) `/admin/new`, `/admin/account`, `/admin/accounts` | **[#253]** (2026-10-13) On `/admin/account` and `/admin/accounts`, #163's arrow first, `toOverview`, a link to the creators' overview `/admin` in the chrome language, as the editor's bar begins; held with `siteTitle` in one `.page-brand` group. Not on `/admin/new`. Then `siteTitle`, not drawn below 620 pixels wide on those two pages (the note below) | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout`. **[#249]** (2026-10-13) `account`, `accounts` and `logout` in `editor`'s look (the share button's), not as links | The default |
@@ -4699,7 +4700,9 @@ run's reading within the issue's PROPOSED points, recorded in `docs/adrs/ADR-272
   The field is one column wide (280, or the box's width when that is less) and 36 tall, 16 below
   the chrome bar, at the grid's inset of 24 (16 below 360 wide, as the box's), and the first row
   of tiles 16 below it. The row is a flex row with a gap of 20, so the tag filter of #273 takes
-  the next column beside the field. With zero served Trees there is no bar: `noTrees` alone (23.2).
+  the next column beside the field (26.6). **[#273]** (2026-11-22) Beside the pill the field gives up
+  width, never the pill: below 480 pixels wide the gap is 8 and the pill a funnel, and at 320 x 480
+  the field still holds its whole placeholder with a tag ticked. With zero served Trees there is no bar: `noTrees` alone (23.2).
   **The creators' overview, `/admin`, has no bar** (PROPOSED): the owner asked for the main page,
   and 26.4's "the same page with three additions" stays three.
 - **The look.** The chrome bar's pill (24.3): outlined in `rule`, 999-pixel corners,
@@ -4718,9 +4721,13 @@ run's reading within the issue's PROPOSED points, recorded in `docs/adrs/ADR-272
   served Tree's titles and descriptions in each language it declares -- a hidden Tree's never
   (23.1). Enter sends nothing. An emptied field shows every tile again. No tile left: the box
   holds `noMatch` in the chrome language, as `noTrees` is drawn, with `role="status"`.
+  **[#273]** (2026-11-22) A tile stands while it matches the search **and** 26.6's tag choice, so
+  `noMatch` also stands when the search leaves only tiles the ticks leave out.
 - **Without the script.** The form asks for `/?q=<text>` (with `lang` on the Dutch page) and the
-  server answers with the same narrowing and the field holding the text. The head is the
-  overview's (23.2), its canonical link included; nothing is stored and no cookie is set.
+  server answers with the same narrowing and the field holding the text. **[#273]** (2026-11-22) The
+  tag filter's ticks are in the same form, so Enter in the field sends them too (`/?q=...&tag=...`).
+  The head is the overview's (23.2), its canonical link included; nothing is stored and no cookie
+  is set.
 
 ### 26.6 The tag filter
 
@@ -4729,16 +4736,16 @@ where people can filter on all tags that exist in the published decision-trees".
 `docs/adrs/ADR-273-tags.md`; the tags themselves are `tree-format.md` 4 (`tags`, from `elsa-tree/9`)
 and are edited in "This Tree" (33.5).
 
-- **Where.** The public overview's chrome bar, first of its controls (24.3): a pill in the share
-  button's look, `tags` ("Tags", "Labels"), with the number of ticked tags after the word in
-  `accent-secondary`; below 480 pixels wide a funnel stands for the word. It is a `<details>`: the
-  list drops under the bar's right end, over the grid, 16 pixels from the bar's edge (8 below 480),
-  at most the room between the bar and the disclaimer, and scrolls inside its own bounds beyond that.
-  **Not yet beside the search field** of 26.5, whose row leaves the column after the field for it:
-  #272 merged while this was built, and the pill stayed in the bar (a defect recorded on #273's pull
-  request). Escape
-  closes it and gives the focus back to the pill; a click outside closes it. No served Tree with a
-  tag: no pill.
+- **Where.** Beside the search field, in 26.5's row and in its form: the column after the field, 20
+  pixels from it (8 below 480 pixels wide). A pill in the field's look -- 36 tall, outlined in
+  `rule`, 999-pixel corners, filled `surface`, `accent-secondary` on hover and while open, the
+  body's 16 pixels -- reading `tags` ("Tags", "Labels"), with the number of ticked tags after the
+  word in `accent-secondary`; below 480 pixels wide a funnel stands for the word, which stays its
+  accessible name, so that the field keeps its placeholder whole. It is a `<details>`: the list
+  drops from the pill's right end, 8 below it, over the grid, at most the window's width less 32 and
+  the window's height less the chrome bar and 140, and scrolls inside its own bounds beyond that.
+  Escape closes it and gives the focus back to the pill; a click outside closes it. No served Tree
+  with a tag: no pill.
 - **What it lists.** Every tag of every served Tree -- a hidden Tree serves nothing, so its tags are
   in no list -- once: in the page's language where its Tree declares it, else in the Tree's default,
   as the tile's title (23.2); two Trees' tags are one entry when they are the same text with letter
@@ -4746,7 +4753,9 @@ and are edited in "This Tree" (33.5).
   `id` order writes it; in the order of the page language's alphabet, letter case aside. A
   `fieldset` named `filterByTag` ("Show the trees tagged") with a check box per tag.
 - **What a tick does.** At once and without a request, the grid shows the Trees carrying **any**
-  ticked tag and hides the rest; no tick, every Tree. So a choice never empties the overview.
+  ticked tag and leaves out the rest; no tick, every Tree. So a choice alone never empties the
+  overview; with a search it can, and the box then holds 26.5's `noMatch`: a tile stands while it
+  matches both.
   `showAllTrees` under the list clears the ticks. The tiles keep their order and their look; a tile
   does not draw its tags (26.1's rows are full: 12 + 48 + 4 + 60 + 4 + 18 + 12 of 160).
 - **The address.** The choice is the query's `tag`, once per ticked tag in the list's words
@@ -4755,8 +4764,10 @@ and are edited in "This Tree" (33.5).
   it and draws the page filtered already; a `tag` no served Tree carries is ignored. Nothing is
   stored and no cookie is set (23.2). Switching the page's language drops the choice: its words are
   the other language's.
-- **Without script.** The list is a `GET` form to `/` with the page's `lang`; its button `applyTags`
-  ("Show"), drawn only without script, sends the ticks.
+- **Without script.** The list is part of the search bar's `GET` form to `/`, with the page's `lang`:
+  its button `applyTags` ("Show"), drawn only without script, sends the ticks **and the field's
+  `q`**, and Enter in the field sends both as well. `showAllTrees` is then a link to the overview
+  with the page's `lang` and `q` and no `tag`.
 - **The creators' overview** (26.4) has no filter: the owner asked for the main overview's.
 
 ## 27. Creating a Tree
