@@ -4201,6 +4201,9 @@ and `x-default`, a `<meta name="description">` from a chrome string; no Tree con
 the titles. No cookie. **No JSON-LD in this round** (an `ItemList` is reserved, not built).
 Zero served Trees: the page says so, in the chrome language.
 
+**[#272]** (2026-11-22) A search bar stands above the tiles and narrows them as the visitor types
+(26.5); `/?q=...` is the address its form asks for without the script, with this page's head.
+
 ### 23.3 `robots.txt`
 
 One file, **unchanged**. Nothing disallowed, `/admin` included (20.9 uses the header). 16.1
@@ -4618,6 +4621,12 @@ gaps, as many as fit (`auto-fill`), never fewer than one; tiles left-aligned. At
 four columns (1180 of 1232) and three rows (520 of 520): twelve tiles in view; the
 thirteenth is below the fold **of the box**.
 
+**[#272]** (2026-11-22) On the public overview the search bar's row (26.5) stands above the box and
+takes 52 of its pixels, and the box's top inset falls from 24 to 16: at 1280 x 640 the box shows
+two rows whole and 140 of the third row's 160 -- eight tiles whole, four cut by the box's edge, the
+thirteenth below. Three rows cannot fit under the bar: 520 + 52 > 568. The creators' overview,
+with no bar, keeps three rows.
+
 ```
 +------------------------------------------------------------------------------+ 44
 | ELSA decision trees                          [language] Anna  Accounts  Log out|
@@ -4669,6 +4678,39 @@ every Tree. Two groups, each in `id` order (23.2's rule inside each): first the 
 caller has a role on (`store.drafts.list(by)`), then every other published Tree
 (`store.publishedIds()` less the first group). The public overview has one group. Zero
 Trees: `noTrees` on `/`; the + tile alone on `/admin`.
+
+### 26.5 The search bar
+
+**[#272], new -- 2026-11-22.** The owner: "on the main page I want a search-bar". The rest is the
+run's reading within the issue's PROPOSED points, recorded in `docs/adrs/ADR-272-overview-search.md`.
+
+- **Where.** On the public overview, `/`, only: a row of its own between the chrome bar and the
+  grid's box, out of the box's scroll, so the field stays in view while the tiles scroll (26.3).
+  The field is one column wide (280, or the box's width when that is less) and 36 tall, 16 below
+  the chrome bar, at the grid's inset of 24 (16 below 360 wide, as the box's), and the first row
+  of tiles 16 below it. The row is a flex row with a gap of 20, so the tag filter of #273 takes
+  the next column beside the field. With zero served Trees there is no bar: `noTrees` alone (23.2).
+  **The creators' overview, `/admin`, has no bar** (PROPOSED): the owner asked for the main page,
+  and 26.4's "the same page with three additions" stays three.
+- **The look.** The chrome bar's pill (24.3): outlined in `rule`, 999-pixel corners,
+  `accent-secondary` on hover, filled `surface`; a 16-pixel magnifier in `text-muted` at its left. The
+  type is the body's 16 pixels, not the bar's 12: a phone's browser zooms the page into a focused
+  field set smaller than 16. The field is `type="search"` in a `role="search"` form; its accessible
+  name and its placeholder are `searchTrees`.
+- **What it matches.** A Tree's titles and descriptions in **every language it declares** -- the
+  description reduced by 16.3's `plainDescription(...).reduced`, whole, not cut to 155 -- so a
+  Dutch title is found from the English page. Both the Tree's text and the query are folded alike
+  (`src/search.ts`): NFKD, combining marks dropped, lower-cased, every run of white space one
+  space. A tile matches when its text holds **every word** of the query, in any order; a blank
+  query matches every tile. The tiles keep their order (23.2).
+- **With the script.** The tiles narrow as the visitor types, with no request: the server folds
+  each tile's text once and sends it with the page, so the page's script payload carries every
+  served Tree's titles and descriptions in each language it declares -- a hidden Tree's never
+  (23.1). Enter sends nothing. An emptied field shows every tile again. No tile left: the box
+  holds `noMatch` in the chrome language, as `noTrees` is drawn, with `role="status"`.
+- **Without the script.** The form asks for `/?q=<text>` (with `lang` on the Dutch page) and the
+  server answers with the same narrowing and the field holding the text. The head is the
+  overview's (23.2), its canonical link included; nothing is stored and no cookie is set.
 
 ## 27. Creating a Tree
 
