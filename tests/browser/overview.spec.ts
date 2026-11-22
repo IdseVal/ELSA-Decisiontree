@@ -304,3 +304,23 @@ test('the overview in English and Dutch at 1280 x 640', async ({ page }) => {
     await page.screenshot({ path: path.join(SHOTS, `overview-${lang}-1280x640.png`) })
   }
 })
+
+/** **[#272]** The search bar's screenshots: in `docs/screenshots/issue-272/` under `ELSA_SHOTS=1` only. */
+const SHOTS_272 =
+  process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-272') : path.join(here, '.results', 'shots')
+
+test('**[#272]** the search bar empty, narrowing and matching nothing, at 1280 x 640 and 360 x 640, screenshots', async ({ page }) => {
+  await mkdir(SHOTS_272, { recursive: true })
+  for (const [width, lang, typed] of [
+    [1280, 'en', ''],
+    [1280, 'en', 'fixture'],
+    [1280, 'nl', 'zebra'],
+    [360, 'nl', 'carrousel'],
+  ] as const) {
+    await page.setViewportSize({ width, height: 640 })
+    await page.goto(`${showcase}/${lang === 'en' ? '' : `?lang=${lang}`}`)
+    await page.evaluate(() => document.fonts.ready)
+    await page.getByRole('searchbox').fill(typed)
+    await page.screenshot({ path: path.join(SHOTS_272, `overview-${lang}-${typed || 'empty'}-${width}x640.png`) })
+  }
+})
