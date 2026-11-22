@@ -16,6 +16,7 @@ import type { EditorWords } from '../../src/editor/mode.ts'
 import { Panel, type PanelWords } from '../../src/editor/Panel.tsx'
 import { Todo, TodoButton, type TodoWords } from '../../src/editor/Todo.tsx'
 import type { Violation } from '../../src/tree/types.ts'
+import { validateTree, type Mapping } from '../../src/tree/validate.ts'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
@@ -27,7 +28,11 @@ function said<K extends string>(keys: K[]): Record<K, string> {
 const editorWords = said(['missingText', 'saving', 'saved', 'notSaved', 'publicBehind', 'toOverview', 'close']) as unknown as EditorWords
 const loginWords = { email: 'email', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '', sessionNotKept: '' }
 const sheetWords = said(['close', 'previous', 'next', 'opensInNewTab'])
-const todoWords: TodoWords = said(['todoCount', 'todoCountOne', 'todoNone', 'todoBefore', 'publicBehindBecause', 'notServableBecause', 'thisTree', 'removeStep', 'requestFailed'])
+const todoWords: TodoWords = said([
+  'todoCount', 'todoCountOne', 'todoNone', 'todoBefore', 'publicBehindBecause', 'notServableBecause', 'thisTree', 'removeStep', 'requestFailed',
+  'placeholderTitle', 'placeholderText', 'placeholderSourceLabel', 'placeholderUrl', 'placeholderOptionTitle', 'placeholderImageDescription',
+  'placeholderCredit', 'endingText', 'nextStepWords', 'placeholderTerm', 'placeholderExplanation', 'placeholderLogoAlt',
+])
 const panelWords = said([
   'settings', 'publish', 'publishRefused', 'showTodo', 'publishedAt', 'publicLink', 'confirmUnpublish', 'confirm', 'cancel', 'collaborators', 'creator',
   'invite', 'cannotInvite', 'removeCollaborator', 'chooseAccount', 'thisTree', 'confirmRemoveLanguage', 'handOver', 'handOverTo', 'deleteTree',
@@ -41,6 +46,9 @@ const missing = (file: string): Violation => ({ file, keyPath: 'title.nl', rule:
 let advisory: Violation[]
 let refusal: Violation[]
 let sent: Array<{ method: string; url: string }>
+/** **[#271]** The operations the fake server received, and whether it refuses them. */
+let patched: unknown[]
+let refuseRemoval: boolean
 let root: Root
 let container: HTMLDivElement
 
@@ -48,6 +56,8 @@ beforeEach(() => {
   advisory = []
   refusal = []
   sent = []
+  patched = []
+  refuseRemoval = false
   vi.stubGlobal('fetch', (url: string, init: RequestInit = {}) => {
     const method = init.method ?? 'GET'
     sent.push({ method, url })
@@ -57,6 +67,11 @@ beforeEach(() => {
     }
     if (url === '/admin/api/accounts') return json(200, [])
     if (url === '/admin/api/trees/t/published') return json(409, { error: 'invalid', violations: refusal })
+    if (url.startsWith('/admin/api/trees/t/nodes/') && method === 'PATCH') {
+      patched.push(JSON.parse(String(init.body)))
+      if (refuseRemoval) return json(422, { error: 'invalid', violations: [] })
+      return json(200, { revision: 2, node: null, violations: [], tree: { advisory: advisory.length, published: false, publicCopyCurrent: true } })
+    }
     return json(404, { error: 'not-found' })
   })
   container = document.createElement('div')
@@ -81,12 +96,12 @@ function mount(count: number, children: ReactNode): void {
 }
 
 /** The to-do bubble in its Sheet, as the editor page draws it. */
-function todoSheet(list: Violation[]): ReactNode {
+function todoSheet(list: Violation[], manages = true): ReactNode {
   return (
     <Sheet
       className="todo-sheet"
       summary={<TodoButton words={todoWords} />}
-      pages={[<Todo key="todo" treeId="t" words={todoWords} advisory={list} titles={{}} nodeHref={{ before: '/admin/trees/t/', after: '' }} manages />]}
+      pages={[<Todo key="todo" treeId="t" words={todoWords} advisory={list} titles={{}} nodeHref={{ before: '/admin/trees/t/', after: '' }} manages={manages} />]}
       words={sheetWords}
       uiLang={undefined}
       cross
@@ -196,4 +211,85 @@ test('a refused publish points at the bubble, which opens on the refusal’s lis
   expect(rereads()).toBe(before + 1)
   expect(lines()).toEqual([])
   expect(container.querySelector('.todo-sheet .panel-body')!.textContent).toContain('todoNone')
+})
+
+/**
+ * **[#271]** The owner's Node on the live Tree, as the validator reads it in a draft: the marks
+ * of an explainer deleted by hand in both languages, the Dutch description and the explainer's
+ * Dutch texts not written yet. The lines are the validator's own, not written for the test.
+ */
+function ownersLines(): Violation[] {
+  const text = (en: string, nl: string): Record<string, string> => ({ en, nl })
+  const tree: Mapping = {
+    $schema: '/schemas/elsa-tree-8.json',
+    format: 'elsa-tree/8',
+    languages: ['en', 'nl'],
+    root: 'start',
+    title: text('A Tree', 'Een boom'),
+    metadata: { version: '1' },
+    nodes: [
+      {
+        id: 'start',
+        title: text('Is your system an AI system?', 'Is uw systeem een AI-systeem?'),
+        description: text('Are you a provider?', ''),
+        metadata: { version: '1' },
+        explainers: [{ id: 'provider-2', term: text('provider', ''), text: text('Someone who develops it.', '') }],
+        terminal: { label: text('Ends', 'Einde') },
+      },
+    ],
+  }
+  return validateTree({ id: 't', tree, images: new Set(), themeFiles: new Set() }, 'draft').filter((violation) => violation.advisory)
+}
+
+/** The write the fake server received for `remove-explainer`, if any. */
+const removals = (): Array<{ method: string; url: string }> => sent.filter((request) => request.method === 'PATCH')
+
+test('**[#271]** an explainer marked nowhere offers `remove` on its lines; it sends remove-explainer and re-reads the list', async () => {
+  const before = ownersLines()
+  advisory = before
+  mount(before.length, todoSheet(before))
+  const unmarked = [...container.querySelectorAll('.todo-sheet .todo-list li[data-rule="V-EXPLAINER"]')]
+  expect(unmarked).toHaveLength(2)
+  for (const line of unmarked) expect(line.querySelector('button')?.textContent).toBe('removeStep')
+  // A line of another rule has no `remove`: the field is written, not removed.
+  expect(container.querySelector('.todo-sheet .todo-list li[data-rule="V-L10N"] button')).toBeNull()
+
+  // The store removes it: what is left is the description's Dutch.
+  advisory = before.filter((violation) => !violation.keyPath.startsWith('explainers'))
+  act(() => unmarked[0]!.querySelector('button')!.click())
+  await settle()
+
+  expect(removals()).toEqual([{ method: 'PATCH', url: '/admin/api/trees/t/nodes/start' }])
+  expect(patched).toEqual([{ op: 'remove-explainer', id: 'provider-2' }])
+  expect(rereads()).toBe(1)
+  expect(lines()).toEqual(['start: placeholderText (nl): missing or empty text for the declared language "nl"'])
+  expect(todoName()).toBe('1 todoCountOne')
+})
+
+test('**[#271]** a collaborator may remove it too; a refused removal says requestFailed and keeps the list', async () => {
+  const before = ownersLines()
+  advisory = before
+  refuseRemoval = true
+  mount(before.length, todoSheet(before, false))
+  const button = container.querySelector<HTMLButtonElement>('.todo-sheet .todo-list li[data-rule="V-EXPLAINER"] button')!
+  act(() => button.click())
+  await settle()
+
+  expect(patched).toEqual([{ op: 'remove-explainer', id: 'provider-2' }])
+  expect(container.querySelector('.todo-sheet [role="alert"]')?.textContent).toBe('requestFailed')
+  expect(lines()).toHaveLength(before.length)
+})
+
+test('**[#271]** two empty fields of one Node read as two different lines: each names its field and language', () => {
+  const list = ownersLines()
+  mount(list.length, todoSheet(list))
+  const said = lines()
+  expect(said).toEqual([
+    'start: placeholderText (nl): missing or empty text for the declared language "nl"',
+    'start: placeholderTerm 1 (nl): missing or empty text for the declared language "nl"',
+    'start: placeholderExplanation 1 (nl): missing or empty text for the declared language "nl"',
+    'start: "provider-2" is not marked in description.en; write [words](#provider-2) where the term occurs',
+    'start: "provider-2" is not marked in description.nl; write [words](#provider-2) where the term occurs',
+  ].map((line) => (line.includes('is not marked') ? `${line}removeStep` : line)))
+  expect(new Set(said).size).toBe(said.length)
 })
