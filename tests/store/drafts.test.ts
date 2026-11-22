@@ -1033,3 +1033,37 @@ describe('**[#147]** the languages of an existing Tree (22.2, 33.5)', () => {
     expect((await refusal(drafts.write(erik, 'nl-tree', null, { op: 'add-language', tag: 'de' }))).status).toBe(403)
   })
 })
+
+describe('**[#273]** the tags (application.md 33.5, tree-format.md 4)', () => {
+  test('written whole: each text gets "" for a language it lacks, the list goes with its last tag, and nothing else changes', async () => {
+    await drafts.create(cees, 't', ['en', 'nl'], { en: 'T', nl: 'T' })
+
+    const written = await drafts.write(cees, 't', null, { path: 'tags', value: [{ en: 'Food' }, { en: 'Safety', nl: 'Veiligheid' }] })
+
+    expect(written.manifest!.tags).toEqual([{ en: 'Food', nl: '' }, { en: 'Safety', nl: 'Veiligheid' }])
+    expect(written.violations).toContainEqual({ file: 'manifest', keyPath: 'tags[0].nl', rule: 'V-L10N', message: 'missing or empty text for the declared language "nl"', advisory: true })
+    const removed = await drafts.write(cees, 't', null, { path: 'tags', value: [] })
+    expect(removed.manifest!.tags).toBeUndefined()
+    expect(JSON.parse(await readFile(path.join(data, 'trees', 't', 'draft.json'), 'utf8'))).not.toHaveProperty('tags')
+  })
+
+  test('a ninth tag, one tag twice and a tag that is no list are 422, and nothing is stored', async () => {
+    await drafts.create(cees, 't', ['en'], { en: 'T' })
+    await drafts.write(cees, 't', null, { path: 'tags', value: [{ en: 'Food' }] })
+
+    const nine = Array.from({ length: 9 }, (_, i) => ({ en: `Tag ${i}` }))
+    expect(await refusal(drafts.write(cees, 't', null, { path: 'tags', value: nine }))).toMatchObject({ status: 422, rules: ['V-COUNT'] })
+    expect(await refusal(drafts.write(cees, 't', null, { path: 'tags', value: [{ en: 'Food' }, { en: 'FOOD ' }] }))).toMatchObject({ status: 422, rules: ['V-TAGS'] })
+    expect(await refusal(drafts.write(cees, 't', null, { path: 'tags', value: 'Food' }))).toMatchObject({ status: 422 })
+    expect(JSON.parse(await readFile(path.join(data, 'trees', 't', 'draft.json'), 'utf8')).tags).toEqual([{ en: 'Food' }])
+  })
+
+  test('a language added or removed reaches the tags as every other text', async () => {
+    await drafts.create(cees, 't', ['en'], { en: 'T' })
+    await drafts.write(cees, 't', null, { path: 'tags', value: [{ en: 'Food' }] })
+
+    expect((await drafts.write(cees, 't', null, { op: 'add-language', tag: 'nl' })).manifest!.tags).toEqual([{ en: 'Food', nl: '' }])
+    await drafts.write(cees, 't', null, { path: 'tags', value: [{ en: 'Food', nl: 'Voedsel' }] })
+    expect((await drafts.write(cees, 't', null, { op: 'remove-language', tag: 'nl' })).manifest!.tags).toEqual([{ en: 'Food' }])
+  })
+})
