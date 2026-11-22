@@ -101,6 +101,9 @@ describe('the roles the stylesheet reads are the ones the Theme emits', () => {
       '--elsa-scrim',
       '--elsa-font-body',
       '--elsa-font-heading',
+      // **[#274]** Written only when the Theme names a background picture; the layer reads both with a fallback.
+      '--elsa-background-image',
+      '--elsa-background-image-opacity',
     ])
     const read = new Set([...rules.matchAll(/var\((--elsa-[a-z-]+)/g)].map((match) => match[1]!))
 

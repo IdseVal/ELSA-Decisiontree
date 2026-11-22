@@ -177,7 +177,8 @@ describe('the first Tree logo and tab icon are PNG, and arrive as PNG', () => {
  */
 describe('every extension the format admits has a type', () => {
   test.for([
-    ['theme files (3.6)', THEME_TYPES, ['svg', 'png', 'webp', 'ico', 'woff2']],
+    // **[#274]** jpg and jpeg since elsa-tree/9, for a background picture.
+    ['theme files (3.6)', THEME_TYPES, ['svg', 'png', 'jpg', 'jpeg', 'webp', 'ico', 'woff2']],
     ['image files (3.5)', IMAGE_TYPES, ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg']],
   ] as const)('%s', ([, types, extensions]) => {
     expect(Object.keys(types).sort()).toEqual([...extensions].sort())

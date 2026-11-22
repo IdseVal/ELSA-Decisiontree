@@ -103,8 +103,8 @@ describe('creating a Tree (22.1, 27.2)', () => {
     expect(entry).toMatchObject({ id: 'my-tree', published: false, servable: false, blocking: [] })
     expect(entry.meta).toMatchObject({ creator: cees.id, collaborators: [], publishCount: 0, revision: 0 })
     expect(JSON.parse(await text('my-tree', 'draft.json'))).toEqual({
-      $schema: '/schemas/elsa-tree-8.json',
-      format: 'elsa-tree/8',
+      $schema: '/schemas/elsa-tree-9.json',
+      format: 'elsa-tree/9',
       languages: ['nl', 'en'],
       root: 'start',
       title: { nl: 'Mijn boom', en: '' },
