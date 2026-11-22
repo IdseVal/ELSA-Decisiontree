@@ -189,13 +189,18 @@ function block(selector: string, colours: Colours, theme: Theme | undefined, pre
 
 /**
  * **[#274]** The Theme's background picture as the two custom properties the stylesheet's layer
- * behind the page reads (application.md 13.1): its address and how much of it shows. None when
- * the Theme names no picture, or when either value fails its grammar here at the sink -- then the
- * page shows its `background` colour alone, as a Tree without the part does, rather than half of it.
+ * behind the page reads (application.md 13.1): its address and how much of it shows. `none` and
+ * `0` when the Theme names no picture, or when either value fails its grammar here at the sink --
+ * then the page shows its `background` colour alone, as a Tree without the part does, rather than
+ * half of it. Written either way, never left out: the editor adds an element per write that
+ * overrides the earlier ones declaration for declaration (13.1), so a picture removed must be
+ * overridden by a declaration, or the older element would go on drawing it.
  */
 function backgroundImage(theme: Theme | undefined, treeId: string, href: ThemeHref): string[] {
   const picture = theme?.['background-image']
-  if (!picture || !BACKGROUND_FILE.test(picture.file) || !OPACITY.test(picture.opacity)) return []
+  if (!picture || !BACKGROUND_FILE.test(picture.file) || !OPACITY.test(picture.opacity)) {
+    return ['--elsa-background-image:none', '--elsa-background-image-opacity:0']
+  }
   return [`--elsa-background-image:url('${href(treeId, picture.file)}')`, `--elsa-background-image-opacity:${picture.opacity}`]
 }
 

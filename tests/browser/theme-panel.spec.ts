@@ -249,7 +249,7 @@ test('what is refused: an SVG and a text file at the picker, a reader without a 
   const refused = page.waitForResponse((response) => response.request().method() === 'POST' && response.url().endsWith(`/admin/api/trees/${TREE}/theme`))
   await themePanel(page).getByLabel('Replace the logo').setInputFiles(svg)
   expect((await refused).status()).toBe(415)
-  await expect(themePanel(page).getByRole('alert')).toHaveText('This file type is refused: PNG or WebP for a logo, WOFF2 for a font.')
+  await expect(themePanel(page).getByRole('alert')).toHaveText('This file type is refused: PNG or WebP for a logo, PNG, JPEG or WebP for a background picture, WOFF2 for a font.')
 
   // A second PNG uploaded but never named: the admin route serves only what the draft names.
   const loose = await page.request.post(`${origin}/admin/api/trees/${TREE}/theme`, {

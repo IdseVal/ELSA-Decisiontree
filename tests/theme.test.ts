@@ -72,7 +72,8 @@ describe('the seven roles become the seven properties', () => {
     const { css } = themeStyle(themedTree.manifest.theme, themedTree.id)
     const emitted = [...css.matchAll(/--elsa-([a-z-]+):/g)].map((match) => match[1]!)
 
-    // The seven of tree-format.md 4.3.3, the four derived of 13.1, and the two font roles.
+    // The seven of tree-format.md 4.3.3, the four derived of 13.1, and the two font roles;
+    // **[#274]** and the background picture's two, which are not colours.
     expect(new Set(emitted)).toEqual(
       new Set([
         ...Object.keys(DEFAULT_COLOURS),
@@ -82,6 +83,8 @@ describe('the seven roles become the seven properties', () => {
         'scrim',
         'font-body',
         'font-heading',
+        'background-image',
+        'background-image-opacity',
       ]),
     )
   })
@@ -342,10 +345,11 @@ describe('**[#274]** the background picture (13.1, tree-format.md 4.3.4)', () =>
     expect(property(css, 'background-image')).toBe(`url('${adminThemeHref('a-tree', 'field.jpg')}')`)
   })
 
-  test('a Theme without one writes neither property, so the layer draws nothing', () => {
+  test('a Theme without one writes none and 0, so the layer draws nothing and an earlier element in the editor is overridden', () => {
     for (const theme of [themedTree.manifest.theme, undefined]) {
-      const { css } = themeStyle(theme, 'a-tree')
-      expect(css).not.toContain('--elsa-background-image')
+      const { css } = themeStyle(theme, 'a-tree', adminThemeHref, { editor: true })
+      expect(property(css, 'background-image')).toBe('none')
+      expect(property(css, 'background-image-opacity')).toBe('0')
     }
   })
 
@@ -357,7 +361,8 @@ describe('**[#274]** the background picture (13.1, tree-format.md 4.3.4)', () =>
     ['an opacity that is CSS', 'field.jpg', '0.3;}body{color:red'],
   ])('%s is checked again at the sink and nothing of the part is emitted', ([, file, opacity]) => {
     const { css } = themeStyle(picture(file!, opacity!), 'a-tree')
-    expect(css).not.toContain('--elsa-background-image')
+    expect(property(css, 'background-image')).toBe('none')
+    expect(property(css, 'background-image-opacity')).toBe('0')
     expect(css).not.toContain('color:red')
   })
 })
