@@ -11,6 +11,9 @@
   validator's own functions, `src/tree/measure.ts`), `ADR-132-draft-and-publish.md` (a
   write over a limit is stored and reported), `ADR-169-tree-creation-ui-round.md` (core
   document 3.4 records the owner's change, marked `[#169]`)
+- **[#263] Amended (2026-11-18)** by `ADR-263-description-field.md` decision 1: the description
+  stops at 600 characters and 8 lines, and decision 1's counter shows `lines / 8`
+  (`docs/specs/application.md` 43.9). The rule of typing stopping stands.
 
 ## Context
 

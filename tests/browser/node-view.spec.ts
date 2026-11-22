@@ -160,7 +160,7 @@ test('clicking the main image shows the image larger with its description and cr
   expect(shown!.height).toBeLessThan(page.viewportSize()!.height)
 })
 
-test('the main image is two fifths of the Bubble at every guaranteed viewport, and of the Overlay\'s panel too (#102)', async ({
+test('the main image is **[#264]** one fifth (43.2; two fifths from #102) of the Bubble at every guaranteed viewport, and of the Overlay\'s panel too', async ({
   page,
 }) => {
   for (const [width, height] of [[1280, 640], [1920, 1080]] as const) {
@@ -168,14 +168,14 @@ test('the main image is two fifths of the Bubble at every guaranteed viewport, a
     await page.goto(`${START}/prohibited-practices`)
     const bubble = (await page.locator('.bubble').boundingBox())!
     const image = (await page.locator('.bubble .main-image').boundingBox())!
-    expect(image.height, `${width}x${height}`).toBeCloseTo(0.4 * bubble.height, 0)
+    expect(image.height, `${width}x${height}`).toBeCloseTo(0.2 * bubble.height, 0)
     expect(image.width, `${width}x${height}`).toBeCloseTo(1.5 * image.height, 0)
 
     // The side arm: the Overlay's panel stands where the Bubble does, and its picture takes the same share of it.
     await page.goto(`${START}/prohibited-practices/social-scoring`)
     const inOverlay = (await page.locator('.overlay[open] .main-image').boundingBox())!
     const panel = (await page.locator('.overlay[open] > .sheet-panel').boundingBox())!
-    expect(inOverlay.height, `${width}x${height}: the Overlay`).toBeCloseTo(0.4 * panel.height, 0)
+    expect(inOverlay.height, `${width}x${height}: the Overlay`).toBeCloseTo(0.2 * panel.height, 0)
   }
 })
 

@@ -42,7 +42,10 @@
  * **[#234]** And the editor mid-slide, its `+` Sheet closed by the slide, halfway and held at the
  * target, at every viewport of 10.6 where the tree view stands (42.8). **[#251]** And the settings
  * panel opened as `anna`, the creator of `hidden-draft` (35.3), plain and with the creator's
- * `deleteTree` asking, at every viewport of 10.6 (33.5).
+ * `deleteTree` asking, at every viewport of 10.6 (33.5). **[#265]** And the editor on
+ * `tests/fixtures/long-full-node/`'s full Node and the side bubble of `long-overlay/` as drafts, at
+ * 600 characters and 8 lines, in every state above (43.9, 28.6); wherever a description's box
+ * scrolls, the field is measured blurred and focused, and each scrolled to its end.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -139,6 +142,9 @@ test.beforeAll(async () => {
     { folder: path.join(repo, 'tests', 'fixtures', 'five-next-steps'), hidden: true },
     // **[#251]** 35.3's `hidden-draft` with its creator, whose settings panel holds `deleteTree` (33.5).
     { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true, creator: ANNA.email },
+    // **[#265]** The full Node and the side bubble at every maximum with descriptions of 600 characters (43.9).
+    { folder: path.join(repo, 'tests', 'fixtures', 'long-full-node'), id: 'long-draft', hidden: true },
+    { folder: path.join(repo, 'tests', 'fixtures', 'long-overlay'), hidden: true },
   ]
   overlayOrigin = await serveStore(await buildDataDir({ trees: overlay, accounts: [ANNA] }), PORT + 1, ADMIN_ENV)
 })
@@ -163,6 +169,16 @@ async function measure(page: Page, scope = '*'): Promise<Measured> {
       // chrome bar, which `data-clamp` marks as the overview's tile titles are marked (26.1).
       // **[#138]** And the Carousel strip, 10.6's first exemption, which the editor's Bubble carries.
       if (el.matches('[data-scroll-box], [data-clamp], [data-carousel-strip]')) continue
+      // **[#264]** The description's box scrolls down inside itself (43.3): its width is walked,
+      // its height is not, and it must end inside the text area that holds it.
+      if (el.matches('[data-description-box]')) {
+        if (el.scrollWidth > el.clientWidth + 1) overflowing.push(`${name(el)} holds ${el.scrollWidth}x${el.scrollHeight} in ${el.clientWidth}x${el.clientHeight}`)
+        const area = el.closest('.bubble-text, .overlay-interior')
+        const bottom = el.getBoundingClientRect().bottom
+        const areaBottom = area?.getBoundingClientRect().bottom ?? -Infinity
+        if (el.getClientRects().length > 0 && bottom > areaBottom + 1) overflowing.push(`${name(el)} ends at ${bottom}, below its text area's ${areaBottom}`)
+        continue
+      }
       if (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1) {
         overflowing.push(`${name(el)} holds ${el.scrollWidth}x${el.scrollHeight} in ${el.clientWidth}x${el.clientHeight}`)
       }
@@ -303,29 +319,58 @@ for (const lang of LANGUAGES) {
 }
 
 /**
+ * **[#265]** The description's field in `description`, a box that scrolls in both its states
+ * (43.9), measured where its text is longer than the box: blurred and scrolled to its end, then
+ * focused, then focused and scrolled to its end; and left blurred, at its top.
+ */
+async function descriptionScrolled(page: Page, description: Locator, what: string, lang: string, viewport: string): Promise<void> {
+  const box = description.locator('[data-description-box]')
+  const scrolls = (): Promise<boolean> => box.evaluate((element) => element.scrollHeight > element.clientHeight + 1)
+  const toEnd = (): Promise<void> => box.evaluate((element) => element.scrollTo(0, element.scrollHeight))
+  if (!(await scrolls())) return
+  await toEnd()
+  record(await measure(page), what, lang, viewport, 'description scrolled to its end')
+  await description.locator('.editor-rendered').click({ position: { x: 2, y: 2 } })
+  await expect(description.locator('textarea')).toBeFocused()
+  record(await measure(page), what, lang, viewport, 'description source, at its top')
+  await toEnd()
+  record(await measure(page), what, lang, viewport, 'description source scrolled to its end')
+  await description.locator('textarea').blur()
+  await expect(description.locator('.editor-rendered')).toBeVisible()
+}
+
+/**
  * The editor's page at every viewport, in every state 28.6 names for this issue (35.4); **[#233]**
  * the full Node of `hidden-draft` unless `at` names another Tree's on another store, at `viewports`.
+ * **[#265]** Its rows say `at.what` where it is not `editor`.
  */
-async function editorEverywhere(page: Page, lang: string, at = { base: origin, tree: 'hidden-draft' }, viewports: readonly (readonly [number, number])[] = VIEWPORTS): Promise<void> {
+async function editorEverywhere(
+  page: Page,
+  lang: string,
+  at: { base: string; tree: string; what?: string } = { base: origin, tree: 'hidden-draft' },
+  viewports: readonly (readonly [number, number])[] = VIEWPORTS,
+): Promise<void> {
   const address = `/admin/trees/${at.tree}/full${lang === 'en' ? '' : '?lang=nl'}`
+  const what = at.what ?? 'editor'
   for (const [width, height] of viewports) {
     const viewport = `${width}x${height}`
     await page.setViewportSize({ width, height })
     expect((await page.goto(`${at.base}${address}`))?.status()).toBe(200)
     await expect(page.locator('main')).toBeVisible()
-    record(await measure(page), 'editor', lang, viewport, '')
+    record(await measure(page), what, lang, viewport, '')
 
     // **[#142]** The top panel (33.2), and **[#176]** the to-do bubble (33.3), from the controls
     // that float at the top right at every size, the floor's included: each body a scroll box.
-    await floatingSheets(page, 'editor', lang, viewport)
+    await floatingSheets(page, what, lang, viewport)
 
     // The description in its source state, with the pill on the rim (28.3, 28.5).
     const description = page.locator('[data-field="full description.en"], [data-field="full description.nl"]').filter({ visible: true })
     // At the floor the notice stands in for the view (10.4): no field and no Sheet to open.
     if ((await description.count()) === 0) continue
+    await descriptionScrolled(page, description, what, lang, viewport)
     await description.click()
     await expect(description.locator('textarea')).toBeFocused()
-    record(await measure(page), 'editor', lang, viewport, 'description source')
+    record(await measure(page), what, lang, viewport, 'description source')
     await page.keyboard.press('Escape')
     await description.locator('textarea').blur()
 
@@ -334,7 +379,7 @@ async function editorEverywhere(page: Page, lang: string, at = { base: origin, t
     if (await source.isVisible()) {
       await source.click()
       await expect(page.locator('.source-editor').filter({ visible: true })).toBeVisible()
-      record(await measure(page), 'editor', lang, viewport, 'source Sheet')
+      record(await measure(page), what, lang, viewport, 'source Sheet')
       await page.keyboard.press('Escape')
     }
 
@@ -347,12 +392,12 @@ async function editorEverywhere(page: Page, lang: string, at = { base: origin, t
       // On the picture: the title beside it is a field now, and a click on it edits.
       await control.locator('.option-image').click()
       await expect(sheets.nth(i).locator(':scope > .sheet-panel')).toBeVisible()
-      record(await measure(page), 'editor', lang, viewport, `Overlay ${i + 1}`)
+      record(await measure(page), what, lang, viewport, `Overlay ${i + 1}`)
       // **[#177]** Its delete asks in place, at the panel's foot (30.7); the answer is never given here.
       const remove = sheets.nth(i).locator('.side-delete')
       await remove.locator('.side-delete-button').click()
       await expect(remove.locator('.structure-confirm')).toBeVisible()
-      record(await measure(page), 'editor', lang, viewport, `Overlay ${i + 1}, delete asked`)
+      record(await measure(page), what, lang, viewport, `Overlay ${i + 1}, delete asked`)
       await page.keyboard.press('Escape')
       await expect(sheets.nth(i).locator(':scope > .sheet-panel')).toBeHidden()
     }
@@ -383,6 +428,13 @@ for (const lang of LANGUAGES) {
   test(`the editor on the full Node, ${lang}, never scrolls at any viewport of 10.6, in every state (28.6)`, async ({ browser }) => {
     test.slow()
     await editorEverywhere(await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD), lang)
+  })
+
+  test(`**[#265]** the editor on the full Node with a description of 600 characters, ${lang}, never scrolls at any viewport of 10.6, in every state, its field blurred, focused and scrolled to its end (43.9, 28.6)`, async ({ browser }) => {
+    test.slow()
+    const page = await (await browser.newContext()).newPage()
+    expect((await login(page, overlayOrigin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
+    await editorEverywhere(page, lang, { base: overlayOrigin, tree: 'long-draft', what: 'editor, 600 characters' })
   })
 
   // **[#233]** Where the full Node's four next steps and the `+` take 42.4's notice -- of 10.6's
@@ -758,37 +810,46 @@ test('the to-do bubble with a list longer than the window never scrolls the docu
  * editor at every viewport of 10.6 (30.5, 30.7): plain; below the guarantee with its Sources'
  * Sheet open, where they are edited as the Bubble's are (28.6); and with `deleteSideBubble`
  * asking, which takes more of the panel's foot than the button. The answer is never given.
+ *
+ * **[#265]** And `tests/fixtures/long-overlay/`'s `big`, the same with a description of 600
+ * characters and 8 lines (43.9), its field blurred, focused and scrolled to its end.
  */
 for (const lang of LANGUAGES) {
-  test(`a side bubble at every maximum, opened by its address, ${lang}, never scrolls at any viewport of 10.6 (30.5, 30.7, 28.6)`, async ({ browser }) => {
-    test.slow()
-    const page = await (await browser.newContext()).newPage()
-    expect((await login(page, overlayOrigin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
-    for (const [width, height] of VIEWPORTS) {
-      const viewport = `${width}x${height}`
-      await page.setViewportSize({ width, height })
-      expect((await page.goto(`${overlayOrigin}/admin/trees/overlay/five/big${lang === 'en' ? '' : '?lang=nl'}`))?.status()).toBe(200)
-      await expect(page.locator('main')).toBeVisible()
-      const panel = page.locator('details.overlay[open] > .sheet-panel')
-      // At the floor the notice stands in for the view (10.4): no side bubble to measure.
-      if (!(await panel.isVisible())) continue
-      // Drawn after hydration: the controls below listen from here on.
-      await expect(page.locator('details.overlay[open] > .sheet-backdrop')).toBeAttached()
-      record(await measure(page), 'side bubble at every maximum', lang, viewport, '')
-      const sources = panel.locator('.sources-sheet')
-      if (await sources.locator(':scope > .sheet-open').isVisible()) {
-        await sources.locator(':scope > .sheet-open').click()
-        await expect(sources.locator(':scope > .sheet-panel')).toBeVisible()
-        record(await measure(page), 'side bubble at every maximum', lang, viewport, 'its Sources Sheet')
-        await page.keyboard.press('Escape')
-        await expect(sources.locator(':scope > .sheet-panel')).toBeHidden()
-        await expect(panel).toBeVisible()
+  for (const [tree, what, issue] of [
+    ['overlay', 'side bubble at every maximum', ''],
+    ['long-overlay', 'side bubble at every maximum, 600 characters', '**[#265]** '],
+  ] as const) {
+    test(`${issue}a ${what}, opened by its address, ${lang}, never scrolls at any viewport of 10.6 (30.5, 30.7, 28.6)`, async ({ browser }) => {
+      test.slow()
+      const page = await (await browser.newContext()).newPage()
+      expect((await login(page, overlayOrigin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
+      for (const [width, height] of VIEWPORTS) {
+        const viewport = `${width}x${height}`
+        await page.setViewportSize({ width, height })
+        expect((await page.goto(`${overlayOrigin}/admin/trees/${tree}/five/big${lang === 'en' ? '' : '?lang=nl'}`))?.status()).toBe(200)
+        await expect(page.locator('main')).toBeVisible()
+        const panel = page.locator('details.overlay[open] > .sheet-panel')
+        // At the floor the notice stands in for the view (10.4): no side bubble to measure.
+        if (!(await panel.isVisible())) continue
+        // Drawn after hydration: the controls below listen from here on.
+        await expect(page.locator('details.overlay[open] > .sheet-backdrop')).toBeAttached()
+        record(await measure(page), what, lang, viewport, '')
+        await descriptionScrolled(page, panel.locator('[data-field^="big description."]').filter({ visible: true }), what, lang, viewport)
+        const sources = panel.locator('.sources-sheet')
+        if (await sources.locator(':scope > .sheet-open').isVisible()) {
+          await sources.locator(':scope > .sheet-open').click()
+          await expect(sources.locator(':scope > .sheet-panel')).toBeVisible()
+          record(await measure(page), what, lang, viewport, 'its Sources Sheet')
+          await page.keyboard.press('Escape')
+          await expect(sources.locator(':scope > .sheet-panel')).toBeHidden()
+          await expect(panel).toBeVisible()
+        }
+        await panel.locator('.side-delete-button').click()
+        await expect(panel.locator('.side-delete .structure-confirm')).toBeVisible()
+        record(await measure(page), what, lang, viewport, 'delete asked')
       }
-      await panel.locator('.side-delete-button').click()
-      await expect(panel.locator('.side-delete .structure-confirm')).toBeVisible()
-      record(await measure(page), 'side bubble at every maximum', lang, viewport, 'delete asked')
-    }
-  })
+    })
+  }
 }
 
 /**

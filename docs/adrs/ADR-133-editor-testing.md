@@ -16,6 +16,10 @@
   restated with the admin pages)
 - Depends on: `docs/adrs/ADR-132-data-directory.md` (the store's layout is what the
   helper writes), `ADR-133-reuse-rule.md`
+- **[#263] Amended (2026-11-18)** by `ADR-263-description-scroll.md` decision 9: decision 4's
+  row for `admin-no-scroll.spec.ts`: its walk exempts the description's box, `[data-description-box]`, for its
+  height only, beside `[data-scroll-box]` and `[data-carousel-strip]`, and checks its width and its
+  place in the text area (`docs/specs/application.md` 43.3, 43.11).
 
 ## Context
 

@@ -11,6 +11,10 @@
   `ADR-132-hidden-trees-and-findability.md` (decision 3: the overview's look and its order
   within the `id` rule)
 - Depends on: `docs/adrs/ADR-133-admin-routes.md`, `ADR-132-roles-and-permissions.md`
+- **[#263] Amended (2026-11-18)** by `ADR-263-description-scroll.md` decision 2: decision 5's box
+  is no longer "the second and last element the no-scroll rule exempts": the description's box is a
+  third, under an attribute of its own; `data-scroll-box` and its rule are unchanged
+  (`docs/specs/application.md` 43.3).
 
 ## Context
 

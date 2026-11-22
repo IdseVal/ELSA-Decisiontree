@@ -15,7 +15,7 @@
  * link on the page that names the aside.
  *
  * The main image is the Node's first Image, a link to its file that opens the enlarged view
- * (12.3). It is two fifths of the Bubble's height (10.3, amended by #102). A Node without
+ * (12.3). It is **[#264]** one fifth of the Bubble's height (43.2; two fifths from #102). A Node without
  * Images keeps the same box as an empty slot, and a neighbour frame as a withheld one, so a
  * slide has nothing to reflow.
  *
@@ -41,10 +41,10 @@ import { PUBLIC_LINKS } from '../url.ts'
 import { Explainer } from './Explainer.tsx'
 import { Sheet, type SheetWords } from './Sheet.tsx'
 
-/** The maximum lengths of tree-format.md 5.7 the Interior's fields are counted against (28.1). */
+/** The maximum lengths of tree-format.md 5.7 the Interior's fields are counted against (28.1); **[#265]** the description's since elsa-tree/8 (43.9). */
 const LIMIT = {
   title: { characters: 80 },
-  description: { characters: 150, lines: 2 },
+  description: { characters: 600, lines: 8 },
   sourceLabel: { characters: 60 },
   imageDescription: { characters: 120 },
   credit: { characters: 120 },
@@ -158,6 +158,9 @@ export function Interior({
         idPrefix,
       })}
       termEvent={edit?.slots.onTermClick}
+      // **[#264]** On every page a reader sees the description is its own scroll box, named by the
+      // title (43.3, 43.5). **[#265]** In the editor the field's own elements are the box (43.9).
+      labelledBy={field ? undefined : `${idPrefix}node-title`}
     />
   )
   return (

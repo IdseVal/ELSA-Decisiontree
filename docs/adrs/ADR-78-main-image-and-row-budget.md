@@ -16,6 +16,12 @@
   description's limit is **150 characters and 2 lines**, and both Trees were re-cut; the
   header line's 60 pixels, 446 and "two pixels to spare" are #78's and historical. The
   dated notes below give the numbers; core document 10.28 points here for them.
+- **[#263] Amended (2026-11-18)** by `ADR-263-description-box.md` decision 1: decision 4's main
+  image, two fifths of the Bubble since #102, is **one fifth** (80.2 of 401 at 1280 x 640), and
+  decision 7's Overlay picture one fifth of its panel; by decision 2: decision 3's description of
+  48 is a box that takes what the text area leaves and scrolls (104.9 at 1280 x 640); and by
+  `ADR-263-description-limit.md` decision 1: the #102 note's 150 characters and 2 lines are 600 and
+  8 from `elsa-tree/8` (`docs/specs/application.md` 43.1, 43.2).
 
 ## Context
 

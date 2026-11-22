@@ -13,6 +13,9 @@
   address set is absolute, so `src/url.ts` -- which its decision 2 says does not
   know the variable exists -- takes the base as an argument and builds against it,
   and the canonical link becomes one entry of the set rather than a path
+- **[#263] Amended (2026-11-18)** by `ADR-263-description-limit.md` decision 3: decision 8's cut
+  "cannot fire for a conforming Tree" held until `elsa-tree/8`; with descriptions of up to 600
+  counted characters it fires, as decision 8 provides (`docs/specs/application.md` 43.7).
 
 ## Context
 

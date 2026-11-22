@@ -103,8 +103,8 @@ describe('creating a Tree (22.1, 27.2)', () => {
     expect(entry).toMatchObject({ id: 'my-tree', published: false, servable: false, blocking: [] })
     expect(entry.meta).toMatchObject({ creator: cees.id, collaborators: [], publishCount: 0, revision: 0 })
     expect(JSON.parse(await text('my-tree', 'draft.json'))).toEqual({
-      $schema: '/schemas/elsa-tree-7.json',
-      format: 'elsa-tree/7',
+      $schema: '/schemas/elsa-tree-8.json',
+      format: 'elsa-tree/8',
       languages: ['nl', 'en'],
       root: 'start',
       title: { nl: 'Mijn boom', en: '' },
@@ -227,7 +227,7 @@ describe('the unit of a write (22.2)', () => {
 
   test('an advisory write is stored and answers its violation at the field (22.3)', async () => {
     await drafts.create(cees, 't', ['en'], { en: 'T' })
-    const long = 'x'.repeat(151)
+    const long = 'x'.repeat(601)
     const response = await drafts.write(cees, 't', 'start', { path: 'description.en', value: long })
     expect(response.revision).toBe(1)
     expect(response.node!.description).toEqual({ en: long })
@@ -235,7 +235,7 @@ describe('the unit of a write (22.2)', () => {
       file: 'start',
       keyPath: 'description.en',
       rule: 'V-LENGTH',
-      message: '151 characters; at most 150',
+      message: '601 characters; at most 600',
       advisory: true,
     })
     expect(response.tree).toEqual({ advisory: response.tree.advisory, published: false, publicCopyCurrent: true })

@@ -52,7 +52,7 @@ describe('a Tree in two languages', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.id).toBe('ai-act-example')
-    expect(tree.manifest.format).toBe('elsa-tree/7')
+    expect(tree.manifest.format).toBe('elsa-tree/8')
     expect(tree.manifest.languages).toEqual(['en', 'nl'])
     expect(tree.manifest.defaultLanguage).toBe('en')
     expect(tree.manifest.root).toBe('start')
@@ -700,7 +700,7 @@ describe('how text is measured (tree-format.md 3.8)', () => {
 
   test("the spec's worked example lays out over exactly two lines", async () => {
     // Section 3.8: one block of 117 characters and no break, which is ceil(117 / 75) = 2 --
-    // exactly the maximum. The text is the root Node of section 8.
+    // exactly the maximum until elsa-tree/8 (**[#264]** 8 since). The text is the root Node of section 8.
     const tree = await openTree(exampleTree)
     const start = (await tree.getNode('start'))!
 
@@ -757,7 +757,69 @@ describe('the Node index the sitemap reads (#118)', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.filePath).toBe(path.join(exampleTree, 'tree.json'))
-    expect(JSON.parse(await readFile(tree.filePath, 'utf8')).format).toBe('elsa-tree/7')
+    expect(JSON.parse(await readFile(tree.filePath, 'utf8')).format).toBe('elsa-tree/8')
+  })
+})
+
+describe('**[#264]** a Node\'s description is at most 600 counted characters and 8 estimated lines (tree-format.md 5.7, application.md 43.1)', () => {
+  /** The violations of a copy of `long-full-node`, whose Node `full` is given `description`; empty when it loads. */
+  async function withDescription(description: Record<string, string>): Promise<Violation[]> {
+    const work = await mkdtemp(path.join(tmpdir(), 'elsa-description-'))
+    try {
+      const dir = path.join(work, 'long-full-node')
+      await cp(fixture('long-full-node'), dir, { recursive: true })
+      const file = path.join(dir, 'tree.json')
+      const tree = JSON.parse(await readFile(file, 'utf8')) as { nodes: Array<Record<string, unknown>> }
+      const full = tree.nodes.find((node) => node.id === 'full')!
+      full.description = { ...(full.description as Record<string, string>), ...description }
+      await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
+      return await openTree(dir).then(
+        () => [],
+        (reason: unknown) => (reason as InstanceType<typeof TreeInvalid>).violations,
+      )
+    } finally {
+      await rm(work, { recursive: true, force: true })
+    }
+  }
+
+  test('long-full-node\'s full Node holds 600 characters and 8 lines in both languages, and is valid', async () => {
+    const full = (await (await openTree(fixture('long-full-node'))).getNode('full'))!
+    for (const lang of ['en', 'nl']) {
+      expect(countedLength(full.description[lang]!), lang).toBe(600)
+      expect(estimatedLines(full.description[lang]!), lang).toBe(8)
+    }
+    const big = (await (await openTree(fixture('long-overlay'))).getNode('big'))!
+    for (const lang of ['en', 'nl']) {
+      expect(countedLength(big.description[lang]!), lang).toBe(600)
+      expect(estimatedLines(big.description[lang]!), lang).toBe(8)
+    }
+  })
+
+  /** `full`'s explainer mark, one counted character, which every text here keeps (V-EXPLAINER). */
+  const MARK = '[x](#bubble)'
+
+  test('601 characters are V-LENGTH at description.<lang>, naming the field', async () => {
+    // One block of 601 is also ceil(601 / 75) = 9 lines, so V-LINES comes with it; V-LENGTH
+    // is the one that names the length.
+    const violations = await withDescription({ nl: MARK + 'x'.repeat(600) })
+
+    expect(violations).toContainEqual({ file: 'full', keyPath: 'description.nl', rule: 'V-LENGTH', message: '601 characters; at most 600' })
+    // 600 in one block of 8 lines is within both limits.
+    expect(await withDescription({ nl: MARK + 'x'.repeat(599) })).toEqual([])
+  })
+
+  test('8 estimated lines are within the limit, and 9 are V-LINES', async () => {
+    // Four blocks of 75 characters and three breaks: 7 lines. A list item adds a block (8); a
+    // paragraph adds a block and a break (9).
+    const seven = [MARK + 'a'.repeat(74), ...Array.from({ length: 3 }, () => 'a'.repeat(75))].join('\n\n')
+    expect(estimatedLines(seven)).toBe(7)
+    expect(estimatedLines(`${seven}\n\nb`)).toBe(9)
+    expect(estimatedLines(`${seven}\n- b`)).toBe(8)
+
+    expect(await withDescription({ en: `${seven}\n- b` })).toEqual([])
+    expect(await withDescription({ en: `${seven}\n\nb` })).toEqual([
+      { file: 'full', keyPath: 'description.en', rule: 'V-LINES', message: '9 estimated lines; at most 8' },
+    ])
   })
 })
 

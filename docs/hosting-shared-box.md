@@ -106,11 +106,14 @@ the box is closed to the internet on purpose.
    two `ELSA_ADMIN_` lines are removed again).
 3. **Add the workflow's secrets and tailnet rule** (the owner; the variable `ELSA_BOX_HOST` is
    set); run the workflow by hand from `dev` and see it deploy the same commit.
-4. **Merge `dev` into `main`** (the owner), and watch the push deploy.
-5. ~~Add `/srv/elsa/data` to the box's backup~~ (2026-10-10: nightly on the box, below); copying
-   the backups off the machine is still to do, for both projects.
-6. **[#252] Install the new `deploy.sh` and `snapshot.sh`** (the owner, as root), after the
-   first deploy that carries them: the box runs its own root-owned copy of `deploy.sh`, so that
+4. ~~Merge `dev` into `main`~~ (the owner, 2026-10-12 and 2026-10-14; the push's deploy run fails
+   at joining the tailnet until step 3 is done, so each release was deployed by hand).
+5. ~~Add `/srv/elsa/data` to the box's backup~~ (2026-10-10: nightly on the box, below).
+   ~~Copy the backups off the machine~~ (2026-10-14: the owner's workstation pulls every archive
+   nightly over Tailscale SSH as the `elsa` user and keeps all of them, below); the other
+   project's backups are still on the box only.
+6. ~~[#252] Install the new `deploy.sh` and `snapshot.sh`~~ (2026-10-14, below; the owner, as
+   root), after the first deploy that carries them: the box runs its own root-owned copy of `deploy.sh`, so that
    deploy still runs the old one, keeps `current/trees/` and takes no copy. Then:
 
    ```sh
@@ -141,4 +144,5 @@ shape on the box"; they live on the box and with the owner.
 | 2026-10-10 | The box had no swap. A 2 GiB swap file was added (`/swapfile`, in `/etc/fstab`) before the first build: a Next.js build beside the other project on 3.7 GiB has little headroom. The build then took under a minute. |
 | 2026-10-10 | First deploy of `dev` done by hand: `bootstrap.sh`, the Caddy block appended (the previous Caddyfile kept beside it as `Caddyfile.before-elsa-2026-10-10`), `deploy.sh dev`. The first start seeded the two Trees and created the administrator from the two env lines, which were then removed and the service restarted. Certificates for the bare domain and `www` came at once. Checked from outside: 200 on the bare domain, 301 from `www`, 308 from plain HTTP, `robots.txt` names the HTTPS sitemap; a login over HTTPS answers 204 with a `Secure` session cookie, and the logout 204. |
 | 2026-10-10 | For this application `/etc/cron.d/elsa-backup` writes `/var/backups/elsa/elsa-data-<date>.tar.gz` at 03:15 every night and keeps 30; a first copy was taken right after the deploy. Nothing copies them off the machine yet. |
+| 2026-10-14 | The second promotion of `dev` to `main` (#261) was deployed by hand. Before it, root took a copy of the data directory and installed #252's `deploy.sh` and `snapshot.sh` from the new `main`, so that very deploy ran them: `/srv/elsa/backups/` holds its first pre-deploy archive, with the same file count as the data directory, and `/srv/elsa/current/` carries no `trees/`. The nightly archives are now group-readable by `elsa` (the cron line sets the group and mode), and the owner's workstation pulls every archive from both folders once a night into one folder of its own, keeping all of them and checking each one unpacks before it counts; the first pull brought eight. The tailnet policy already lets the owner's devices in as `elsa` without a check, so the pull runs unattended; the deploy workflow still waits for its OAuth client and the `tag:ci` rules (step 3). |
 | 2026-10-10 | The owner's workstation could not reach the box for a morning because a VPN that starts with Windows refused every connection to tailnet and LAN addresses (`WSAEACCES`); turned off, everything connected. Noted so the next person does not look at the box's firewall first. |

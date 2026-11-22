@@ -149,7 +149,7 @@ test.describe('the Interior in an Overlay', () => {
 
   // No-scroll alone cannot catch a picture that gives way: the panel absorbs the shortfall
   // into it silently. The fixture's `big` Node is every maximum an Overlay holds (10.9).
-  test('the main image keeps two fifths of the panel in the Overlay at every maximum (#102)', async ({ page }) => {
+  test('the main image keeps **[#264]** one fifth (43.2; two fifths from #102) of the panel in the Overlay at every maximum', async ({ page }) => {
     overlayFixture ??= serve(path.join(repo, 'tests', 'fixtures'), 'overlay', OVERLAY_PORT)
     const origin = await overlayFixture
     expect(origin, 'the overlay fixture is a valid Tree').not.toBeNull()
@@ -160,7 +160,8 @@ test.describe('the Interior in an Overlay', () => {
       const panel = (await page.locator('.overlay[open] > .sheet-panel').boundingBox())!
       const image = (await page.locator('.overlay[open] .main-image').boundingBox())!
       expect(await page.locator('.overlay[open] .overlay-options li').count()).toBe(8)
-      expect(image.height, `${width}x${height}`).toBeCloseTo(0.4 * panel.height, 0)
+      expect(image.height, `${width}x${height}`).toBeCloseTo(0.2 * panel.height, 0)
+      if (width === 1280) expect(image.height).toBeCloseTo(121.6, 0)
     }
   })
 
@@ -188,7 +189,7 @@ test.describe('the Interior in an Overlay', () => {
 })
 
 test.describe('the keyboard', () => {
-  test('Enter on a focused Option button opens its Overlay; Tab reaches the cross, the main image, the heading link and the Sources; Escape returns', async ({ page }) => {
+  test('Enter on a focused Option button opens its Overlay; Tab reaches the cross, the main image, the heading link, **[#264]** the description\'s box and the Sources; Escape returns', async ({ page }) => {
     await page.goto(QUESTION)
     const overlay = page.locator('.overlay').first()
     await overlay.locator('.sheet-open').focus()
@@ -204,6 +205,10 @@ test.describe('the keyboard', () => {
     await page.keyboard.press('Tab')
     expect(await focused(page)).toBe('a')
     await expect(page.locator(':focus')).toHaveAttribute('href', FIRST_OPTION)
+    // **[#264]** Then the description's box, a region named by the heading (43.5).
+    await page.keyboard.press('Tab')
+    await expect(page.locator(':focus')).toHaveAttribute('data-description-box', '')
+    await expect(page.locator(':focus')).toHaveAttribute('role', 'region')
     await page.keyboard.press('Tab')
     await expect(page.locator(':focus')).toHaveAttribute('target', '_blank')
 

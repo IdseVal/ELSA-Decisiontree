@@ -239,32 +239,35 @@ test.describe('autosave (29)', () => {
   })
 
   // **[#172]** As the title's above: a description past two lines now comes from another route.
-  test('a description stored past 2 estimated lines is shown whole and marked at the field with V-LINES, the same rule id as the validator\u2019s', async ({ browser }) => {
+  // **[#264]** The validator holds 8 lines since elsa-tree/8, and **[#265]** the editor's field 8 too
+  // (43.9): the text is 9 lines, over both, so the rule id the two give is one.
+  test('a description stored past its estimated lines is shown whole and marked at the field with V-LINES, the same rule id as the validator\u2019s', async ({ browser }) => {
     const { page, cookie } = await loggedIn(browser, ANNA)
     const original = (await nodeOf(page, cookie, 'hidden-draft', 'full')).description.en!
-    const three = 'One paragraph.\n\n- and a list item under it'
-    expect((await api(page, cookie, 'PATCH', '/trees/hidden-draft/nodes/full', { path: 'description.en', value: three })).status()).toBe(200)
+    const nine = `One paragraph.\n\n- and a list item under it${'\n- and another'.repeat(6)}`
+    expect((await api(page, cookie, 'PATCH', '/trees/hidden-draft/nodes/full', { path: 'description.en', value: nine })).status()).toBe(200)
     await page.goto(`${origin}/admin/trees/hidden-draft/full`)
 
     await field(page, 'full', 'description.en').click()
     const area = field(page, 'full', 'description.en').locator('textarea')
-    await expect(area).toHaveValue(three)
-    await expect(page.locator('.editor-pill').filter({ visible: true })).toHaveText(`${three.length} / 1503 / 2`)
+    await expect(area).toHaveValue(nine)
+    await expect(page.locator('.editor-pill').filter({ visible: true })).toHaveText(`${nine.length} / 6009 / 8`)
     await expect(field(page, 'full', 'description.en')).toHaveClass(/editor-field--over/)
-    await expect(status(page).locator('.editor-violation')).toHaveText('V-LINES description.en: 3 estimated lines; at most 2')
-    expect((await nodeOf(page, cookie, 'hidden-draft', 'full')).description.en).toBe(three)
+    await expect(status(page).locator('.editor-violation')).toHaveText('V-LINES description.en: 9 estimated lines; at most 8')
+    expect((await nodeOf(page, cookie, 'hidden-draft', 'full')).description.en).toBe(nine)
     const draft = await openTree(path.join(dir, 'trees', 'hidden-draft'), { draft: true })
     expect(draft.advisory.find((v) => v.file === 'full' && v.keyPath === 'description.en')).toMatchObject({ rule: 'V-LINES' })
 
     // **[#172]** Over by its lines, it does not grow by its characters either: keys at its end do nothing (28.4, amended).
     await area.press('Control+End')
     await page.keyboard.type(' and more words', { delay: 5 })
-    await expect(area).toHaveValue(three)
-    await expect(page.locator('.editor-pill').filter({ visible: true })).toHaveText(`${three.length} / 1503 / 2`)
+    await expect(area).toHaveValue(nine)
+    await expect(page.locator('.editor-pill').filter({ visible: true })).toHaveText(`${nine.length} / 6009 / 8`)
 
-    // Blurred, the rendered form: a list of one item.
+    // Blurred, the rendered form: a list of seven items.
     await page.keyboard.press('Tab')
-    await expect(field(page, 'full', 'description.en').locator('.prose li')).toHaveText('and a list item under it')
+    await expect(field(page, 'full', 'description.en').locator('.prose li')).toHaveCount(7)
+    await expect(field(page, 'full', 'description.en').locator('.prose li').first()).toHaveText('and a list item under it')
     await field(page, 'full', 'description.en').click()
     await field(page, 'full', 'description.en').locator('textarea').fill(original)
     await expect(status(page)).toContainText(/^Saved \d/)

@@ -5,6 +5,9 @@
 - Spec: `docs/specs/tree-format.md` (`elsa-tree/3`), sections 3.4, 5, 5.7, 5.9, 7, 8, 12.5; `docs/specs/application.md` 10.8, 6, 7, 14
 - Core document: 3.1 ("Explainers"), 3.3 item 9, section 9 (an open panel never scrolls)
 - Built by: #79 (format, loader, validator, migration), #83 (the panel), #85 (the first Tree's content)
+- **[#263] Amended (2026-11-18)** by `ADR-263-description-scroll.md` decision 6: inside the
+  description's box, which scrolls, decision 6's panel keeps the text area as its containing block,
+  and the script also closes it when the box scrolls (`docs/specs/application.md` 43.5).
 
 ## Context
 

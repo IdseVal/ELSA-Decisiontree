@@ -6,11 +6,19 @@
  * server of this file's own; every count and box goes to `tests/browser/.results/fields.md`.
  * The screenshots the issue asks for go to `docs/screenshots/issue-172/` under
  * `ELSA_SHOTS=1`, the results folder otherwise (35.7).
+ *
+ * **[#265]** And the description's field on `tests/fixtures/long-full-node/` at 1280 x 640 (43.9,
+ * 43.11): empty, at its limit and over it, its box the public box at that size, its counter
+ * `600` and `8`, typing that stops at 600 characters and at 8 lines, both its states scrolling
+ * inside the box; the whole text autosaved and shown by the public page; and the side bubble's
+ * on `tests/fixtures/long-overlay/`. Their screenshots go to `docs/screenshots/issue-265/` under
+ * `ELSA_SHOTS=1`.
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
+import { estimatedLines } from '../../src/tree/measure.ts'
 import type { DraftNode } from '../../src/tree/types.ts'
 import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
@@ -19,22 +27,31 @@ const repo = fileURLToPath(new URL('../..', import.meta.url))
 const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-172') : path.join(RESULTS, 'shots')
 const PORT = BASE_PORT + 160
+/** **[#265]** Its own folder, so that a run for it rewrites no other issue's pictures. */
+const SHOTS_265 = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-265') : path.join(RESULTS, 'shots')
 
 const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
 
 /** Ordinary words, so the text wraps as a creator's would; long enough to pass every limit typed here. */
-const WORDS = 'The quick brown fox jumps over the lazy dog, then rests a while. '.repeat(3)
+const WORDS = 'The quick brown fox jumps over the lazy dog, then rests a while. '.repeat(10)
 
 let origin: string
 const rows: string[] = []
 
 test.beforeAll(async () => {
   const dir = await buildDataDir({
-    trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true, creator: ANNA.email }],
+    trees: [
+      { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true, creator: ANNA.email },
+      // **[#265]** The full Node at the new maximum, as a draft and as a published Tree, and the side bubble at it.
+      { folder: path.join(repo, 'tests', 'fixtures', 'long-full-node'), id: 'long-draft', hidden: true, creator: ANNA.email },
+      { folder: path.join(repo, 'tests', 'fixtures', 'long-full-node'), id: 'long-public' },
+      { folder: path.join(repo, 'tests', 'fixtures', 'long-overlay'), id: 'long-overlay', hidden: true, creator: ANNA.email },
+    ],
     accounts: [ANNA],
   })
   origin = await serveStore(dir, PORT, ADMIN_ENV)
   await mkdir(SHOTS, { recursive: true })
+  await mkdir(SHOTS_265, { recursive: true })
 })
 
 test.afterAll(async () => {
@@ -46,9 +63,9 @@ test.afterAll(async () => {
 /** The visible region of one field: the Bubble and its neighbour frames, and the Sources' collapsed copy, hold others (10.5, 11). */
 const field = (page: Page, keyPath: string, nodeId = 'full') => page.locator(`[data-field="${nodeId} ${keyPath}"]`).filter({ visible: true })
 
-async function shoot(page: Page, name: string): Promise<void> {
+async function shoot(page: Page, name: string, folder = SHOTS): Promise<void> {
   await page.evaluate(() => document.fonts.ready)
-  await page.screenshot({ path: path.join(SHOTS, `${name}.png`) })
+  await page.screenshot({ path: path.join(folder, `${name}.png`) })
 }
 
 /** Types `text` into a field from empty, key by key, opening a rich field's source first. */
@@ -178,7 +195,8 @@ test('typing past the limit of a title, a description, an Option title and an Im
   await page.goto(`${origin}/admin/trees/hidden-draft/full`)
   const cases = [
     { keyPath: 'title.en', limit: 80, read: (node: DraftNode) => node.title.en! },
-    { keyPath: 'description.en', limit: 150, read: (node: DraftNode) => node.description.en! },
+    // **[#265]** 600 since elsa-tree/8 (43.9).
+    { keyPath: 'description.en', limit: 600, read: (node: DraftNode) => node.description.en! },
     { keyPath: 'options[0].title.en', limit: 60, read: (node: DraftNode) => node.options[0]!.title.en! },
     // An Image's description in the enlarged view (31.3), opened from the main image: its box was one line until its text took two.
     {
@@ -240,16 +258,16 @@ test('the screenshots of #172: an empty root, texts at their limits in the Bubbl
     // A title and a description typed to their limits, in the Bubble and in the first Option's Overlay.
     await page.goto(`${origin}/admin/trees/hidden-draft/full`)
     await typeInto(page, 'title.en', 'full', WORDS.slice(0, 95))
-    await typeInto(page, 'description.en', 'full', WORDS.slice(0, 165))
-    await expect(field(page, 'description.en').locator('textarea')).toHaveValue(WORDS.slice(0, 150))
+    await typeInto(page, 'description.en', 'full', WORDS.slice(0, 615))
+    await expect(field(page, 'description.en').locator('textarea')).toHaveValue(WORDS.slice(0, 600))
     await shoot(page, `bubble-at-limits-${size}`)
     // The Overlay is opened by its address (10.9), at 390 too, where the fan has collapsed; the
     // page is left once the description is stored, so that no write is pending.
-    await expect.poll(async () => (await stored(page, cookie)).description.en).toBe(WORDS.slice(0, 150))
+    await expect.poll(async () => (await stored(page, cookie)).description.en).toBe(WORDS.slice(0, 600))
     await page.goto(`${origin}/admin/trees/hidden-draft/full/opt-one`)
     await typeInto(page, 'title.en', 'opt-one', WORDS.slice(0, 95))
-    await typeInto(page, 'description.en', 'opt-one', WORDS.slice(0, 165))
-    await expect(field(page, 'description.en', 'opt-one').locator('textarea')).toHaveValue(WORDS.slice(0, 150))
+    await typeInto(page, 'description.en', 'opt-one', WORDS.slice(0, 615))
+    await expect(field(page, 'description.en', 'opt-one').locator('textarea')).toHaveValue(WORDS.slice(0, 600))
     await shoot(page, `overlay-at-limits-${size}`)
 
     // The attach Sheet, after a picture is uploaded into a Terminal's empty slot, with its placeholders.
@@ -270,4 +288,171 @@ test('the screenshots of #172: an empty root, texts at their limits in the Bubbl
     await expect(page.locator('.panel-sheet .panel-body')).toBeVisible()
     await shoot(page, `top-panel-${size}`)
   }
+})
+
+/**
+ * **[#265]** The visible element that scrolls inside the description's box of the text area
+ * `area` selects -- the Bubble's, or an open Overlay's Interior -- and what the text area holds
+ * besides: what it is, its height, whether it scrolls and stands at its top or its end, how many
+ * pixels of it lie below, and the height of the Sources' block.
+ */
+async function descriptionBox(
+  page: Page,
+  area = '.bubble-text',
+): Promise<{ tag: string; height: number; scrolls: boolean; top: boolean; end: boolean; below: number; sources: number }> {
+  return page.evaluate((area) => {
+    const text = [...document.querySelectorAll<HTMLElement>(area)].find((element) => element.checkVisibility() && !element.closest('[inert]'))!
+    const box = [...text.querySelectorAll<HTMLElement>('[data-description-box]')].find((element) => element.checkVisibility())!
+    return {
+      tag: `${box.tagName.toLowerCase()}.${box.className}`,
+      height: box.getBoundingClientRect().height,
+      scrolls: box.scrollHeight > box.clientHeight + 1,
+      top: box.scrollTop === 0,
+      end: Math.abs(box.scrollTop + box.clientHeight - box.scrollHeight) <= 1,
+      below: box.scrollHeight - box.scrollTop - box.clientHeight,
+      sources: text.querySelector(':scope > .sources')?.getBoundingClientRect().height ?? 0,
+    }
+  }, area)
+}
+
+/** **[#265]** The text the public page's description box shows at `address`. */
+async function publicText(page: Page, address: string): Promise<string | null> {
+  await page.goto(address)
+  return page.locator('.bubble [data-description-box]').filter({ visible: true }).evaluate((element) => element.textContent)
+}
+
+test('**[#265]** the description’s field at 1280 x 640 is the public box empty, at its limit and over it, stops at 600 characters and 8 lines, and scrolls in both its states (43.9)', async ({ page }) => {
+  test.slow()
+  await page.setViewportSize({ width: 1280, height: 640 })
+  await page.goto(`${origin}/long-public/full`)
+  const pub = await descriptionBox(page)
+  rows.push(`- [#265] the public box of long-full-node's full Node at 1280x640: ${pub.height} px, ${pub.tag}, scrolls ${pub.scrolls}; the Sources ${pub.sources} px`)
+  expect(pub.scrolls).toBe(true)
+
+  const { status, cookie } = await login(page, origin, ANNA.email, ANNA.password)
+  expect(status).toBe(204)
+  const api = (method: string, route: string, data?: unknown) =>
+    page.request.fetch(`${origin}/admin/api/trees/long-draft${route}`, {
+      method,
+      headers: { Origin: origin, Cookie: cookie, 'Content-Type': 'application/json' },
+      data: data === undefined ? undefined : JSON.stringify(data),
+    })
+  const stored = async (): Promise<string> => ((await (await api('GET', '/nodes/full')).json()) as { node: DraftNode }).node.description.en!
+  const original = await stored()
+  await page.goto(`${origin}/admin/trees/long-draft/full`)
+  const region = field(page, 'description.en')
+  const area = region.locator('textarea')
+  const pill = page.locator('.editor-pill').filter({ visible: true })
+  const open = () => region.locator('.editor-rendered').click({ position: { x: 2, y: 2 } })
+  // The public box at its tallest in the room the editor's text area leaves (43.9): the editor
+  // draws each Source's label in a box as wide as its 60 characters (28.4), one to a line, where
+  // the public page runs the three on in two, and the box yields that line first, as it yields
+  // everything (43.2).
+  const room = pub.height - ((await descriptionBox(page)).sources - pub.sources)
+  const measured = async (what: string) => {
+    const box = await descriptionBox(page)
+    rows.push(`- [#265] the editor's description field, ${what}: ${box.height} px, ${box.tag}, scrolls ${box.scrolls}, at its top ${box.top}, at its end ${box.end}; the Sources ${box.sources} px`)
+    expect(box.height, `${what}: the public box's ${pub.height} less the editor's longer Sources`).toBeCloseTo(room, 0)
+    expect((await region.boundingBox())!.height, `${what}: the region`).toBeCloseTo(room, 0)
+    return box
+  }
+
+  // At its limit, blurred: the rendered text is the box, from its top, and scrolls to its end.
+  expect(await measured('at its limit, blurred')).toMatchObject({ tag: 'span.editor-rendered', scrolls: true, top: true })
+  await shoot(page, 'bubble-blurred-top', SHOTS_265)
+  await region.locator('[data-description-box]').evaluate((element) => element.scrollTo(0, element.scrollHeight))
+  expect((await descriptionBox(page)).end).toBe(true)
+  await shoot(page, 'bubble-blurred-end', SHOTS_265)
+
+  // Focused: the textarea is the box, the source from its top; a key at its end does nothing,
+  // and the caret at the end is in view.
+  await open()
+  await expect(area).toBeFocused()
+  expect(await measured('at its limit, focused')).toMatchObject({ tag: 'textarea.editor-input', scrolls: true, top: true })
+  await expect(pill).toHaveText('600 / 6008 / 8')
+  await shoot(page, 'bubble-focused-top', SHOTS_265)
+  await page.keyboard.press('Control+End')
+  await page.keyboard.type(' more', { delay: 5 })
+  await expect(area).toHaveValue(original)
+  // The browser scrolls just far enough to show the caret's line: less than half a line below.
+  expect((await measured('at its limit, focused, its caret at the end')).below).toBeLessThan(12)
+  await shoot(page, 'bubble-focused-end', SHOTS_265)
+
+  // Empty, the same box; typed from empty key by key, it stops at 600 characters.
+  await area.fill('')
+  await expect(page.getByRole('status')).toContainText(/^Saved \d/)
+  await measured('empty, focused')
+  await page.keyboard.press('Tab')
+  await measured('empty, blurred')
+  await open()
+  await page.keyboard.type(WORDS.slice(0, 615), { delay: 1 })
+  await expect(area).toHaveValue(WORDS.slice(0, 600))
+  await expect(pill).toHaveText('600 / 6008 / 8')
+  expect((await measured('typed to 600 characters')).below).toBeLessThan(12)
+
+  // List items, a line each, reach 8 estimated lines long before 600 characters: the ninth item's
+  // first letter would make it a ninth line, so it and the letters after it do nothing.
+  const item = '- an item of the list\n'
+  await area.fill('')
+  await page.keyboard.type(item.repeat(9), { delay: 1 })
+  const lines = await area.inputValue()
+  expect(estimatedLines(lines)).toBe(8)
+  expect(lines.startsWith(item.repeat(8))).toBe(true)
+  expect(lines.split('\n').filter((line) => line.startsWith('- an')).length).toBe(8)
+  await expect(pill).toContainText('8 / 8')
+  await measured('typed to 8 lines')
+
+  // Over its limit by another route (28.4): shown whole and marked in the same box, which scrolls.
+  const over = `${original} ${'And one more sentence. '.repeat(3)}`.trim()
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('status')).toContainText(/^Saved \d/)
+  expect((await api('PATCH', '/nodes/full', { path: 'description.en', value: over })).status()).toBe(200)
+  await page.goto(`${origin}/admin/trees/long-draft/full`)
+  await expect(region).toHaveClass(/editor-field--over/)
+  expect((await measured('over its limit, blurred')).scrolls).toBe(true)
+  await open()
+  await expect(area).toHaveValue(over)
+  expect((await measured('over its limit, focused')).scrolls).toBe(true)
+
+  // The whole text at the limit, written in the field, is autosaved, and the public page shows it whole.
+  await area.fill(original)
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('status')).toContainText(/^Saved \d/)
+  expect(await stored()).toBe(original)
+  expect((await api('PUT', '/published', { published: true })).status()).toBe(200)
+  const shown = await publicText(page, `${origin}/long-draft/full`)
+  expect(shown?.length).toBeGreaterThan(500)
+  expect(shown).toBe(await publicText(page, `${origin}/long-public/full`))
+})
+
+test('**[#265]** the description’s field in the side bubble at every maximum stops at 600 and scrolls in its box, at 1280 x 640 (43.9)', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 640 })
+  const { status } = await login(page, origin, ANNA.email, ANNA.password)
+  expect(status).toBe(204)
+  await page.goto(`${origin}/admin/trees/long-overlay/five/big`)
+  const region = page.locator('details.overlay[open] [data-field="big description.en"]').filter({ visible: true })
+  await expect(region).toBeVisible()
+  const interior = 'details.overlay[open] .overlay-interior'
+  const blurred = await descriptionBox(page, interior)
+  rows.push(`- [#265] the side bubble's description field at its limit, blurred: ${blurred.height} px, ${blurred.tag}, scrolls ${blurred.scrolls}`)
+  expect(blurred).toMatchObject({ tag: 'span.editor-rendered', top: true })
+  await shoot(page, 'overlay-blurred-top', SHOTS_265)
+  await region.locator('[data-description-box]').evaluate((element) => element.scrollTo(0, element.scrollHeight))
+  await shoot(page, 'overlay-blurred-end', SHOTS_265)
+
+  await region.locator('.editor-rendered').click({ position: { x: 2, y: 2 } })
+  const area = region.locator('textarea')
+  await expect(area).toBeFocused()
+  const value = await area.inputValue()
+  await expect(page.locator('.editor-pill').filter({ visible: true })).toHaveText('600 / 6008 / 8')
+  const focused = await descriptionBox(page, interior)
+  rows.push(`- [#265] the side bubble's description field at its limit, focused: ${focused.height} px, ${focused.tag}, scrolls ${focused.scrolls}`)
+  expect(focused).toMatchObject({ tag: 'textarea.editor-input', top: true })
+  expect(focused.height).toBeCloseTo(blurred.height, 0)
+  await shoot(page, 'overlay-focused-top', SHOTS_265)
+  await page.keyboard.press('Control+End')
+  await page.keyboard.type(' more', { delay: 5 })
+  await expect(area).toHaveValue(value)
+  expect((await descriptionBox(page, interior)).below).toBeLessThan(12)
+  await shoot(page, 'overlay-focused-end', SHOTS_265)
 })

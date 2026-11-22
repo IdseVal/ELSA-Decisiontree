@@ -7,6 +7,9 @@
  * labelled with the words their buttons showed. A `/4` file takes both, in that order.
  * **[#232]** And 12.9's, from `elsa-tree/6` to `elsa-tree/7` (ADR-231-elsa-tree-7): the two
  * names alone, since `/7` only widens `answers` to five. A `/4` file takes all three.
+ * **[#264]** And 12.10's, from `elsa-tree/7` to `elsa-tree/8` (ADR-263-elsa-tree-8): the two
+ * names alone again, since `/8` only widens a Node's `description` to 600 characters and 8
+ * lines. A `/4` file takes all four.
  * Pure: one parsed file in, the converted file and what was done out. The migration
  * (`npm run migrate`) and the store, which converts the files it opens (application.md
  * 36.4), both run it; each then validates the result and writes it in the byte form of 3.7
@@ -43,8 +46,13 @@ const SCHEMA_4 = /^(?:\/|https?:\/\/[^\s/?#]+(?:\/[^\s?#]*)?\/)schemas\/elsa-tre
 /** **[#221]** The same grammar for `elsa-tree/5` (schemas/elsa-tree-5.json). */
 const SCHEMA_5 = /^(?:\/|https?:\/\/[^\s/?#]+(?:\/[^\s?#]*)?\/)schemas\/elsa-tree-5\.json$/
 
-/** **[#232]** The same grammar for `elsa-tree/6` (schemas/elsa-tree-6.json). */
-const SCHEMA_6 = /^(?:\/|https?:\/\/[^\s/?#]+(?:\/[^\s?#]*)?\/)schemas\/elsa-tree-6\.json$/
+/**
+ * **[#232]** The same grammar for `elsa-tree/6` (schemas/elsa-tree-6.json), **[#264]** and for
+ * any later number `n`: the `$schema` a file of `elsa-tree/n` names.
+ */
+function schemaOf(n: number): RegExp {
+  return new RegExp(String.raw`^(?:\/|https?:\/\/[^\s/?#]+(?:\/[^\s?#]*)?\/)schemas\/elsa-tree-${n}\.json$`)
+}
 
 /** What `convertTree` did to one file. */
 export interface Conversion {
@@ -150,10 +158,32 @@ export function convertAnswers(tree: Mapping): AnswersConversion {
  * `/6` file is a `/7` file in shape, so `answers` is not looked at.
  */
 export function convertFormat(tree: Mapping): Mapping | null {
-  if (tree.format !== 'elsa-tree/6') return null
+  return renamed(tree, 6)
+}
+
+/**
+ * **[#264]** Steps 2 to 5 of 12.10.1 on `tree`, a parsed file the loader's reader accepted
+ * (step 1) or `convertFormat`'s answer. A file that is not `elsa-tree/7` -- `elsa-tree/8`
+ * included -- is answered with null. Otherwise the answer is a copy with `format` and
+ * `$schema` naming `/8` and nothing else changed: every `/7` file is an `/8` file, since 150
+ * characters and 2 lines are within 600 and 8, so no `description` is looked at.
+ */
+export function convertLimit(tree: Mapping): Mapping | null {
+  return renamed(tree, 7)
+}
+
+/**
+ * The conversion 12.9 and 12.10 share: a copy of `tree`, an `elsa-tree/<from>` file, with
+ * `format` naming the next number and a `$schema` of `from`'s grammar renamed with it; any
+ * other `$schema` is left, to fail V-SCHEMA. Null for a file of any other format.
+ */
+function renamed(tree: Mapping, from: number): Mapping | null {
+  if (tree.format !== `elsa-tree/${from}`) return null
   const out = structuredClone(tree)
-  out.format = 'elsa-tree/7'
-  if (typeof out.$schema === 'string' && SCHEMA_6.test(out.$schema)) out.$schema = out.$schema.replace(/elsa-tree-6\.json$/, 'elsa-tree-7.json')
+  out.format = `elsa-tree/${from + 1}`
+  if (typeof out.$schema === 'string' && schemaOf(from).test(out.$schema)) {
+    out.$schema = out.$schema.replace(new RegExp(String.raw`elsa-tree-${from}\.json$`), `elsa-tree-${from + 1}.json`)
+  }
   return out
 }
 

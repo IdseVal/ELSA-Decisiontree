@@ -14,6 +14,9 @@
  * **[#141]** The description's `mark` button sends `add-explainer` and then the marked
  * description, is refused where 32.1 says, and a click on a marked term opens the explainer
  * Sheet, whose `unmark` takes the mark out and removes the explainer.
+ * **[#265]** The description's limit is 600 characters and 8 lines (43.9), and the element that
+ * scrolls in its box carries `data-description-box`: the rendered text's while it is blurred,
+ * the `textarea` while it is focused.
  */
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
@@ -31,6 +34,9 @@ const words = Object.fromEntries(
 ) as EditorWords
 const loginWords = { email: 'email', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '', sessionNotKept: '' }
 const fieldWords = { characters: 'characters', lines: 'lines' }
+
+/** **[#265]** The description's limit, `LIMIT.description` in `src/components/Bubble.tsx` (43.9). */
+const DESCRIPTION = { characters: 600, lines: 8 }
 
 /** The strings `markdown.test.ts` renders, and the full Node's two texts at the maximum. */
 const TEXTS = [
@@ -126,10 +132,10 @@ const pill = (): string | undefined => document.querySelector('.editor-pill')?.t
 
 describe('the counter counts as the validator counts (28.4)', () => {
   test.for(TEXTS)('%s', (text) => {
-    mount(node('T', text), { nodeId: 'start', path: 'description', lang: 'en', value: text, limit: { characters: 150, lines: 2 }, rich: true, words: fieldWords })
+    mount(node('T', text), { nodeId: 'start', path: 'description', lang: 'en', value: text, limit: DESCRIPTION, rich: true, words: fieldWords })
     focus()
 
-    expect(pill()).toBe(`${countedLength(text)} / 150${estimatedLines(text)} / 2`)
+    expect(pill()).toBe(`${countedLength(text)} / 600${estimatedLines(text)} / 8`)
   })
 
   // **[#172]** Typing stops at the limit (28.4, amended 2026-10-02): before, it never did and
@@ -166,14 +172,24 @@ describe('the counter counts as the validator counts (28.4)', () => {
     expect(sent.map((s) => s.body)).toEqual([{ path: 'title.en', value: 'x'.repeat(90) }])
   })
 
-  test('**[#172]** the description stops at its two estimated lines', () => {
-    const two = `${'x'.repeat(70)}\n- one`
-    mount(node('T', two), { nodeId: 'start', path: 'description', lang: 'en', value: two, limit: { characters: 150, lines: 2 }, rich: true, words: fieldWords })
+  test('**[#172]** the description stops at its **[#265]** eight estimated lines', () => {
+    const eight = `${'x'.repeat(70)}${'\n- one'.repeat(7)}`
+    mount(node('T', eight), { nodeId: 'start', path: 'description', lang: 'en', value: eight, limit: DESCRIPTION, rich: true, words: fieldWords })
     focus()
-    type(`${two}\n- two`)
+    type(`${eight}\n- two`)
 
-    expect(estimatedLines(textarea().value)).toBe(2)
-    expect(pill()).toBe(`${countedLength(textarea().value)} / 1502 / 2`)
+    expect(textarea().value.startsWith(eight)).toBe(true)
+    expect(estimatedLines(textarea().value)).toBe(8)
+    expect(pill()).toBe(`${countedLength(textarea().value)} / 6008 / 8`)
+  })
+
+  test('**[#265]** the description stops at 600 characters, and a paste is cut there', () => {
+    mount(node('T', ''), { nodeId: 'start', path: 'description', lang: 'en', value: '', limit: DESCRIPTION, rich: true, words: fieldWords })
+    focus()
+    type('y'.repeat(640))
+
+    expect(textarea().value).toBe('y'.repeat(600))
+    expect(pill()).toBe('600 / 6008 / 8')
   })
 })
 
@@ -201,7 +217,7 @@ describe('a plain field is one line (28.1)', () => {
   })
 
   test('**[#172]** the empty description names what belongs in it while it is not being edited, too', () => {
-    mount(node('T', ''), { nodeId: 'start', path: 'description', lang: 'en', value: '', limit: { characters: 150, lines: 2 }, rich: true, placeholder: 'Text', words: fieldWords })
+    mount(node('T', ''), { nodeId: 'start', path: 'description', lang: 'en', value: '', limit: DESCRIPTION, rich: true, placeholder: 'Text', words: fieldWords })
 
     expect(container.querySelector('.editor-placeholder')?.textContent).toBe('Text')
     focus()
@@ -218,7 +234,7 @@ describe('the description: rendered and source (28.5)', () => {
       path: 'description',
       lang: 'en',
       value: text,
-      limit: { characters: 150, lines: 2 },
+      limit: DESCRIPTION,
       rich: true,
       rendered: <div className="prose" data-public="">rendered by the page</div>,
       explainers: node('T', text).explainers,
@@ -242,7 +258,7 @@ describe('the description: rendered and source (28.5)', () => {
   })
 
   test('raw HTML is refused at the field before sending, with V-HTML, and the text stays', async () => {
-    mount(node('T', 'Plain.'), { nodeId: 'start', path: 'description', lang: 'en', value: 'Plain.', limit: { characters: 150, lines: 2 }, rich: true, words: fieldWords })
+    mount(node('T', 'Plain.'), { nodeId: 'start', path: 'description', lang: 'en', value: 'Plain.', limit: DESCRIPTION, rich: true, words: fieldWords })
     focus()
     type('Plain. <script>')
     await act(() => vi.advanceTimersByTimeAsync(1000))
@@ -256,6 +272,23 @@ describe('the description: rendered and source (28.5)', () => {
     expect(sent.map((s) => s.body)).toEqual([{ path: 'description.en', value: 'Plain. Fixed.' }])
     expect(container.querySelector('.editor-field--refused')).toBeNull()
   })
+
+  test('**[#265]** the element that scrolls in the box carries data-description-box: the rendered text blurred, the textarea focused; a title has none', () => {
+    mount(node('T', text), { nodeId: 'start', path: 'description', lang: 'en', value: text, limit: DESCRIPTION, rich: true, words: fieldWords })
+    const boxes = (): Element[] => [...container.querySelectorAll('[data-description-box]')]
+    expect(boxes()).toEqual([container.querySelector('.editor-rendered')])
+
+    focus()
+    expect(boxes()).toEqual([textarea()])
+    // Its box is the room, not its lines: no mirror text sizes it.
+    expect(container.querySelector('.editor-text')?.hasAttribute('data-value')).toBe(false)
+
+    act(() => root.unmount())
+    root = createRoot(container)
+    mount(node('T', text), { nodeId: 'start', path: 'title', lang: 'en', value: 'T', limit: { characters: 80 }, words: fieldWords })
+    expect(boxes()).toEqual([])
+    expect(container.querySelector('.editor-text')?.getAttribute('data-value')).toBe('T')
+  })
 })
 
 describe('the response repaints (29.7)', () => {
@@ -265,7 +298,7 @@ describe('the response repaints (29.7)', () => {
       root.render(
         <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
           <Field nodeId="start" path="title" lang="en" value="Mine" limit={{ characters: 80 }} words={fieldWords} />
-          <Field nodeId="start" path="description" lang="en" value="Mine too" limit={{ characters: 150, lines: 2 }} rich words={fieldWords} />
+          <Field nodeId="start" path="description" lang="en" value="Mine too" limit={DESCRIPTION} rich words={fieldWords} />
         </Editor>,
       )
     })
@@ -300,7 +333,7 @@ describe('a refused value stays on screen (29.4)', () => {
       root.render(
         <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
           <Field nodeId="start" path="title" lang="en" value="Mine" limit={{ characters: 80 }} words={fieldWords} />
-          <Field nodeId="start" path="description" lang="en" value="Mine too" limit={{ characters: 150, lines: 2 }} rich words={fieldWords} />
+          <Field nodeId="start" path="description" lang="en" value="Mine too" limit={DESCRIPTION} rich words={fieldWords} />
         </Editor>,
       )
     })
@@ -348,7 +381,7 @@ describe('a refused value stays on screen (29.4)', () => {
         release = () => resolve(answer(body))
       })
     })
-    mount(node('T', 'Plain.'), { nodeId: 'start', path: 'description', lang: 'en', value: 'Plain.', limit: { characters: 150, lines: 2 }, rich: true, words: fieldWords })
+    mount(node('T', 'Plain.'), { nodeId: 'start', path: 'description', lang: 'en', value: 'Plain.', limit: DESCRIPTION, rich: true, words: fieldWords })
     focus()
 
     // Waiting: `x<` is a legal value, `x<b` is refused 100 ms later; neither goes.
@@ -486,7 +519,7 @@ describe('[#141] marking a term (32.1, 32.2, 32.4)', () => {
     act(() => {
       root.render(
         <Editor treeId="t" lang="en" languages={['en']} words={sheetWords as EditorWords} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
-          <Field nodeId="start" path="description" lang="en" value={draft.description.en!} limit={{ characters: 150, lines: 2 }} rich explainers={draft.explainers} termEvent="elsa-term" markerWords={markerWords} words={fieldWords} />
+          <Field nodeId="start" path="description" lang="en" value={draft.description.en!} limit={DESCRIPTION} rich explainers={draft.explainers} termEvent="elsa-term" markerWords={markerWords} words={fieldWords} />
         </Editor>,
       )
     })
