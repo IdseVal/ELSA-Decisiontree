@@ -88,6 +88,14 @@ async function writeAs7(file: string): Promise<void> {
   await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
 }
 
+/** **[#273]** Writes the Tree file `file` back as `elsa-tree/8` wrote it: the two names alone (12.11 in reverse). */
+async function writeAs8(file: string): Promise<void> {
+  const tree = JSON.parse(await readFile(file, 'utf8')) as { $schema: string; format: string }
+  tree.$schema = '/schemas/elsa-tree-8.json'
+  tree.format = 'elsa-tree/8'
+  await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
+}
+
 /** **[#179]** Writes the Tree file `file` back after `edit` has changed what it holds. */
 async function rewrite(file: string, edit: (tree: { nodes: Array<Record<string, unknown>> }) => unknown): Promise<void> {
   const tree = JSON.parse(await readFile(file, 'utf8')) as { nodes: Array<Record<string, unknown>> }
@@ -389,10 +397,11 @@ describe('importTree (17.4)', () => {
       'Converted Tree "carousel" tree.json from elsa-tree/5 to elsa-tree/6: 3 steps',
       'Converted Tree "carousel" tree.json from elsa-tree/6 to elsa-tree/7',
       'Converted Tree "carousel" tree.json from elsa-tree/7 to elsa-tree/8',
+      'Converted Tree "carousel" tree.json from elsa-tree/8 to elsa-tree/9',
     ])
     expect(await readFile(path.join(source, 'tree.json'))).toEqual(before)
     const stored = await readFile(path.join(treesDir, 'carousel', 'tree.json'), 'utf8')
-    expect(JSON.parse(stored)).toMatchObject({ $schema: '/schemas/elsa-tree-8.json', format: 'elsa-tree/8' })
+    expect(JSON.parse(stored)).toMatchObject({ $schema: '/schemas/elsa-tree-9.json', format: 'elsa-tree/9' })
     expect(await readFile(path.join(treesDir, 'carousel', 'draft.json'), 'utf8')).toBe(stored)
     expect(await readdir(treesDir)).toEqual(['carousel'])
   })
@@ -481,29 +490,33 @@ describe('**[#179]** a data directory written by a release before elsa-tree/5 (3
 
     const store = await openStore(data, ADMIN)
 
-    // **[#221]** A /4 file takes 12.7 and then 12.8, **[#232]** 12.9, **[#264]** and 12.10, checked and written once, a line for each.
+    // **[#221]** A /4 file takes 12.7 and then 12.8, **[#232]** 12.9, **[#264]** 12.10, **[#273]** and 12.11, checked and written once, a line for each.
     expect(conversions(log)).toEqual([
       'Converted Tree "carousel" tree.json from elsa-tree/4 to elsa-tree/5: 1 endings',
       'Converted Tree "carousel" tree.json from elsa-tree/5 to elsa-tree/6: 3 steps',
       'Converted Tree "carousel" tree.json from elsa-tree/6 to elsa-tree/7',
       'Converted Tree "carousel" tree.json from elsa-tree/7 to elsa-tree/8',
+      'Converted Tree "carousel" tree.json from elsa-tree/8 to elsa-tree/9',
       'Converted Tree "carousel" draft.json from elsa-tree/4 to elsa-tree/5: 1 endings',
       'Converted Tree "carousel" draft.json from elsa-tree/5 to elsa-tree/6: 3 steps',
       'Converted Tree "carousel" draft.json from elsa-tree/6 to elsa-tree/7',
       'Converted Tree "carousel" draft.json from elsa-tree/7 to elsa-tree/8',
+      'Converted Tree "carousel" draft.json from elsa-tree/8 to elsa-tree/9',
       'Converted Tree "cycle" tree.json from elsa-tree/4 to elsa-tree/5: 1 endings',
       'Converted Tree "cycle" tree.json from elsa-tree/5 to elsa-tree/6: 3 steps',
       'Converted Tree "cycle" tree.json from elsa-tree/6 to elsa-tree/7',
       'Converted Tree "cycle" tree.json from elsa-tree/7 to elsa-tree/8',
+      'Converted Tree "cycle" tree.json from elsa-tree/8 to elsa-tree/9',
       'Converted Tree "cycle" draft.json from elsa-tree/4 to elsa-tree/5: 1 endings',
       'Converted Tree "cycle" draft.json from elsa-tree/5 to elsa-tree/6: 3 steps',
       'Converted Tree "cycle" draft.json from elsa-tree/6 to elsa-tree/7',
       'Converted Tree "cycle" draft.json from elsa-tree/7 to elsa-tree/8',
+      'Converted Tree "cycle" draft.json from elsa-tree/8 to elsa-tree/9',
     ])
     expect(store.publishedIds()).toEqual(['carousel', 'cycle'])
     expect(await store.published('carousel')!.getNode('done')).toMatchObject({ kind: 'terminal', label: { en: 'Prohibited', nl: 'Verboden' } })
     const converted = await readFile(path.join(data, 'trees', 'carousel', 'tree.json'), 'utf8')
-    expect(JSON.parse(converted)).toMatchObject({ $schema: '/schemas/elsa-tree-8.json', format: 'elsa-tree/8' })
+    expect(JSON.parse(converted)).toMatchObject({ $schema: '/schemas/elsa-tree-9.json', format: 'elsa-tree/9' })
     // The two copies converted alike, so the public copy is still the draft's (19.4).
     expect(await readFile(path.join(data, 'trees', 'carousel', 'draft.json'), 'utf8')).toBe(converted)
     // No creator wrote.
@@ -534,9 +547,11 @@ describe('**[#179]** a data directory written by a release before elsa-tree/5 (3
       'Converted Tree "cycle" tree.json from elsa-tree/5 to elsa-tree/6: 3 steps',
       'Converted Tree "cycle" tree.json from elsa-tree/6 to elsa-tree/7',
       'Converted Tree "cycle" tree.json from elsa-tree/7 to elsa-tree/8',
+      'Converted Tree "cycle" tree.json from elsa-tree/8 to elsa-tree/9',
       'Converted Tree "cycle" draft.json from elsa-tree/5 to elsa-tree/6: 3 steps',
       'Converted Tree "cycle" draft.json from elsa-tree/6 to elsa-tree/7',
       'Converted Tree "cycle" draft.json from elsa-tree/7 to elsa-tree/8',
+      'Converted Tree "cycle" draft.json from elsa-tree/8 to elsa-tree/9',
     ])
     // The fixture is 12.8's own output, so converting its /5 form gives it back byte for byte.
     expect(await readFile(path.join(data, 'trees', 'cycle', 'tree.json'), 'utf8')).toBe(before)
@@ -565,8 +580,10 @@ describe('**[#179]** a data directory written by a release before elsa-tree/5 (3
     expect(conversions(log)).toEqual([
       'Converted Tree "cycle" tree.json from elsa-tree/6 to elsa-tree/7',
       'Converted Tree "cycle" tree.json from elsa-tree/7 to elsa-tree/8',
+      'Converted Tree "cycle" tree.json from elsa-tree/8 to elsa-tree/9',
       'Converted Tree "cycle" draft.json from elsa-tree/6 to elsa-tree/7',
       'Converted Tree "cycle" draft.json from elsa-tree/7 to elsa-tree/8',
+      'Converted Tree "cycle" draft.json from elsa-tree/8 to elsa-tree/9',
     ])
     // The fixture is 12.9's own output, so converting its /6 form gives it back byte for byte.
     expect(await readFile(path.join(data, 'trees', 'cycle', 'tree.json'), 'utf8')).toBe(before)
@@ -590,12 +607,38 @@ describe('**[#179]** a data directory written by a release before elsa-tree/5 (3
 
     expect(conversions(log)).toEqual([
       'Converted Tree "long" tree.json from elsa-tree/7 to elsa-tree/8',
+      'Converted Tree "long" tree.json from elsa-tree/8 to elsa-tree/9',
       'Converted Tree "long" draft.json from elsa-tree/7 to elsa-tree/8',
+      'Converted Tree "long" draft.json from elsa-tree/8 to elsa-tree/9',
     ])
     // The fixture is 12.10's own output, so converting its /7 form gives it back byte for byte.
     expect(await readFile(path.join(data, 'trees', 'long', 'tree.json'), 'utf8')).toBe(before)
     expect(await readFile(path.join(data, 'trees', 'long', 'draft.json'), 'utf8')).toBe(before)
     expect(store.publishedIds()).toEqual(['long'])
+    log.mockClear()
+    await openStore(data, ADMIN)
+    expect(conversions(log)).toEqual([])
+  })
+
+  test('**[#273]** its elsa-tree/8 files are converted by 12.11, one line each, the format and $schema alone (12.11.4)', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const data = await folder()
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'cycle'), 'cycle']) })
+    const before = await readFile(path.join(data, 'trees', 'cycle', 'tree.json'), 'utf8')
+    await writeAs8(path.join(data, 'trees', 'cycle', 'tree.json'))
+    await writeAs8(path.join(data, 'trees', 'cycle', 'draft.json'))
+    log.mockClear()
+
+    const store = await openStore(data, ADMIN)
+
+    expect(conversions(log)).toEqual([
+      'Converted Tree "cycle" tree.json from elsa-tree/8 to elsa-tree/9',
+      'Converted Tree "cycle" draft.json from elsa-tree/8 to elsa-tree/9',
+    ])
+    // The fixture is 12.11's own output, so converting its /8 form gives it back byte for byte.
+    expect(await readFile(path.join(data, 'trees', 'cycle', 'tree.json'), 'utf8')).toBe(before)
+    expect(await readFile(path.join(data, 'trees', 'cycle', 'draft.json'), 'utf8')).toBe(before)
+    expect(store.publishedIds()).toEqual(['cycle'])
     log.mockClear()
     await openStore(data, ADMIN)
     expect(conversions(log)).toEqual([])

@@ -151,10 +151,11 @@ function refusals(parsed: unknown): string[] {
 /**
  * One object and everything below it; `at` is the key path of 3.9, `nodes[0].sources`.
  *
- * Its branches are the branches of `canonicalValue` -- the four kinds of the `VALUE`
+ * Its branches are the branches of `canonicalValue` -- the **[#273]** five kinds of the `VALUE`
  * table, none of them skipped -- because the two walks encode one
  * question, *will the writer act on this value*, and a kind answered in one and not in the
- * other is a value the writer rewrites in silence. A fifth kind means a branch in both.
+ * other is a value the writer rewrites in silence. A sixth kind means a branch in both.
+ * **[#273]** The fifth, `texts` (the manifest's tags), is a list whose entries are read as `text` is.
  */
 function refuse(value: Record<string, unknown>, prefix: string, out: string[]): void {
   for (const [key, entry] of Object.entries(value)) {
@@ -164,12 +165,12 @@ function refuse(value: Record<string, unknown>, prefix: string, out: string[]): 
     // on the written file, exactly as an unknown key does: only a shape the walk below
     // would act on is refused here.
     if (kind === undefined || entry === null || typeof entry !== 'object') continue
-    if (typeof kind === 'object') {
+    if (typeof kind === 'object' || kind === 'texts') {
       if (!Array.isArray(entry)) out.push(`${at}: the format has a list here, and the file has ${shape(entry)}`)
       else {
         entry.forEach((item, index) => {
-          if (isMapping(item)) refuse(item as Record<string, unknown>, `${at}[${index}].`, out)
-          else out.push(`${at}[${index}]: the format has an object here, and the file has ${shape(item)}`)
+          if (!isMapping(item)) out.push(`${at}[${index}]: the format has an object here, and the file has ${shape(item)}`)
+          else if (typeof kind === 'object') refuse(item as Record<string, unknown>, `${at}[${index}].`, out)
         })
       }
       continue
