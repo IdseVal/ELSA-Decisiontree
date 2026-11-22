@@ -129,7 +129,7 @@ test("**[#197]** a tile names its Tree's Authors after its tags, in the page's l
   await expect(mention).not.toHaveAttribute('lang', /./)
 })
 
-test('the box scrolls and the document does not: twelve tiles in view at 1280 x 640, the thirteenth below', async ({
+test('the box scrolls and the document does not: eight tiles in view at 1280 x 640, four cut by the box, the thirteenth below', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 640 })
@@ -138,6 +138,7 @@ test('the box scrolls and the document does not: twelve tiles in view at 1280 x 
   const tiles = page.locator('a.tile')
 
   // 26.1, 26.2: 280 x 160, four columns of 280 with gaps of 20, three rows in the box.
+  // **[#272]** Under the search bar's row of 52 the box shows two rows whole and 140 of the third's 160 (26.5).
   for (const tile of await tiles.all()) {
     const size = await tile.boundingBox()
     expect([size!.width, size!.height]).toEqual([280, 160])
@@ -146,8 +147,11 @@ test('the box scrolls and the document does not: twelve tiles in view at 1280 x 
   expect(lefts.size).toBe(4)
   for (let index = 0; index < 15; index += 1) {
     const tile = tiles.nth(index)
-    if (index < 12) await expect(tile, `tile ${index + 1}`).toBeInViewport({ ratio: 1 })
-    else await expect(tile, `tile ${index + 1}`).not.toBeInViewport({ ratio: 1 })
+    if (index < 8) await expect(tile, `tile ${index + 1}`).toBeInViewport({ ratio: 1 })
+    else if (index < 12) {
+      await expect(tile, `tile ${index + 1}`).toBeInViewport({ ratio: 0.875 })
+      await expect(tile, `tile ${index + 1}`).not.toBeInViewport({ ratio: 1 })
+    } else await expect(tile, `tile ${index + 1}`).not.toBeInViewport()
   }
   const measured = await page.evaluate(() => {
     const scroller = document.querySelector('[data-scroll-box]')!
