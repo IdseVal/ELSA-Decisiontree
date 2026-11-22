@@ -841,6 +841,9 @@ entries, and `Manifest['format']` is `elsa-tree/6` (41.6, `tree-format.md` 5.3).
 **[#264]** (2026-11-18) From #264 `Manifest['format']` is `elsa-tree/8` (43.8); a `description`
 holds up to 600 counted characters (43.1).
 
+**[#273]** (2026-11-22) From #273 `Manifest['format']` is `elsa-tree/9`, and `Manifest` carries
+`tags` when the Tree has some (`tree-format.md` 4; 26.5, 33.5).
+
 ### 5.2 When what is read and sent
 
 | Moment | Server reads | Browser receives |
@@ -2918,6 +2921,7 @@ where the schema is a constant of the build.
 **[#231]** (2026-10-10) From #232 `elsa-tree-7.json` too, beside `/6`, `/5` and `/4` (42.6).
 
 **[#264]** (2026-11-18) From #264 `elsa-tree-8.json` too, beside `/7`, `/6`, `/5` and `/4` (43.8).
+**[#273]** (2026-11-22) From #273 `elsa-tree-9.json` too, beside `/8` to `/4`.
 
 ### 15.2 The headers
 
@@ -2939,7 +2943,8 @@ where the schema is a constant of the build.
 
 **[#231]** (2026-10-10) `/schemas/elsa-tree-7.json` from #232 (42.6).
 
-**[#264]** (2026-11-18) `/schemas/elsa-tree-8.json` from #264 (43.8).
+**[#264]** (2026-11-18) `/schemas/elsa-tree-8.json` from #264 (43.8). **[#273]** (2026-11-22)
+`/schemas/elsa-tree-9.json` from #273.
 
 ### 15.3 Byte-identity: the download IS the dataset
 
@@ -3342,7 +3347,7 @@ the dataset.
 
 **[#171]** So a Terminal's `label` is not in it either, as its `outcome` never was; the
 `## The dataset` entry names the schema through `SCHEMA_HREF`, which is
-`/schemas/elsa-tree-5.json` from #179 on (**[#220]** `/schemas/elsa-tree-6.json` from #221, 41.6; **[#231]** `/schemas/elsa-tree-7.json` from #232, 42.6; **[#264]** `/schemas/elsa-tree-8.json` from #264, 43.8). Its chrome paragraph -- a walk that "arrives at an
+`/schemas/elsa-tree-5.json` from #179 on (**[#220]** `/schemas/elsa-tree-6.json` from #221, 41.6; **[#231]** `/schemas/elsa-tree-7.json` from #232, 42.6; **[#264]** `/schemas/elsa-tree-8.json` from #264, 43.8; **[#273]** `/schemas/elsa-tree-9.json` from #273, 26.5). Its chrome paragraph -- a walk that "arrives at an
 outcome" -- uses the word in its ordinary sense and stays.
 
 **[#195]** Nor an Author's name (2026-10-03): the pages it points to hold the mention (39.7).
@@ -3595,7 +3600,9 @@ language in a draft (a to-do) and `terminal` still requires it.
 **[#231]** (2026-10-10) From `schemas/elsa-tree-7.json` from #232, `answers` holding one to five (42.1).
 
 **[#264]** (2026-11-18) From `schemas/elsa-tree-8.json` from #264, which differs from `/7` in its
-names alone (43.8).
+names alone (43.8). **[#273]** (2026-11-22) From `schemas/elsa-tree-9.json` from #273, which adds
+`tags` to `/8`; a tag is a `localisedText`, so the derivation's dropped `minLength` lets it hold
+an empty language in a draft, the to-do, as every text does.
 
 ### 19.2 The draft rules
 
