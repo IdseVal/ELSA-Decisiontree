@@ -4024,7 +4024,7 @@ framework's. The prefix is `/admin/api/` and not `/api/admin/` so that the cooki
 | `GET /admin/api/trees` | the caller's `TreeEntry` list (administrator: all) | `[...]` |
 | `POST /admin/api/trees` | `{ id, languages, title }`: folder, `meta.json`, a draft with one root Node `start` | 201; 409 taken; 422 reserved or malformed |
 | `GET /admin/api/trees/<t>` | the `TreeEntry`: meta, manifest, `published`, `servable`, violations; **[#147]** and `written`, the number of localised texts holding a non-empty string per declared language (33.5) | 200 |
-| `PATCH /admin/api/trees/<t>` | one manifest field `{ path, value }`: `title.<lang>`, `description.<lang>`, `root`; **[#144]** or one part of the Theme, `theme.logo`, `theme.fonts`, `theme.colours`, whole or `null` (33.8); **[#147]** or one language operation `{ op, tag }` (22.2); **[#171]** or `{ op: 'use-library-font', role, family }`, a family of the font library copied into the Tree and written as that role's (37.3) | `WriteResponse`, with every Node whose texts changed in `also` |
+| `PATCH /admin/api/trees/<t>` | one manifest field `{ path, value }`: `title.<lang>`, `description.<lang>`, `root`; **[#144]** or one part of the Theme, `theme.logo`, `theme.fonts`, `theme.colours`, whole or `null` (33.8); **[#147]** or one language operation `{ op, tag }` (22.2); **[#171]** or `{ op: 'use-library-font', role, family }`, a family of the font library copied into the Tree and written as that role's (37.3); **[#273]** or `tags`, the Tree's tags as a whole list of localised texts, an empty list taking the key away (33.5) | `WriteResponse`, with every Node whose texts changed in `also` |
 | `DELETE /admin/api/trees/<t>` | hidden Trees only | 204; 409 |
 | `PUT /admin/api/trees/<t>/published` | `{ published: boolean }` (19.3) | 200 `{ published, publishedAt }`; 409 `{ violations }` |
 | `PUT /admin/api/trees/<t>/creator` | `{ accountId }` | 200 `meta` |
@@ -4201,6 +4201,9 @@ and `x-default`, a `<meta name="description">` from a chrome string; no Tree con
 the titles. No cookie. **No JSON-LD in this round** (an `ItemList` is reserved, not built).
 Zero served Trees: the page says so, in the chrome language.
 
+**[#273]** (2026-11-22) A served Tree's tags are listed by the bar's tag filter and narrow the tiles
+(26.5); a choice is the query's `tag`, which the canonical link and the `hreflang` set do not carry.
+
 ### 23.3 `robots.txt`
 
 One file, **unchanged**. Nothing disallowed, `/admin` included (20.9 uses the header). 16.1
@@ -4327,7 +4330,7 @@ published Tree's preview is a 307 to its editor at the same path and `?lang`; an
 | Page | Left | Right | Theme |
 |---|---|---|---|
 | Public Node page | **[#204]** (2026-10-09) #163's arrow, `toOverview`, a link to the public overview in the chrome language, which #164 added and this row did not name; then the Tree's logo or title; **[#195]** (2026-10-03) then the mention of its Authors, between the mark and the controls (39.4) | language switch, share button; **[#204]** (2026-10-09) then `editor` ("Editor"), a link to `/admin` in the chrome language, in the share button's look, last. Below 768 pixels wide the switch gives up the current language's pill with its list item, and in a Tree of one language the whole switch (10.5) | The published Tree's |
-| Public overview `/` | `siteTitle` as text | language switch; **[#204]** (2026-10-09) then `editor`, as on a Node page, last. The current language's pill at every width | The default (13.4) |
+| Public overview `/` | `siteTitle` as text | **[#273]** (2026-11-22) the tag filter's pill (26.5), when a served Tree has a tag; then the language switch; **[#204]** (2026-10-09) then `editor`, as on a Node page, last. The current language's pill at every width; **[#273]** below 480 pixels wide the tag pill draws a funnel for its word `tags`, which stays its accessible name | The default (13.4) |
 | Login page | `siteTitle` | language switch; **[#204]** (2026-10-09) at the address `/admin` only, then `website` ("Website"), a link to the public overview in the chrome language (`/`, `/?lang=nl`), in ~~the `account` link's look~~ **[#249]** (2026-10-13) `editor`'s look (the share button's), last. Not on the login page shown at any other admin address | The default |
 | **[#204]** (2026-10-09) Creators' overview, `/admin` with a session | `siteTitle`, not drawn below ~~600~~ **[#249]** (2026-10-13) 660 pixels wide | language switch, its current language's pill not drawn below ~~600~~ **[#249]** 660; `account`, `accounts` (administrator only) and `logout`, as in the row below; then `website`, as on the login page, last. **[#249]** All four in `editor`'s look (the share button's) | The default |
 | ~~Creators' overview,~~ **[#204]** (2026-10-09) `/admin/new`, `/admin/account`, `/admin/accounts` | **[#253]** (2026-10-13) On `/admin/account` and `/admin/accounts`, #163's arrow first, `toOverview`, a link to the creators' overview `/admin` in the chrome language, as the editor's bar begins; held with `siteTitle` in one `.page-brand` group. Not on `/admin/new`. Then `siteTitle`, not drawn below 620 pixels wide on those two pages (the note below) | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout`. **[#249]** (2026-10-13) `account`, `accounts` and `logout` in `editor`'s look (the share button's), not as links | The default |
@@ -4669,6 +4672,41 @@ every Tree. Two groups, each in `id` order (23.2's rule inside each): first the 
 caller has a role on (`store.drafts.list(by)`), then every other published Tree
 (`store.publishedIds()` less the first group). The public overview has one group. Zero
 Trees: `noTrees` on `/`; the + tile alone on `/admin`.
+
+### 26.5 The tag filter
+
+**[#273], new -- 2026-11-22.** The owner, on #273: "a filter in the main overview with a dropdown
+where people can filter on all tags that exist in the published decision-trees". Recorded in
+`docs/adrs/ADR-273-tags.md`; the tags themselves are `tree-format.md` 4 (`tags`, from `elsa-tree/9`)
+and are edited in "This Tree" (33.5).
+
+- **Where.** The public overview's chrome bar, first of its controls (24.3): a pill in the share
+  button's look, `tags` ("Tags", "Labels"), with the number of ticked tags after the word in
+  `accent-secondary`; below 480 pixels wide a funnel stands for the word. It is a `<details>`: the
+  list drops under the bar's right end, over the grid, 16 pixels from the bar's edge (8 below 480),
+  at most the room between the bar and the disclaimer, and scrolls inside its own bounds beyond that.
+  Not a row above the grid's box, which would take the box's third row at 1280 x 640 (26.2). Escape
+  closes it and gives the focus back to the pill; a click outside closes it. No served Tree with a
+  tag: no pill.
+- **What it lists.** Every tag of every served Tree -- a hidden Tree serves nothing, so its tags are
+  in no list -- once: in the page's language where its Tree declares it, else in the Tree's default,
+  as the tile's title (23.2); two Trees' tags are one entry when they are the same text with letter
+  case and the spaces around them aside (`tagKey`, V-TAGS's measure), written as the first Tree in
+  `id` order writes it; in the order of the page language's alphabet, letter case aside. A
+  `fieldset` named `filterByTag` ("Show the trees tagged") with a check box per tag.
+- **What a tick does.** At once and without a request, the grid shows the Trees carrying **any**
+  ticked tag and hides the rest; no tick, every Tree. So a choice never empties the overview.
+  `showAllTrees` under the list clears the ticks. The tiles keep their order and their look; a tile
+  does not draw its tags (26.1's rows are full: 12 + 48 + 4 + 60 + 4 + 18 + 12 of 160).
+- **The address.** The choice is the query's `tag`, once per ticked tag in the list's words
+  (`/?lang=nl&tag=Agrifood&tag=Wetgeving`), written with `history.replaceState`, so the page can be
+  shared or reloaded as it stands and the back button does not step through ticks. The server reads
+  it and draws the page filtered already; a `tag` no served Tree carries is ignored. Nothing is
+  stored and no cookie is set (23.2). Switching the page's language drops the choice: its words are
+  the other language's.
+- **Without script.** The list is a `GET` form to `/` with the page's `lang`; its button `applyTags`
+  ("Show"), drawn only without script, sends the ticks.
+- **The creators' overview** (26.4) has no filter: the owner asked for the main overview's.
 
 ## 27. Creating a Tree
 
@@ -5670,6 +5708,20 @@ write of 22.2 after which the page is drawn again, at the address of the languag
 when that is now the default, or at the default's when it was removed; the rim's tags (28.3)
 follow the declared languages; the id; the public link when published. **[#144]** The Theme panel of 33.8 closes the
 section.
+
+**[#273]** (2026-11-22) After the languages, the Tree's **tags** (`tree-format.md` 4, from `elsa-tree/9`),
+labelled `tags` with the page's language as a tag and a hint, `tagsHint`. A chip per tag holds its
+text in the page's language in a field as wide as the text, edited in place and written when the
+field is left or Enter is pressed; empty in this language -- the to-do of V-L10N -- it shows the
+default language's text as its placeholder, so the creator sees which tag to translate. Emptying a
+chip puts its text back; its cross, `removeTag` and the tag, removes it. Under the chips, while the
+Tree has fewer than eight, a field `placeholderTag` and `addTag` add one in the page's language, the
+other languages `""`. Both fields stop typing at 30 characters (28.4). Each change is one write of
+the whole list, `PATCH .../trees/<t> { path: 'tags', value }` (22.2), as a Theme part is written
+(33.8); the field takes the stored list from the answer. A tag the Tree has already in this
+language, letter case aside, is refused before it is sent and a 422 with V-TAGS says the same:
+`tagTaken`. The language operations of this section reach the tags as every other text (an added
+language gives each tag `""`, a removed one takes its texts). `docs/adrs/ADR-273-tags.md`.
 
 **[#251]** (2026-10-13) For the creator, `deleteTree` stands after the id and the public link and
 before the Theme panel, whose `<h4>` and `<h5>` headings would otherwise take it into the Theme's
