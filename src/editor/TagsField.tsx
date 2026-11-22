@@ -118,8 +118,9 @@ export function TagsField({
       {tags.length > 0 && (
         <ul className="new-tree-tags">
           {tags.map((tag, index) => (
-            // The tag's text in the default language is its name while it has none here; the index keeps a reworded chip in place.
-            <li key={`${index} ${tag[defaultLanguage] ?? ''}`} className="new-tree-tag" data-tag={index}>
+            // Keyed by the text the chip shows, so a chip whose tag changes under it -- a removed
+            // neighbour, a stored rewording -- is drawn anew rather than keeping another tag's text.
+            <li key={`${index} ${tag[lang] ?? ''}`} className="new-tree-tag" data-tag={index}>
               <TagText
                 value={tag[lang] ?? ''}
                 placeholder={tag[defaultLanguage] || words.placeholderTag}
