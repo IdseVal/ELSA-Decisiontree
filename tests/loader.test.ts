@@ -283,6 +283,24 @@ describe('the Theme the Tree carries', () => {
     expect(tree.themePath('unused.svg')).toBeNull()
   })
 
+  test('**[#274]** a background picture is a theme file the Theme names: themePath resolves it, and V-THEME refuses one theme/ lacks', async () => {
+    const tree = await openTree(fixture('background-image'))
+
+    expect(tree.manifest.theme).toEqual({ 'background-image': { file: 'field.jpg', opacity: '0.3' } })
+    expect(tree.themePath('field.jpg')).toBe(path.join(fixture('background-image'), 'theme', 'field.jpg'))
+
+    // Under the fixture's own name, as the folder name is the Tree's id (V-DIR).
+    const work = await mkdtemp(path.join(tmpdir(), 'elsa-picture-'))
+    const dir = path.join(work, 'background-image')
+    try {
+      await cp(fixture('background-image'), dir, { recursive: true })
+      await rm(path.join(dir, 'theme', 'field.jpg'))
+      expect(await violationsOf(dir)).toEqual([expect.objectContaining({ rule: 'V-THEME', keyPath: 'theme.background-image.file' })])
+    } finally {
+      await rm(work, { recursive: true, force: true })
+    }
+  })
+
   test('a Tree without a Theme has none, and resolves no theme file', async () => {
     const tree = await openTree(fixture('single-language'))
 

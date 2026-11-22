@@ -324,6 +324,44 @@ describe('the logo variant is derived from the palette, never declared (13.1)', 
   })
 })
 
+describe('**[#274]** the background picture (13.1, tree-format.md 4.3.4)', () => {
+  const picture = (file: string, opacity: string): Theme => ({ 'background-image': { file, opacity } })
+
+  test('its address and its opacity become the two properties the layer behind the page reads', async () => {
+    const tree = await openTree(path.join(here, 'fixtures', 'background-image'))
+    const { css } = themeStyle(tree.manifest.theme, tree.id)
+
+    expect(property(css, 'background-image')).toBe(`url('/${tree.id}/theme/field.jpg')`)
+    expect(property(css, 'background-image-opacity')).toBe('0.3')
+    // A part of its own (13.4): the palette is the default's, untouched.
+    expect(property(css, 'background')).toBe(DEFAULT_COLOURS.background)
+  })
+
+  test('in the editor the picture comes from the admin route, which serves the draft’s files', () => {
+    const { css } = themeStyle(picture('field.jpg', '0.5'), 'a-tree', adminThemeHref, { editor: true })
+    expect(property(css, 'background-image')).toBe(`url('${adminThemeHref('a-tree', 'field.jpg')}')`)
+  })
+
+  test('a Theme without one writes neither property, so the layer draws nothing', () => {
+    for (const theme of [themedTree.manifest.theme, undefined]) {
+      const { css } = themeStyle(theme, 'a-tree')
+      expect(css).not.toContain('--elsa-background-image')
+    }
+  })
+
+  test.for([
+    ['a name outside the grammar', "x.jpg');}body{color:red", '0.3'],
+    ['a logo extension', 'field.svg', '0.3'],
+    ['an opacity above 1', 'field.jpg', '1.5'],
+    ['an opacity with a trailing zero', 'field.jpg', '0.50'],
+    ['an opacity that is CSS', 'field.jpg', '0.3;}body{color:red'],
+  ])('%s is checked again at the sink and nothing of the part is emitted', ([, file, opacity]) => {
+    const { css } = themeStyle(picture(file!, opacity!), 'a-tree')
+    expect(css).not.toContain('--elsa-background-image')
+    expect(css).not.toContain('color:red')
+  })
+})
+
 describe('escaping: the one place author text becomes code (13.3)', () => {
   const family = (name: string): Theme => ({
     fonts: [{ family: name, role: 'body', licence: 'x', files: [{ file: 'f.woff2', weight: '400', style: 'normal' }] }],

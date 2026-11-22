@@ -153,6 +153,23 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
+/*
+ * [#274] The Theme's background picture (13.1, tree-format.md 4.3.4): one layer the size of the
+ * window, fixed, over the page's `background` colour -- which the body hands to the canvas -- and
+ * under everything else, the picture covering it from its centre, at the Theme's opacity, so the
+ * colour shows through at the rest. Out of the grid, since it is fixed, and never a target. A
+ * Theme without a picture sets neither property: no image, opacity 0, nothing drawn.
+ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--elsa-background-image, none) center / cover no-repeat;
+  opacity: var(--elsa-background-image-opacity, 0);
+}
+
 main {
   min-height: 0;
   padding: 0 var(--page-inset);

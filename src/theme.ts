@@ -50,6 +50,10 @@ export const DEFAULT_FONT_STACK =
 /** A colour as the format writes it, re-checked here because this is the sink (13.3). */
 const COLOUR = /^#[0-9a-f]{6}$/
 
+/** **[#274]** The background picture's file and opacity as the format writes them (tree-format.md 3.6, 4.3.4), re-checked here for the same reason. */
+const BACKGROUND_FILE = /^[a-z0-9]+([._-][a-z0-9]+)*\.(png|jpg|jpeg|webp)$/
+const OPACITY = /^(?:0|1|0\.[0-9]?[1-9])$/
+
 /**
  * **[#180]** Where the editor's own interface begins: its chrome bar, its floating controls and
  * the panels of its Sheets carry the attribute, and keep the default look whatever the draft's
@@ -133,7 +137,7 @@ export function themeLogo(theme: Theme | undefined): ResolvedLogo | undefined {
  */
 function build(theme: Theme | undefined, colours: Colours, treeId: string, href: ThemeHref, editor: boolean): string {
   const prefix = editor ? DRAFT_FAMILY_PREFIX : ''
-  const blocks = [...fontFaces(theme, treeId, href, prefix), block(':root', colours, theme, prefix)]
+  const blocks = [...fontFaces(theme, treeId, href, prefix), block(':root', colours, theme, prefix, backgroundImage(theme, treeId, href))]
   if (editor) blocks.push(block(EDITOR_UI, DEFAULT_COLOURS, undefined, ''))
   return blocks.join('\n')
 }
@@ -155,8 +159,9 @@ function paletteOf(colours: Colours | undefined): Colours {
 /**
  * The block of `selector`: the seven roles, the four derived values, the two font stacks and
  * `color-scheme`. **[#180]** Each family is named with `prefix` before it, as `fontFaces` names it.
+ * **[#274]** Then `background`'s declarations, the picture behind the page, when there are any.
  */
-function block(selector: string, colours: Colours, theme: Theme | undefined, prefix: string): string {
+function block(selector: string, colours: Colours, theme: Theme | undefined, prefix: string, background: string[] = []): string {
   const families = new Map((theme?.fonts ?? []).map((family) => [family.role, quoteFamily(family.family, prefix)]))
   const body = families.get('body')
   const heading = families.get('heading')
@@ -177,8 +182,21 @@ function block(selector: string, colours: Colours, theme: Theme | undefined, pre
     // The same test that picks the logo variant, so a dark Theme gets dark form controls
     // and scrollbars.
     `color-scheme:${isDark(colours) ? 'dark' : 'light'}`,
+    ...background,
   ]
   return `${selector}{\n  ${declarations.join(';\n  ')}\n}`
+}
+
+/**
+ * **[#274]** The Theme's background picture as the two custom properties the stylesheet's layer
+ * behind the page reads (application.md 13.1): its address and how much of it shows. None when
+ * the Theme names no picture, or when either value fails its grammar here at the sink -- then the
+ * page shows its `background` colour alone, as a Tree without the part does, rather than half of it.
+ */
+function backgroundImage(theme: Theme | undefined, treeId: string, href: ThemeHref): string[] {
+  const picture = theme?.['background-image']
+  if (!picture || !BACKGROUND_FILE.test(picture.file) || !OPACITY.test(picture.opacity)) return []
+  return [`--elsa-background-image:url('${href(treeId, picture.file)}')`, `--elsa-background-image-opacity:${picture.opacity}`]
 }
 
 /**
