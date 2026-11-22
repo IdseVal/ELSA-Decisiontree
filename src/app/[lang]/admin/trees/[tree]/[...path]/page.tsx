@@ -254,6 +254,18 @@ function TodoSheet({ entry, draft, address, role, ui }: { entry: TreeEntry; draf
     thisTree: ui.thisTree,
     removeStep: ui.removeStep,
     requestFailed: ui.requestFailed,
+    placeholderTitle: ui.placeholderTitle,
+    placeholderText: ui.placeholderText,
+    placeholderSourceLabel: ui.placeholderSourceLabel,
+    placeholderUrl: ui.placeholderUrl,
+    placeholderOptionTitle: ui.placeholderOptionTitle,
+    placeholderImageDescription: ui.placeholderImageDescription,
+    placeholderCredit: ui.placeholderCredit,
+    endingText: ui.endingText,
+    nextStepWords: ui.nextStepWords,
+    placeholderTerm: ui.placeholderTerm,
+    placeholderExplanation: ui.placeholderExplanation,
+    placeholderLogoAlt: ui.placeholderLogoAlt,
   }
   const uiLang = chromeLang(address.lang)
   return (

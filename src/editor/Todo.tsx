@@ -5,7 +5,10 @@
  * ADR-176-floating-settings-and-to-do): the floating control at the top right that says how
  * many things are left to do before publishing, and the list it opens -- one line per advisory
  * violation of the draft, the Node's title as a link to its editor page, then the message, and
- * `remove` beside an unreachable step's line.
+ * `remove` beside an unreachable step's line. **[#271]** Between the two, the field the line is
+ * about, by its placeholder (28.2), its place in its list and its language, so two empty fields
+ * of one Node never read alike; and `remove` beside an explainer that no description marks any
+ * more, which is otherwise out of reach: its Sheet opens only from a marked term (32.3, 32.4).
  *
  * The page draws both inside a `Sheet` (10.5: Escape, the cross, a click outside, one Sheet at
  * a time); this module draws what is in it. The count is the `Editor`'s, from the page's load
@@ -14,18 +17,30 @@
  * Imports of `src/`: types, and nothing else (34.4).
  */
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Chrome } from '../chrome.ts'
 import type { Violation } from '../tree/types.ts'
 import { useEditor } from './Editor.tsx'
 import { shownOf } from './Panel.tsx'
+import { fieldOf, type PlaceholderWords } from './placeholders.ts'
 import { panelCalls } from './writes.ts'
 
-/** The chrome strings the control and its bubble say, as strings. */
+/** The chrome strings the control and its bubble say, as strings; **[#271]** and the fields' names. */
 export type TodoWords = Pick<
   Chrome,
   'todoCount' | 'todoCountOne' | 'todoNone' | 'todoBefore' | 'publicBehindBecause' | 'notServableBecause' | 'thisTree' | 'removeStep' | 'requestFailed'
->
+> &
+  PlaceholderWords
+
+/**
+ * **[#271]** The explainer a V-EXPLAINER line says no description marks in one language: its id,
+ * which `remove-explainer` names (32.4). The validator's `checkMarks` writes it first in the
+ * message, quoted, and that is the only place the line carries it; null for any other line.
+ */
+function unmarkedExplainer(violation: Violation): string | null {
+  if (violation.rule !== 'V-EXPLAINER') return null
+  return /^"([^"]+)" is not marked in /.exec(violation.message)?.[1] ?? null
+}
 
 /**
  * The control (33.3): the count in a small round bubble and the words after it, or a quiet tick
@@ -72,7 +87,7 @@ export function Todo({
   manages: boolean
 }) {
   const router = useRouter()
-  const { tree, setTree, todoAsked } = useEditor()
+  const { tree, setTree, todoAsked, operate, readOnly } = useEditor()
   const [todo, setTodo] = useState(advisory)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -80,27 +95,32 @@ export function Todo({
   // Set while the panel opens the bubble on the list a refused publish answered: that opening re-reads nothing.
   const kept = useRef(false)
 
+  /** The draft's list and state as the store holds them now (22.1). */
+  const reread = useCallback(async (): Promise<void> => {
+    const entry = await panelCalls.entry(treeId)
+    if (entry.status === 200 && entry.body && 'advisory' in entry.body) {
+      const read = entry.body
+      setTodo(read.advisory)
+      setTree({ advisory: read.advisory.length, published: read.published, publicCopyCurrent: read.publicCopyCurrent, servable: read.servable })
+    }
+  }, [treeId, setTree])
+
   // The list is re-read each time the Sheet around it opens (33.3).
   useEffect(() => {
     const sheet = body.current?.closest('details')
     if (!sheet) return
-    const reread = async (): Promise<void> => {
+    const onToggle = async (): Promise<void> => {
       if (!sheet.open) return
       setError(null)
       if (kept.current) {
         kept.current = false
         return
       }
-      const entry = await panelCalls.entry(treeId)
-      if (entry.status === 200 && entry.body && 'advisory' in entry.body) {
-        const read = entry.body
-        setTodo(read.advisory)
-        setTree({ advisory: read.advisory.length, published: read.published, publicCopyCurrent: read.publicCopyCurrent, servable: read.servable })
-      }
+      await reread()
     }
-    sheet.addEventListener('toggle', reread)
-    return () => sheet.removeEventListener('toggle', reread)
-  }, [treeId, setTree])
+    sheet.addEventListener('toggle', onToggle)
+    return () => sheet.removeEventListener('toggle', onToggle)
+  }, [reread])
 
   // A refused publish (33.3): the bubble opens on what it answered, which closes the panel -- one Sheet at a time.
   useEffect(() => {
@@ -127,6 +147,22 @@ export function Todo({
     }
   }
 
+  // **[#271]** Through the editor's queue, as the Sheet's own `unmark` sends it (32.4): a description
+  // write still on its way is sent first. The removal takes every line of that explainer with it,
+  // so the list is read again rather than filtered here.
+  const removeExplainer = (nodeId: string, id: string): void => {
+    setBusy(true)
+    setError(null)
+    operate(nodeId, { op: 'remove-explainer', id }, undefined, async (answer) => {
+      try {
+        if (answer.status >= 200 && answer.status < 300) await reread()
+        else setError(words.requestFailed)
+      } finally {
+        setBusy(false)
+      }
+    })
+  }
+
   const shown = shownOf(tree)
   const heading = shown === 'notServable' ? words.notServableBecause : shown === 'publicBehind' ? words.publicBehindBecause : words.todoBefore
 
@@ -142,23 +178,34 @@ export function Todo({
           <p>{words.todoNone}</p>
         ) : (
           <ul className="todo-list">
-            {todo.map((violation, index) => (
-              <li key={`${violation.file} ${violation.keyPath} ${violation.rule} ${index}`} data-rule={violation.rule}>
-                {violation.file === 'manifest' || violation.file === 'tree.json' ? (
-                  <span className="todo-where">{words.thisTree}</span>
-                ) : (
-                  <a className="todo-where" href={`${nodeHref.before}${encodeURIComponent(violation.file)}${nodeHref.after}`}>
-                    {titles[violation.file] || violation.file}
-                  </a>
-                )}
-                {`: ${violation.message}`}
-                {violation.rule === 'V-REACH' && manages && (
-                  <button type="button" className="admin-link todo-remove" disabled={busy} onClick={() => removeNode(violation.file)}>
-                    {words.removeStep}
-                  </button>
-                )}
-              </li>
-            ))}
+            {todo.map((violation, index) => {
+              const field = fieldOf(violation.keyPath, words)
+              const explainer = unmarkedExplainer(violation)
+              return (
+                <li key={`${violation.file} ${violation.keyPath} ${violation.rule} ${index}`} data-rule={violation.rule}>
+                  {violation.file === 'manifest' || violation.file === 'tree.json' ? (
+                    <span className="todo-where">{words.thisTree}</span>
+                  ) : (
+                    <a className="todo-where" href={`${nodeHref.before}${encodeURIComponent(violation.file)}${nodeHref.after}`}>
+                      {titles[violation.file] || violation.file}
+                    </a>
+                  )}
+                  {': '}
+                  {field !== null && <span className="todo-field">{`${field}: `}</span>}
+                  {violation.message}
+                  {violation.rule === 'V-REACH' && manages && (
+                    <button type="button" className="admin-link todo-remove" disabled={busy} onClick={() => removeNode(violation.file)}>
+                      {words.removeStep}
+                    </button>
+                  )}
+                  {explainer !== null && (
+                    <button type="button" className="admin-link todo-remove" disabled={busy || readOnly} onClick={() => removeExplainer(violation.file, explainer)}>
+                      {words.removeStep}
+                    </button>
+                  )}
+                </li>
+              )
+            })}
           </ul>
         )}
         {error !== null && (
