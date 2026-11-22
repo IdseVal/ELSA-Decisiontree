@@ -19,6 +19,9 @@
  * draft, so the page is drawn again after it -- at a new address when the language it was
  * shown in has gone or become the default.
  *
+ * **[#273]** "This Tree" holds the Tree's tags after its languages (`TagsField`), passed in as the
+ * Theme panel is.
+ *
  * **[#251]** The creator's `deleteTree` stands in "This Tree", the administrator's in its own
  * section: one button and question, `DeleteTree`, drawn in either place (ADR-251-creator-deletes).
  *
@@ -122,6 +125,7 @@ export function Panel({
   written: initialWritten,
   overviewHref,
   theme,
+  tags,
 }: {
   treeId: string
   words: PanelWords
@@ -145,6 +149,8 @@ export function Panel({
   overviewHref: string
   /** **[#144]** The Theme panel, at the end of "This Tree" (33.5, 33.8). */
   theme?: ReactNode
+  /** **[#273]** The tags field, after the languages in "This Tree" (33.5). */
+  tags?: ReactNode
 }) {
   const router = useRouter()
   const { tree, setTree, openTodo } = useEditor()
@@ -442,6 +448,7 @@ export function Panel({
               </div>
             </div>
           )}
+          {tags}
           <dl className="panel-facts">
             <dt>{words.treeId}</dt>
             <dd>

@@ -4,7 +4,7 @@
  * the editor uses. A JSON body as `application/json` from this origin, which is what the
  * CSRF layer of 20.6 wants and no HTML form can send.
  */
-import type { DraftNode, Manifest, Theme, Violation } from '../tree/types.ts'
+import type { DraftNode, LocalisedText, Manifest, Theme, Violation } from '../tree/types.ts'
 
 /**
  * **[#139]** `POST .../nodes` (22.1, 30.2 to 30.4): a Node and the Link to it from `from.node`
@@ -150,6 +150,14 @@ export async function deleteImage(treeId: string, file: string): Promise<Answer>
  * -- and `POST /admin/api/trees/<t>/theme` with one logo or font file, answered with the
  * server's name. Neither rejects.
  */
+/**
+ * **[#273]** The tags' one call (33.5): the whole list in its place, an empty one taking the key
+ * away, answered with the write response.
+ */
+export const tagCalls = {
+  write: (treeId: string, tags: LocalisedText[]) => request('PATCH', treeUrl(treeId), { path: 'tags', value: tags }) as Promise<Typed<WriteResponse>>,
+}
+
 export const themeCalls = {
   write: <Part extends keyof Theme>(treeId: string, part: Part, value: Theme[Part] | null) =>
     request('PATCH', treeUrl(treeId), { path: `theme.${part}`, value }) as Promise<Typed<WriteResponse>>,
