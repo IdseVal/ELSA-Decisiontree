@@ -1922,14 +1922,12 @@ a.language:hover,
 
 /*
  * **[#273]** The overview's tag filter (26.5): a pill of the bar, in the share button's look, whose
- * list drops under the bar's right end over the grid -- not a row above the box, which would take
+ * list drops under the bar's right end over the grid -- placed in the bar, which is positioned,
+ * not in the pill, which the language switch and "Editor" follow, so that it never leaves a
+ * 320-pixel window on the left -- -- not a row above the box, which would take
  * the box's third row of tiles at 1280 x 640 (26.2). The list scrolls inside its own bounds when
  * the tags outnumber the window, between the bar and the disclaimer; it is shut until asked for.
  */
-.tag-filter {
-  position: relative;
-}
-
 .tag-filter-button {
   list-style: none;
 }
@@ -1954,8 +1952,8 @@ a.language:hover,
 
 .tag-filter-panel {
   position: absolute;
-  top: calc(100% + 9px);
-  right: 0;
+  top: calc(100% + 8px);
+  right: 16px;
   width: max-content;
   min-width: 200px;
   max-width: min(320px, calc(100vw - 16px));
@@ -3149,6 +3147,10 @@ fieldset:disabled .admin-submit {
   .page-chrome {
     padding: 0 8px;
     gap: 8px;
+  }
+
+  .tag-filter-panel {
+    right: 8px;
   }
 
   .share-said {
