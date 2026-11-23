@@ -10,8 +10,8 @@
 - Amends: `ADR-132-draft-and-publish.md` decisions 5 and 6 (Publish no longer runs the full
   validation; a save of a published Tree is copied whether or not the draft is valid in full) and
   its rejected alternative "Reject an autosave that breaks any rule", whose last sentence -- "Publish
-  is where a limit is a wall" -- no longer holds; `ADR-132-many-trees-per-deployment.md` where it
-  has a published copy opened under every rule (the store opens it under the draft rules);
+  is where a limit is a wall" -- no longer holds; `ADR-132-many-trees-per-deployment.md` decision 5
+  ("no longer validates in full": the store opens a published copy under the draft rules);
   `ADR-176-floating-settings-and-to-do.md` (the Publish section's `publishRefused` and `showTodo`,
   the bubble's heading `publicBehindBecause` and the button's `publicBehind` are gone);
   `ADR-205-unfinished-draft.md` in its Context alone ("every public component draws a published

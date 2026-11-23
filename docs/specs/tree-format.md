@@ -1244,6 +1244,17 @@ draft schema derived from the published one in code by relaxing two named `minLe
 keywords and two `required` lists, never a second file). Publishing runs
 every rule blocking, so nothing below changes for a reader of `tree.json`.
 
+**[#279] What the application serves -- 2026-11-23.** The owner decided on #279 that the to-do
+list is support only (core document 10.33; `docs/adrs/ADR-279-to-do-is-support.md`). From then
+the application publishes a draft as it is and serves it, so **the `tree.json` a deployment
+serves, and its dataset endpoint, may be a file that fails an advisory rule of the Draft
+column**: an empty text in a language, a step with one next step, a text over its limit. It never
+fails a blocking one. The last sentence of the paragraph above no longer holds for such a
+deployment's files. **The format does not change**: a file with a to-do open is not a valid
+`elsa-tree/9` file, sections 1, 7 and 8 define a valid one as before, the schema refuses it, and
+`npm run validate` reports every rule. What a reader of the pages sees of such a file is
+`docs/specs/application.md` 19.8; this is the one place this document says it.
+
 Two tools answer between them, in this order, and neither translates the other's message
 (3.9):
 

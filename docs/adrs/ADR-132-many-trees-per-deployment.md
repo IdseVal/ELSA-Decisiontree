@@ -1,6 +1,9 @@
 # ADR-132-many-trees-per-deployment: a deployment serves every published Tree of its store; `ELSA_TREE` is gone; the loader opens one Tree per folder and the store holds the set; a Tree's public files move under its id
 
 - Status: ACCEPTED (frozen) -- 2026-09-23; decides core document 10.34 and closes 10.19
+- **[#279] Amended (2026-11-23)** by `ADR-279-to-do-is-support.md`: in decision 5, "no longer
+  validates in full" is "fails a blocking rule of the draft rules" -- the store opens a published
+  copy under them, and one with advisory violations is served. The rest stands.
 - Issue: #132 -- Architecture: freeze the store for the editor round
 - Spec: `docs/specs/application.md` sections 17 and 18 (new); 2 superseded; 4.1, 4.3,
   5.1, 5.2, 5.3, 5.4, 5.5 and 6 amended
