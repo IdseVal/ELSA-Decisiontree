@@ -50,7 +50,7 @@ export async function previewPage(tree: Readable<DraftNode>, address: PageAddres
 /**
  * The draft as the preview draws it in `lang` (40.7): the same Tree, but that every text it lacks
  * in `lang` -- its key absent, the language absent, or `""` -- reads `[missingText]` in the chrome
- * language, as `text()` draws a missing text on a public page, **[#222]** a next step's words among
+ * language, as `text()` draws a missing text (a public page reads `shown()` since #279), **[#222]** a next step's words among
  * them; a Terminal's words read `endingText`,
  * which the badge's 19 characters hold, and a credit, one text for every language, reads
  * `[placeholderCredit]`. Copies only: the draft and its Nodes are not changed.

@@ -28,6 +28,9 @@ export interface EnlargedImage {
   /** The image route's URL for the file, `/images/<file>` (5.3). */
   href: string
   description: string
+  /** **[#279]** The description's language where it is not the page's (application.md 19.4). */
+  lang?: string
+  /** `""` while its creator has written none: no credit line is drawn then (19.4). */
   credit: string
 }
 
@@ -143,17 +146,19 @@ export function EnlargedView({
         summary={<span lang={uiLang}>{counts[selected]}</span>}
         pages={images.map((image, index) => (
           <figure className="sheet-figure" key={index}>
-            <img src={image.href} alt={image.description} loading="lazy" />
+            <img src={image.href} alt={image.description} lang={image.lang} loading="lazy" />
             <figcaption>
               {captions?.[index] ?? (
                 <>
-                  <p>{image.description}</p>
-                  <p className="credit">
-                    <span className="kind" lang={uiLang}>
-                      {credit}
-                    </span>{' '}
-                    {image.credit}
-                  </p>
+                  {image.description !== '' && <p lang={image.lang}>{image.description}</p>}
+                  {image.credit !== '' && (
+                    <p className="credit">
+                      <span className="kind" lang={uiLang}>
+                        {credit}
+                      </span>{' '}
+                      {image.credit}
+                    </p>
+                  )}
                 </>
               )}
             </figcaption>

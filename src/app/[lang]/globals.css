@@ -5082,10 +5082,6 @@ fieldset:disabled .admin-submit {
   color: var(--accent-secondary-read);
 }
 
-.panel-state--publicBehind {
-  color: var(--accent-read);
-}
-
 .panel-state--notServable {
   color: var(--danger-read);
 }
@@ -5441,11 +5437,6 @@ fieldset:disabled .admin-submit {
 .panel-facts dd {
   margin: 0;
   overflow-wrap: anywhere;
-}
-
-/* **[#176]** A refused publish's sentence, and the button to the to-do bubble in it (33.3). */
-.panel-refused {
-  color: var(--danger-read);
 }
 
 .panel-people {

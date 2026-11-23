@@ -4,8 +4,8 @@
  * amended 2026-10-02; ADR-176-floating-settings-and-to-do), mounted with the Editor around
  * them, each in its Sheet, against a fake `fetch`: the control says the count, in the words for
  * one thing and for more, and is a quiet tick at zero; opening the bubble re-reads the list and
- * the count; and a refused publish points at the bubble, which opens on the list the refusal
- * answered without re-reading it -- the refusal's own lines where the draft's list is empty.
+ * the count; and **[#279]** publishing with to-dos open is accepted, keeps the count and shows no
+ * refusal (19.3).
  */
 import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
@@ -25,26 +25,25 @@ function said<K extends string>(keys: K[]): Record<K, string> {
   return Object.fromEntries(keys.map((key) => [key, key as string])) as Record<K, string>
 }
 
-const editorWords = said(['missingText', 'saving', 'saved', 'notSaved', 'publicBehind', 'toOverview', 'close']) as unknown as EditorWords
+const editorWords = said(['missingText', 'saving', 'saved', 'notSaved', 'toOverview', 'close']) as unknown as EditorWords
 const loginWords = { email: 'email', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '', sessionNotKept: '' }
 const sheetWords = said(['close', 'previous', 'next', 'opensInNewTab'])
 const todoWords: TodoWords = said([
-  'todoCount', 'todoCountOne', 'todoNone', 'todoBefore', 'publicBehindBecause', 'notServableBecause', 'thisTree', 'removeStep', 'requestFailed',
+  'todoCount', 'todoCountOne', 'todoNone', 'todoStill', 'notServableBecause', 'thisTree', 'removeStep', 'requestFailed',
   'placeholderTitle', 'placeholderText', 'placeholderSourceLabel', 'placeholderUrl', 'placeholderOptionTitle', 'placeholderImageDescription',
   'placeholderCredit', 'endingText', 'nextStepWords', 'placeholderTerm', 'placeholderExplanation', 'placeholderLogoAlt',
 ])
 const panelWords = said([
-  'settings', 'publish', 'publishRefused', 'showTodo', 'publishedAt', 'publicLink', 'confirmUnpublish', 'confirm', 'cancel', 'collaborators', 'creator',
+  'settings', 'publish', 'publishedAt', 'publicLink', 'confirmUnpublish', 'confirm', 'cancel', 'collaborators', 'creator',
   'invite', 'cannotInvite', 'removeCollaborator', 'chooseAccount', 'thisTree', 'confirmRemoveLanguage', 'handOver', 'handOverTo', 'deleteTree',
-  'unpublishFirst', 'confirmDeleteTree', 'published', 'hidden', 'notServable', 'publicBehind', 'languages', 'treeId', 'administrator', 'requestFailed',
+  'unpublishFirst', 'confirmDeleteTree', 'published', 'hidden', 'notServable', 'languages', 'treeId', 'administrator', 'requestFailed',
   'addLanguage', 'makeDefault', 'default', 'removeLanguage', 'languageHint', 'languageTag',
 ]) as PanelWords
 
 const missing = (file: string): Violation => ({ file, keyPath: 'title.nl', rule: 'V-L10N', message: `${file} has no Dutch title`, advisory: true })
 
-/** What the fake server holds: the draft's to-do list, and what a publish answers. */
+/** What the fake server holds: the draft's to-do list. */
 let advisory: Violation[]
-let refusal: Violation[]
 let sent: Array<{ method: string; url: string }>
 /** **[#271]** The operations the fake server received, and whether it refuses them. */
 let patched: unknown[]
@@ -54,7 +53,6 @@ let container: HTMLDivElement
 
 beforeEach(() => {
   advisory = []
-  refusal = []
   sent = []
   patched = []
   refuseRemoval = false
@@ -63,14 +61,15 @@ beforeEach(() => {
     sent.push({ method, url })
     const json = (status: number, body: unknown) => Promise.resolve(new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } }))
     if (url === '/admin/api/trees/t' && method === 'GET') {
-      return json(200, { meta: { creator: 'anna', collaborators: [] }, published: false, servable: false, publicCopyCurrent: true, advisory, written: { en: 3 } })
+      return json(200, { meta: { creator: 'anna', collaborators: [] }, published: false, servable: false, advisory, written: { en: 3 } })
     }
     if (url === '/admin/api/accounts') return json(200, [])
-    if (url === '/admin/api/trees/t/published') return json(409, { error: 'invalid', violations: refusal })
+    // The store's answer to a publish (19.3): the entry, its to-do list as it was.
+    if (url === '/admin/api/trees/t/published') return json(200, { meta: { creator: 'anna', collaborators: [], publishedAt: '2026-11-23T12:00:00.000Z' }, published: true, servable: true, advisory, written: { en: 3 } })
     if (url.startsWith('/admin/api/trees/t/nodes/') && method === 'PATCH') {
       patched.push(JSON.parse(String(init.body)))
       if (refuseRemoval) return json(422, { error: 'invalid', violations: [] })
-      return json(200, { revision: 2, node: null, violations: [], tree: { advisory: advisory.length, published: false, publicCopyCurrent: true } })
+      return json(200, { revision: 2, node: null, violations: [], tree: { advisory: advisory.length, published: false } })
     }
     return json(404, { error: 'not-found' })
   })
@@ -88,7 +87,7 @@ afterEach(() => {
 function mount(count: number, children: ReactNode): void {
   act(() => {
     root.render(
-      <Editor key={count} treeId="t" lang="en" languages={['en']} words={editorWords} loginWords={loginWords} adminHref="/admin" nodes={{}} violations={[]} tree={{ advisory: count, published: false, publicCopyCurrent: true, servable: false }}>
+      <Editor key={count} treeId="t" lang="en" languages={['en']} words={editorWords} loginWords={loginWords} adminHref="/admin" nodes={{}} violations={[]} tree={{ advisory: count, published: false, servable: false }}>
         {children}
       </Editor>,
     )
@@ -180,37 +179,21 @@ test('opening the bubble re-reads the list and the count', async () => {
   expect(todoName()).toBe('2 todoCount')
 })
 
-test('a refused publish points at the bubble, which opens on the refusal’s list without re-reading it', async () => {
-  // The draft's own list is empty, so the refusal's lines are the to-do list (33.3); a re-read would lose them.
-  refusal = [missing('tree.json')]
-  mount(0, [todoSheet([]), panelSheet()])
-  act(() => container.querySelector<HTMLButtonElement>('[role="switch"]')!.click())
+test('**[#279]** publishing with to-dos open is accepted: the switch goes on, the count stays, and nothing is refused (19.3)', async () => {
+  advisory = [missing('a'), missing('b')]
+  mount(2, [todoSheet(advisory), panelSheet()])
+  const publish = container.querySelector<HTMLButtonElement>('[role="switch"]')!
+  expect(publish.getAttribute('aria-checked')).toBe('false')
+
+  act(() => publish.click())
   await settle()
 
-  const pointer = container.querySelector('.panel-sheet [role="alert"]')!
-  expect(pointer.textContent).toBe('publishRefused showTodo')
-  expect(todoName()).toBe('1 todoCountOne')
-  const before = rereads()
-
-  act(() => pointer.querySelector('button')!.click())
-  await settle()
-
-  expect(todoDetails().open).toBe(true)
-  expect(lines()).toEqual(['thisTree: placeholderTitle (nl): tree.json has no Dutch title'])
-  expect(rereads()).toBe(before)
-
-  // Closed and opened again by its own control, it re-reads: the refusal is not the draft's list.
-  act(() => {
-    todoDetails().open = false
-  })
-  await settle()
-  act(() => {
-    todoDetails().open = true
-  })
-  await settle()
-  expect(rereads()).toBe(before + 1)
-  expect(lines()).toEqual([])
-  expect(container.querySelector('.todo-sheet .panel-body')!.textContent).toContain('todoNone')
+  expect(container.querySelector<HTMLButtonElement>('[role="switch"]')!.getAttribute('aria-checked')).toBe('true')
+  expect(container.querySelector('.panel-sheet [role="alert"]')).toBeNull()
+  expect(todoName()).toBe('2 todoCount')
+  expect(todoDetails().open).toBe(false)
+  // The list's heading says what is left, not what publishing waits for.
+  expect(container.querySelector('#todo-heading')!.textContent).toBe('todoStill')
 })
 
 /**

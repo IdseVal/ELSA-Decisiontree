@@ -444,6 +444,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | **[#171]** #180 | `fontDefault`, `fontSameAsBody`, `fontLibraryGroup`, `fontOwnGroup`, `fontUpload`, `fontNameTaken`, `licenceOther`, with the strings of 37.2, 37.4 and 37.5; **[#180] added in the build**: the Theme panel's hints (33.8), `colourBackgroundHint`, `colourSurfaceHint`, `colourTextHint`, `colourTextMutedHint`, `colourAccentHint`, `colourAccentSecondaryHint`, `colourDangerHint`, `contrastHint`, `logoAltHint`, `fontBodyHint`, `fontHeadingHint`, `fontLicenceHint`, `fontFileHint`, named by #174's `hint`; **[#180] added in review**: `licenceOtherHint` (the hint behind the free licence line, 4.3.2's own sentence, 37.5; `ADR-171-licence-dropdown.md` decision 2) and `placeholderFontFamily` (the family-name field's placeholder while it is empty, 28.2, 37.4) |
 | #181 | **[#181] added in review**: `languageTag` ("Language tag" / "Taalcode": the name of the language control's field and its placeholder while it is empty, 27.1, 33.5; `addLanguage`, its button's word, named the field before) |
 | **[#195]** (2026-10-03) #196 | `email` ("E-mail address" / "E-mailadres": the login page's field, the field of the new-account and `setEmail` Sheets, the accounts page's column), `emailInvalid` ("Enter an e-mail address, such as name@example.org." / "Vul een e-mailadres in, zoals naam@example.org."), `emailTaken` ("Another account has this e-mail address." / "Een ander account heeft dit e-mailadres."), `nameTaken` ("Another account has this name." / "Een ander account heeft deze naam."), `setEmail` ("Set e-mail address" / "E-mailadres instellen", in the words of `setPassword`), `noEmail` ("No e-mail address yet" / "Nog geen e-mailadres"), `signedInWith(email)` ("You sign in with <address>." / "U logt in met <adres>."), `emailHelp` ("Ask your administrator to change it." / "Vraag uw beheerder om het te wijzigen.": under the address on every account's page but the administrator's), 38.5 and 38.6; **gone**: `login`, `loginInvalid`, `loginTaken`; **reworded**: `loginFailed`, "Wrong e-mail address or password." / "Verkeerd e-mailadres of wachtwoord.", and `sessionNotKept`, which opens "Your e-mail address and password are right" / "Uw e-mailadres en wachtwoord kloppen" (25.1) |
+| **[#279]** (2026-11-23) #279 | `todoStill` ("Still to do:" / "Nog te doen:": the to-do bubble's heading, 33.3), in place of `todoBefore`; **gone**: `todoBefore`, `publicBehind`, `publicBehindBecause`, `publishRefused`, `showTodo` (19.3, 19.4) |
 | **[#195]** (2026-10-03) #197 | `byAuthors(names)` ("By A, B and C" / "Door A, B en C": the mention, 39.4), `nameShownPublicly` (the account page's notice, 39.8) |
 | **[#205]** (2026-10-04) #206 | `preview` ("Preview" / "Voorbeeld": the preview button in the editor of a hidden Tree, its words from 1000 pixels wide, its name and its `title`, 40.5), `backToEditor` ("Back to the editor" / "Terug naar de editor": the way back in the preview, likewise) |
 | **[#204]** (2026-10-09) #204 | `editor` ("Editor" in English and in Dutch: the link at the right end of the bar of the public overview and of every public Node page, to `/admin`, 24.3), `website` ("Website" in both: the link at the right end of the bar at `/admin`, to the public overview, 24.3) |
@@ -740,6 +741,7 @@ changes, and nothing is added to let a caller enumerate the Tree.
 
 ```ts
 export function openTree(dir: string): Promise<Tree>          // [#132] and openTree(dir, { draft: true }): Promise<Draft>, section 19.2
+                                                               // [#279] and openTree(dir, { served: true }): Promise<Tree>, the store's reading of a published copy, 19.4
 // Reads and validates tree.json once: the JSON Schema of tree-format.md 3.9 for the
 // shape, then the rules of section 7 for the content (**[#119]**).
 // Rejects with TreeInvalid { treeId, violations: Violation[] } listing every failure
@@ -1357,6 +1359,7 @@ preview's bound is the public page's 41 (42.5); from #234 the editor's page read
 | **[#132]** Every published Tree served; `ELSA_TREE` gone; the loader per folder, the store the set; an invalid Tree unserved, not fatal; image and theme files under the Tree id | `docs/adrs/ADR-132-many-trees-per-deployment.md` |
 | **[#132]** `ELSA_DATA_DIR`: JSON files, an atomic writer with a queue per file, one process; the seed at first start; import, move, back up | `docs/adrs/ADR-132-data-directory.md` |
 | **[#132]** The draft is the same file under a named advisory set; Publish copies it when valid in full; every valid save of a published Tree is public at once | `docs/adrs/ADR-132-draft-and-publish.md` |
+| **[#279]** (2026-11-23) The to-do list is support only: Publish copies the draft as it is, every save of a published Tree is public at once, and the public pages draw a Tree with a to-do open (19.3, 19.4, 19.8) | `docs/adrs/ADR-279-to-do-is-support.md` |
 | **[#132]** Accounts by the administrator, user name and scrypt; `ELSA_ADMIN_PASSWORD`; one `HttpOnly; Secure; SameSite=Strict; Path=/admin` cookie; three-layer CSRF; a login rate limit; the public routes set no cookie | `docs/adrs/ADR-132-accounts-and-sessions.md` -- **superseded in part [#195]** (2026-10-03): an e-mail address in place of the user name, the administrator's from `ELSA_ADMIN_EMAIL` (`ADR-195-login-by-email-address.md`, `ADR-195-administrator-address.md`) |
 | **[#132]** Creator, collaborator, administrator; one table; `permit` on every request; invitations from a list | `docs/adrs/ADR-132-roles-and-permissions.md` |
 | **[#132]** Route handlers under `/admin/api`; a field or one Node operation per write; the Node as stored in every answer; last write wins per field; sniffed, renamed, capped uploads | `docs/adrs/ADR-132-editor-api.md` |
@@ -3464,6 +3467,10 @@ transaction across two files and nothing needs one.
   a `draft.json` one write newer than its `meta.json`, which is tolerated (`revision` is
   advisory). Stop the service for a copy exact to the write. Restore is copying the folder
   back. Nothing outside it, and nothing in `app/`, holds state.
+- **[#279] A folder with a to-do open is imported** (2026-11-23): `importTree`, at the seed and
+  from the command, refuses a `tree.json` that fails a **blocking** rule of 19.2 and accepts one
+  whose violations are advisory, as Publish takes a draft with them (19.3). It becomes a published
+  Tree with that to-do list. "Fails validation in full" in the first bullet reads so from #279.
 - **Development**: `.env.development` sets `ELSA_DATA_DIR=.elsa-data` (gitignored); the
   seed default fills it from `trees/` at the first `next dev`; deleting the folder resets.
 - **[#171] An `elsa-tree/4` file is converted, not refused** (2026-10-02): `openStore`
@@ -3568,6 +3575,13 @@ every document of 16, exactly as a hidden Tree (23.1); its violations are printe
 format of 5.4 and shown in the admin area to its creator, collaborators and the
 administrator (on its tile and its Publish toggle, #133). The published state is not
 touched -- it is the creator's -- and the creator's next valid autosave republishes (19.4).
+
+**[#279]** (2026-11-23) "Fails validation in full" is, from #279, **fails a blocking rule of
+19.2**: the store opens a published copy under the draft rules (`openTree(dir, { served: true })`,
+5.1), since the copy is its draft with whatever is still to do (19.4). A copy with advisory
+violations is served; a copy with a blocking one -- a hand edit, a disk fault, a release that
+tightened a blocking rule -- is published but not servable, as above, and the creator's next
+autosave replaces it.
 
 The process **exits with code 1 only when the data directory itself is unusable**: unset,
 missing, not writable, locked by a live process, `accounts.json` unreadable, or
@@ -3707,6 +3721,14 @@ the published schema, every rule blocking -- on the draft.
 **The published copy is byte-identical to the draft at the moment of the copy**, so 15.3
 holds against `$ELSA_DATA_DIR/trees/<id>/tree.json`.
 
+**[#279], changed by the owner -- 2026-11-23** (core document 10.33; the owner's words are quoted
+there and in `docs/adrs/ADR-279-to-do-is-support.md`). **Publish copies the draft as it is.**
+`{ published: true }` runs no validation of its own: the draft passed the draft rules at its last
+write (19.2), and that is all Publish asks. The **Passes** bullet above is what happens, always,
+with the to-do list as it stands and its count unchanged. The **Fails** bullet is gone: the one
+refusal left is 409 `uneditable`, with the blocking violations, for a draft that breaks the
+invariant of 19.2 (19.5), which the editor cannot have produced.
+
 ### 19.4 Autosave on a published Tree (10.33)
 
 After every write to a published Tree the store runs the full validation on the new draft.
@@ -3716,12 +3738,38 @@ last valid public copy stays until the draft is valid again** -- and the write's
 says so (`tree.publicCopyCurrent: false`, 22.3) with the violations. The public never sees
 a Tree that fails section 7.
 
+**[#279], changed by the owner -- 2026-11-23** (core document 10.33). **Every save of a published
+Tree reaches the public at once, a to-do open or none.** After every accepted write to a published
+Tree the store replaces `tree.json` by the draft's bytes and swaps the `Tree`, in the same call;
+no validation stands between the two. The paragraph above is superseded from "runs the full
+validation" on: there is no "last valid public copy", `publicCopyCurrent` is gone (22.3), and the
+public sees a Tree with whatever its to-do list holds (19.8). What holds as before: a write that
+breaks a **blocking** rule answers 422 and stores nothing (22.3), so neither file changes; the
+sitemap's `lastmod`, the dataset, the images the copy names and `llms.txt` follow the copy as 19.3
+has them; and the copy is byte-identical to the draft (15.3).
+
+- **The store reads the copy under the draft rules**: `openTree(dir, { served: true })` (5.1), the
+  draft schema and every rule, refusing the Tree for a blocking violation alone (18.3). It answers
+  a `Tree` whose localised texts each hold every declared language in the order declared, `""`
+  where the file has none, and whose steps have a `title` and a `description` so filled where the
+  file has none: the two things a served file may lack that a valid one has. A question step may
+  hold one next step. `openTree(dir)` without the option reads a file as the format defines it,
+  every rule refusing: `npm run validate` and the migration command.
+- **A store an earlier release wrote** may hold a published Tree whose copy is behind its draft.
+  The start does not re-copy -- a later start keeps the data directory as it is
+  (`ADR-252-a-release-keeps-the-data.md`) -- so that copy is served as it stands and follows its
+  draft at the first save after the release.
+
 ### 19.5 An uneditable Tree
 
 A `draft.json` that breaks the invariant of 19.2 -- a hand edit -- makes that Tree
 **uneditable**, not the deployment down: `Draft.blocking` is non-empty, every write to it
 is 409, the admin area shows the violations, and the administrator's way out is the import
 command with a repaired file (17.4).
+
+**[#279]** (2026-11-23) Publish is among the writes: 409 `uneditable` is its one refusal (19.3). An
+uneditable Tree that was published keeps the copy it had, served if that copy passes the blocking
+rules (18.3).
 
 ### 19.6 `metadata.version`
 
@@ -3755,6 +3803,64 @@ export interface Drafts {
 
 **[#220]** (2026-10-09) `createNode`'s `from.link` is `'answer' | 'option' | 'end'`, with `label` for `'answer'` and
 `'end'` (41.7 item 6).
+
+**[#279]** (2026-11-23) `publish` throws 409 for an uneditable Tree alone; `TreeEntry` has no
+`publicCopyCurrent`, and `servable` is "published, and its copy not refused at the start" (18.3).
+
+### 19.8 What a reader sees of a Tree with a to-do open
+
+**[#279], new -- 2026-11-23.** A published Tree's copy may hold any advisory violation of
+`tree-format.md` 7 (19.4). The public pages, the overview, the dataset, the sitemap, the JSON-LD
+and `llms.txt` read it and draw it without an error, by these rules. Recorded in
+`docs/adrs/ADR-279-to-do-is-support.md`.
+
+- **One reading of a text**, `shown(text, lang, where)` in `src/chrome.ts`, which every public
+  reader of a localised text calls: the text in the language on screen; where the Tree has none
+  there, the text in **the first language the Tree declares that has one**, with that language for
+  the `lang` attribute of the element that draws it; and `""` where no language has it, which the
+  caller does not draw. It logs nothing: a missing text is a to-do, not an authoring error.
+  `text()` (3.2's `missingText`, issue #9) is the editor's and the preview's reading from #279, and
+  40.7's placeholders stand there: `shown` with its `draft` argument is `text()`.
+
+| Rule (`tree-format.md` 7) | The state | What the reader sees |
+|---|---|---|
+| V-L10N | A text empty or absent in the language on screen, written in another | The other language's text, its element carrying `lang`: the step's `h1` (an Overlay's `h2`), the description's box, a Source's link, an Option button's title, a next step's words, the ending's badge, an explainer's term and text in its panel, a picture's `img` (its `alt`), the logo's `img`, a tile's title and description. Every other text of the page is in the page's language, and `<html lang>` is unchanged. |
+| V-L10N, V-NODE | A text no language has: a step without a title or a description yet, an Option, a Source, a next step or an ending without words | Not drawn, with the element that would hold it alone: no heading (and nothing names it: the Answer row and the description's box carry no `aria-labelledby`), no description box, no Source line (no Sources block when none is left), no Option button and no line for it in the collapsed list, no button for that next step, no badge. The Answer row counts the buttons it draws; a step none of whose next steps has words shows `startAgain`, as a step that has none (10.3). |
+| V-IMAGE | A picture's description empty in every language; its credit empty | `alt=""`; no description line and no credit line in the enlarged view. Nothing is invented. |
+| V-TITLE (reported as V-L10N) | The Tree's title empty in every language | The Tree's id where a name must stand: its tile (27.1), the tab's title, the JSON-LD's `Dataset.name`, the lines of `llms.txt`. The chrome bar's place for the title is empty. A step without a title in any language leaves the tab's title the Tree's alone. |
+| V-ANSWERS | A step with one next step | Its one button, centred (as 40.7). |
+| V-ANSWERS | A next step that is not yet a question step or an ending: an explanation Node by its kind | The button leads to it; at that address it is **the centre**, with the up arrow and `startAgain`, not an Overlay over the step before (`loadPage`: an explanation Node at the end of the path that the entry before names as a next step is the centre; no valid Tree has such a Link, so nothing changes for one). |
+| V-OPTIONS | An Option whose target is not an explanation Node | The button opens an Overlay with that step's text, whose heading leads to the step's own page. |
+| V-ROOT | A first step with no next step and no end | Drawn as an explanation Node that is the centre: `startAgain` below it. |
+| V-REACH, V-ORPHAN | A step no walk from the first step reaches | At its own address (4.1), and in the sitemap: 16.2 lists the pages that exist, and the dataset holds the step. No page links to it. |
+| V-LENGTH, V-LINES, V-COUNT | A text or a list over a limit of 5.7 | Drawn whole, the description in its scroll box (43.3); nothing is cut. The no-scroll guarantee covers the Trees within the limits (10.6), as it does in the preview (40.7). |
+| V-EXPLAINER | An explainer no description marks in a language | Nothing: no term, no panel. |
+| V-MARK | A mark to an explainer that was removed | The mark's words alone, without its syntax. In the editor and the preview it stays as written. |
+
+- **A name assembled from two texts** is its parts that exist: a next step's accessible name is
+  its words, a colon and the target's title, or its words alone where the target has no title in
+  any language; the JSON-LD's `Answer.text` is the same string (41.6). A name carries no `lang`.
+- **The JSON-LD** (16.4) says what the page shows: `name` and `description` through `shown`; a
+  `Question` only where the page draws a next step, with one `Answer` per button drawn; a
+  `WebPage` without a `description` where the step has none. **`<meta name="description">`** is
+  absent where the step has none.
+- **The tag filter** (26.6) lists a tag in the tile's language, else in the first language of its
+  Tree that has it; a tag no language has is in no list.
+- **The dataset** is the file as it is (15.3). Its `$schema` names `schemas/elsa-tree-9.json`,
+  which it fails while a to-do is open: `tree-format.md` 7 says so.
+- **The editor and the preview are unchanged** by this section: they read their draft through
+  `text()` and 40.7's placeholders.
+
+| File | Asserts |
+|---|---|
+| `tests/unfinished-tree.test.tsx` (new) | For a Tree written to a folder, opened as the store opens a copy and drawn by the public components in every declared language, every Node page, its JSON-LD, the tile, the bar's title, the sitemap and `llms.txt` render with nothing logged, and the file is refused by `openTree(dir)` for the rule: every row of the table above -- each text of a step read in English with `lang="en"` on the Dutch page and unmarked on the English one; a text no language has not drawn, the row counting its one button, `startAgain` where no next step has words; `alt=""` and no credit line; the Tree's id on the tile, in the `Dataset` and in `llms.txt`, an empty bar title; the unfinished next step as the centre; the Option to an ending; the bare first step; and the fixtures `tests/fixtures/invalid/v-answers`, `v-node`, `v-orphan`, `v-reach`, `v-length`, `v-lines`, `v-count`, `v-explainer` and `v-mark` served as they are |
+| `tests/store/drafts.test.ts` | 19.3: a fresh Tree with every to-do open publishes, its copy the draft's bytes, its list unchanged, the file still refused by the full rules, its texts `""` in each language it lacks; 409 `uneditable` for a hand-broken draft alone. 19.4: a write that opens a to-do reaches the copy, and so does the next one; a blocking write is 422 and leaves the copy; the demo server's tag, `{ en: 'Test', nl: '' }`, on a published Tree is in the served manifest |
+| `tests/store/store.test.ts` | A store with a copy behind its draft keeps every byte across two starts, serves the copy, and brings it to the draft at the first save; an import with a blocking violation is refused |
+| `tests/store/import-command.test.ts` | A folder with a blocking violation is refused; one with a to-do open is imported, published |
+| `tests/tags.test.ts`, `tests/language.test.tsx` | A tag with no text in the tile's language is listed in the other; a text missing in the page's language is the other language's with its `lang`, and nothing is logged |
+| `tests/editor/todo.test.tsx`, `tests/admin/trees.test.ts` | Publish with to-dos open is 200, the switch on, the count unchanged, no refusal; the bubble's heading is `todoStill` |
+| `tests/browser/admin-api.spec.ts` | In a browser: a Tree with a first step and no next step is published and drawn, its dataset the draft's bytes; a save that opens a to-do and the one after it are public at once; the demo server's case -- a tag written in English alone on a published Tree -- is in the filter of the English and the Dutch overview and narrows it to that Tree, and the Dutch page of a step titled in English alone shows the title with `lang="en"` |
+| `tests/browser/floating-controls.spec.ts` | The bubble's two headings, `todoStill` on a hidden and on a published Tree with thirteen things to do, `notServableBecause` on a Tree whose copy holds a key the format does not have |
 
 ## 20. Accounts, sessions and the administrator
 
@@ -4134,6 +4240,10 @@ interface WriteResponse {
   also?: WriteResponse[]       // other Nodes this write changed
 }
 ```
+
+**[#279]** (2026-11-23) `tree.publicCopyCurrent` is gone, from this response and from the entry of
+22.1: a published Tree's copy is the draft after every accepted write (19.4). `tree.advisory` is
+the to-do control's count (33.3); the Publish toggle shows none.
 
 - **A write that violates 5.7, or any advisory rule, is stored and answers 200**, with the
   violation in `violations` -- `keyPath` (`description.nl`), `rule` (`V-LENGTH`), the
@@ -4756,6 +4866,10 @@ run's reading within the issue's PROPOSED points, recorded in `docs/adrs/ADR-272
 
 ### 26.6 The tag filter
 
+**[#279]** (2026-11-23) A tag with no text in the language its tile speaks is listed, and matched,
+in the first language of its Tree that has it (19.8); "is left out" below holds for a tag no
+language has. A published Tree may hold such a tag since #279 (19.4).
+
 **[#273], new -- 2026-11-22.** The owner, on #273: "a filter in the main overview with a dropdown
 where people can filter on all tags that exist in the published decision-trees". Recorded in
 `docs/adrs/ADR-273-tags.md`; the tags themselves are `tree-format.md` 4 (`tags`, from `elsa-tree/9`)
@@ -5087,7 +5201,7 @@ of at most 320 pixels:
 | queue drained | `saved`, with the time for 5 seconds |
 | a write refused or failed | `notSaved` in `danger`, with the reason (29.4, 29.5) |
 | a field over its limit (28.4) | after the state word: the violation's message |
-| a published Tree whose public copy is behind (19.4) | after the state word: `publicBehind` |
+| ~~a published Tree whose public copy is behind (19.4)~~ | ~~after the state word: `publicBehind`~~ **[#279]** (2026-11-23) gone: no public copy is behind (19.4) |
 | a collaborator's value arrived (29.7) | `changedElsewhere` for 5 seconds |
 
 **[#203]** (2026-10-09) Below 480 pixels wide `saving` and `saved` are in the region, which
@@ -5621,6 +5735,8 @@ top right, but not in the header bar"). Recorded in
   `publicBehind` (29.3). The count is the to-do control's (33.3).
 - **Its name** is `settings`, a colon and the state's word, then `, publicBehind` when that
   applies -- "Decision-tree settings: Hidden" -- the same at every width.
+- **[#279]** (2026-11-23) The state "public copy is behind" is gone (19.4): three states, `hidden`,
+  `published` and `notServable`; no dot in `accent`, no `publicBehind` in the name or the indicator.
 - **Below 1000 pixels** the words do not fit beside the arrow: the button is a 32-pixel round
   button holding the gear, with the state's dot on its shoulder -- a ring for `hidden`, so the
   state does not rest on its colour alone -- and keeps its whole name.
@@ -5772,6 +5888,19 @@ header bar)"). Recorded in `docs/adrs/ADR-176-floating-settings-and-to-do.md`.
   rather than a Node, and the response's otherwise.
 
 **[#220]** (2026-10-09) "Fewer than two next steps" is a to-do of a step with one (41.1, 41.7 item 5).
+
+**[#279], changed by the owner -- 2026-11-23** (core document 10.33: the to-dos "should just be
+there as support not as anything else").
+
+- **The switch publishes the draft as it is** (19.3): 200 → `published`, `publishedAt`, the public
+  link, with the to-do count what it was. There is no 409 for the to-do list, so the Publish
+  section has no `publishRefused` and no `showTodo`, and nothing opens the bubble but its own
+  control. An uneditable Tree has no editor page to press the switch on (19.5).
+- **The bubble is support.** Its control, count, lines, links and `remove` buttons are as above
+  (#176, #271). Its heading is `todoStill` -- "Still to do:" / "Nog te doen:" -- on a hidden and on
+  a published Tree alike, and `notServableBecause` with the start-up violations while the Tree is
+  not servable (18.3). `todoBefore` ("To do before publishing:") and `publicBehindBecause` are
+  gone: nothing waits for the list. It is re-read each time it opens.
 
 **[#271]** (2026-11-22, PROPOSED in #271 after the owner's report that day: on the live Tree an
 explainer whose marks they had deleted stayed on the list with no way to remove it, and two lines

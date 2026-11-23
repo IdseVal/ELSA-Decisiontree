@@ -16,8 +16,8 @@
  *
  * **[#181]** And the focus never stops under the heading of the to-do bubble or the panel (33.2,
  * amended): walked up each with Shift+Tab, under each heading the bubble shows -- `todo-before`,
- * `behind` and `unservable` are the full Node with all thirteen Dutch titles (**[#221]** eleven until its step had four next steps) emptied, hidden, behind
- * its public copy (19.4), and refused at start (18.3) -- in both languages, at the sizes of #181's
+ * `behind` and `unservable` are the full Node with all thirteen Dutch titles (**[#221]** eleven until its step had four next steps) emptied, hidden, published
+ * (**[#279]** with its to-dos open, which holds nothing back: the hidden Tree's heading, 19.4), and refused at start (18.3) -- in both languages, at the sizes of #181's
  * walk and at 360 x 640.
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
@@ -58,8 +58,8 @@ const VIEWPORTS = [
 
 /** **[#181]** A Tree per heading of the to-do bubble (33.3), each with thirteen things to do (**[#221]** eleven before the full Node's two new Terminals). */
 const HEADED = [
-  ['todo-before', 'todoBefore'],
-  ['behind', 'publicBehindBecause'],
+  ['todo-before', 'todoStill'],
+  ['behind', 'todoStill'],
   ['unservable', 'notServableBecause'],
 ] as const
 
@@ -95,9 +95,11 @@ test.beforeAll(async ({ browser }) => {
     ],
     accounts: [ANNA, BRAM],
   })
-  // **[#181]** The drafts without their Dutch titles; `unservable`'s public copy too, which the store refuses at start (18.3).
+  // **[#181]** The drafts without their Dutch titles. **[#279]** `unservable`'s public copy holds a key the
+  // format does not have, which the store refuses at start (18.3): an empty title no longer is a reason.
   for (const [id] of HEADED) await emptyDutchTitles(path.join(dir, 'trees', id, 'draft.json'))
-  await emptyDutchTitles(path.join(dir, 'trees', 'unservable', 'tree.json'))
+  const copy = path.join(dir, 'trees', 'unservable', 'tree.json')
+  await writeFile(copy, JSON.stringify({ ...(JSON.parse(await readFile(copy, 'utf8')) as object), notes: 'no key of the format' }))
   origin = await serveStore(dir, PORT, ADMIN_ENV)
   const { page, cookie } = await loggedIn(browser, ANNA)
   for (const id of EMPTIED) expect((await api(page, cookie, 'PATCH', `/trees/hidden-draft/nodes/${id}`, { path: 'title.nl', value: '' })).status()).toBe(200)
@@ -257,7 +259,7 @@ test('the to-do bubble lists one line per thing, each a link to its step’s edi
   await page.goto(`${origin}/admin/trees/hidden-draft/full`)
   await openTodo(page)
   await expect(todoBubble(page).locator('.sheet-close--cross')).toBeFocused()
-  await expect(todoBubble(page).getByRole('heading', { level: 2 })).toHaveText('To do before publishing:')
+  await expect(todoBubble(page).getByRole('heading', { level: 2 })).toHaveText('Still to do:')
   const lines = todoBubble(page).locator('.todo-list li')
   await expect(lines).toHaveCount(3)
   console.log(`the to-do bubble's lines: ${JSON.stringify(await lines.allTextContents())}`)
@@ -266,29 +268,36 @@ test('the to-do bubble lists one line per thing, each a link to its step’s edi
   await expect(page).toHaveURL(`${origin}/admin/trees/hidden-draft/opt-one`)
 })
 
-test('the settings panel holds the Publish switch and no to-do list; a refused publish points at the to-do bubble', async ({ browser }) => {
-  const { page } = await loggedIn(browser, ANNA)
+test('the settings panel holds the Publish switch and no to-do list; **[#279]** the switch publishes with three things to do, and the count stays', async ({ browser }) => {
+  const { page, cookie } = await loggedIn(browser, ANNA)
   await page.goto(`${origin}/admin/trees/hidden-draft/full`)
   await expect(settingsControl(page)).toHaveAccessibleName('Decision-tree settings: Hidden')
+  await expect(todoControl(page)).toHaveAccessibleName('3 things to do')
   await openSettings(page)
   await expect(settingsPanel(page).getByRole('heading', { level: 2 })).toHaveText('Decision-tree settings')
   await expect(settingsPanel(page).locator('.todo-list')).toHaveCount(0)
-
-  await publishSwitch(page).click()
-  const pointer = settingsPanel(page).getByRole('alert')
-  await expect(pointer).toContainText('Not published')
-  await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'false')
-  await shoot(page, 'publish-refused-1280x640')
   expect((await page.request.get(`${origin}/hidden-draft/full`)).status()).toBe(404)
 
-  await pointer.getByRole('button', { name: 'See what to do' }).click()
-  await expect(settingsPanel(page)).toBeHidden()
-  await expect(todoBubble(page)).toBeVisible()
-  await expect(todoBubble(page).locator('.sheet-close--cross')).toBeFocused()
+  // The to-do list is support only (19.3): the switch goes on, nothing is refused, the page is public.
+  await publishSwitch(page).click()
+  await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'true')
+  await expect(settingsPanel(page).getByRole('alert')).toHaveCount(0)
+  await shoot(page, 'published-with-to-dos-1280x640')
+  expect((await page.request.get(`${origin}/hidden-draft/full`)).status()).toBe(200)
+  await page.keyboard.press('Escape')
+  await expect(settingsControl(page)).toHaveAccessibleName('Decision-tree settings: Published')
+  await expect(todoControl(page)).toHaveAccessibleName('3 things to do')
+
+  // The bubble's heading names no condition, and its list is the three (33.3).
+  await openTodo(page)
+  await expect(todoBubble(page).getByRole('heading', { level: 2 })).toHaveText('Still to do:')
   await expect(todoBubble(page).locator('.todo-list li')).toHaveCount(3)
   await page.keyboard.press('Escape')
   await expect(todoBubble(page)).toBeHidden()
   await expect(todoControl(page)).toBeFocused()
+
+  // Hidden again for the tests after this one.
+  expect((await api(page, cookie, 'PUT', '/trees/hidden-draft/published', { published: false })).status()).toBe(200)
 })
 
 test('both follow the Sheet rules -- Escape, the cross, a click outside, focus in and back, one open at a time -- and the keyboard reaches them after the bar', async ({ browser }) => {

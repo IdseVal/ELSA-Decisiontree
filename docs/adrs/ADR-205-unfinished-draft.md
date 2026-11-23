@@ -15,6 +15,10 @@
   (the draft through the public components, the centre rule), `ADR-176-floating-settings-and-to-do.md`
   (the to-do list's place)
 - Built by: #206
+- **[#279] Amended (2026-11-23)** by `ADR-279-to-do-is-support.md`, in the Context alone: a
+  published Tree no longer passes every rule, and the public page reads a missing text through
+  `shown()` -- another language of the Tree, or nothing -- where the Context has `text()`'s
+  placeholder. The decisions, which are the preview's, stand.
 - **[#220] Amended (2026-10-09)** by `ADR-220-words-on-a-next-step.md` and
   `ADR-220-editing-next-steps.md` decision 7: in decision 3, a draft step's lone next step is
   drawn as its one button, centred, saying the creator's words for it at every width -- no chrome

@@ -3,7 +3,8 @@
 /**
  * **[#176]** The to-do bubble (docs/specs/application.md 33.3, amended 2026-10-02;
  * ADR-176-floating-settings-and-to-do): the floating control at the top right that says how
- * many things are left to do before publishing, and the list it opens -- one line per advisory
+ * many things are left to do -- **[#279]** support only, nothing waits for them (19.3, 19.4) --
+ * and the list it opens -- one line per advisory
  * violation of the draft, the Node's title as a link to its editor page, then the message, and
  * `remove` beside an unreachable step's line. **[#271]** Between the two, the field the line is
  * about, by its placeholder (28.2), its place in its list and its language, so two empty fields
@@ -12,8 +13,7 @@
  *
  * The page draws both inside a `Sheet` (10.5: Escape, the cross, a click outside, one Sheet at
  * a time); this module draws what is in it. The count is the `Editor`'s, from the page's load
- * and every write response (22.3); the list is re-read when the bubble opens -- nothing polls --
- * except when a refused publish in the panel opens it on the list that refusal answered.
+ * and every write response (22.3); the list is re-read when the bubble opens -- nothing polls.
  * Imports of `src/`: types, and nothing else (34.4).
  */
 import { useRouter } from 'next/navigation'
@@ -28,7 +28,7 @@ import { panelCalls } from './writes.ts'
 /** The chrome strings the control and its bubble say, as strings; **[#271]** and the fields' names. */
 export type TodoWords = Pick<
   Chrome,
-  'todoCount' | 'todoCountOne' | 'todoNone' | 'todoBefore' | 'publicBehindBecause' | 'notServableBecause' | 'thisTree' | 'removeStep' | 'requestFailed'
+  'todoCount' | 'todoCountOne' | 'todoNone' | 'todoStill' | 'notServableBecause' | 'thisTree' | 'removeStep' | 'requestFailed'
 > &
   PlaceholderWords
 
@@ -87,13 +87,11 @@ export function Todo({
   manages: boolean
 }) {
   const router = useRouter()
-  const { tree, setTree, todoAsked, operate, readOnly } = useEditor()
+  const { tree, setTree, operate, readOnly } = useEditor()
   const [todo, setTodo] = useState(advisory)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const body = useRef<HTMLDivElement>(null)
-  // Set while the panel opens the bubble on the list a refused publish answered: that opening re-reads nothing.
-  const kept = useRef(false)
 
   /** The draft's list and state as the store holds them now (22.1). */
   const reread = useCallback(async (): Promise<void> => {
@@ -101,7 +99,7 @@ export function Todo({
     if (entry.status === 200 && entry.body && 'advisory' in entry.body) {
       const read = entry.body
       setTodo(read.advisory)
-      setTree({ advisory: read.advisory.length, published: read.published, publicCopyCurrent: read.publicCopyCurrent, servable: read.servable })
+      setTree({ advisory: read.advisory.length, published: read.published, servable: read.servable })
     }
   }, [treeId, setTree])
 
@@ -112,25 +110,11 @@ export function Todo({
     const onToggle = async (): Promise<void> => {
       if (!sheet.open) return
       setError(null)
-      if (kept.current) {
-        kept.current = false
-        return
-      }
       await reread()
     }
     sheet.addEventListener('toggle', onToggle)
     return () => sheet.removeEventListener('toggle', onToggle)
   }, [reread])
-
-  // A refused publish (33.3): the bubble opens on what it answered, which closes the panel -- one Sheet at a time.
-  useEffect(() => {
-    const sheet = body.current?.closest('details')
-    if (!todoAsked || !sheet) return
-    setTodo(todoAsked.list)
-    if (sheet.open) return
-    kept.current = true
-    sheet.open = true
-  }, [todoAsked])
 
   const removeNode = async (nodeId: string): Promise<void> => {
     setBusy(true)
@@ -163,8 +147,7 @@ export function Todo({
     })
   }
 
-  const shown = shownOf(tree)
-  const heading = shown === 'notServable' ? words.notServableBecause : shown === 'publicBehind' ? words.publicBehindBecause : words.todoBefore
+  const heading = shownOf(tree) === 'notServable' ? words.notServableBecause : words.todoStill
 
   // **[#181]** The heading above the scroll box, as the panel's: it takes two or three lines in some
   // states, languages and widths, and nothing the focus scrolls to passes under it (33.2, amended).

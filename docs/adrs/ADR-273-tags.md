@@ -1,6 +1,9 @@
 # ADR-273-tags: a Tree carries up to eight short localised tags in `elsa-tree/9`, edited in "This Tree", and a filter beside the public overview's search field narrows its tiles by any ticked tag, the choice in the address
 
 - Status: ACCEPTED -- 2026-11-22, built by #273 in the same pull request
+- **[#279] Amended (2026-11-23)** by `ADR-279-to-do-is-support.md`: a tag with no text in the
+  language its tile speaks is listed in the first language of its Tree that has it, no longer left
+  out; a published Tree may hold one. The rest stands.
 - Issue: #273 -- Tags on a Tree, added in the editor, and a filter dropdown on the main overview over
   every tag of the published Trees
 - Spec: `docs/specs/tree-format.md` (title, header, 4, 4.1, 5.7, 7 V-TAGS, 10, 11, 12, 12.11 new),

@@ -1,6 +1,11 @@
 # ADR-176-floating-settings-and-to-do: the panel's button and a to-do bubble float under the editor's chrome bar at the top right; the button says "Decision-tree settings" with the Tree's state as a tag; the to-do list leaves the panel for the bubble, at which a refused publish points; the link to the account page says "Account"
 
 - Status: ACCEPTED -- 2026-10-02
+- **[#279] Amended (2026-11-23)** by `ADR-279-to-do-is-support.md`: a publish is not refused for
+  the to-do list, so the Publish section's `publishRefused` and `showTodo` are gone and nothing
+  opens the bubble but its own control; its heading is `todoStill` in place of `todoBefore` and
+  `publicBehindBecause`; the button has no state "public copy is behind". The floating controls,
+  the bubble, its count and its lines stand.
 - **Amended 2026-10-04 by issue #205** (`ADR-205-preview-buttons.md`): in decision 6, in the editor
   of a hidden Tree the preview button, under the bar at the top left, comes between the bar's last
   control and the to-do control in the tab order; the two floating controls still come after the

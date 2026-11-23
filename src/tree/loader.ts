@@ -124,10 +124,16 @@ export interface Readable<N extends Node | DraftNode = Node> {
  * (application.md 19.2) and answers a `Draft` holding the advisory list; it rejects with
  * `TreeInvalid` only for the blocking violations -- a draft the store would never have
  * written, which makes the Tree uneditable (19.5).
+ *
+ * **[#279]** With `{ served: true }` it reads `tree.json` as the store serves it (19.4): under
+ * the draft rules too, since a published Tree's copy is its draft with whatever is still to do,
+ * and rejects only for the blocking ones. What it answers is a `Tree` all the same: a text is
+ * `""` in every declared language the file has none for, and a step may hold one next step.
  */
 export async function openTree(dir: string): Promise<Tree>
 export async function openTree(dir: string, options: { draft: true }): Promise<Draft>
-export async function openTree(dir: string, options?: { draft: true }): Promise<Tree | Draft> {
+export async function openTree(dir: string, options: { served: true }): Promise<Tree>
+export async function openTree(dir: string, options?: { draft?: true; served?: true }): Promise<Tree | Draft> {
   const root = path.resolve(dir)
   const id = path.basename(root)
   const violations: Violation[] = []
@@ -139,13 +145,15 @@ export async function openTree(dir: string, options?: { draft: true }): Promise<
     return draftOf(raw, root, violations)
   }
   const raw = await readTree(root, id, violations, 'tree.json', await readText(path.join(root, 'tree.json')))
-  if (raw) violations.push(...validateTree(raw))
-  if (!raw || violations.length > 0) throw new TreeInvalid(id, violations)
+  if (raw) violations.push(...validateTree(raw, options?.served ? 'draft' : 'published'))
+  // **[#279]** The store's copy is refused for what the editor would have refused, and served with its to-dos (19.4).
+  const stopping = options?.served ? violations.filter((violation) => !violation.advisory) : violations
+  if (!raw || stopping.length > 0) throw new TreeInvalid(id, stopping)
 
-  // Every cast below is backed by the validation that just passed.
-  const manifest = toManifest(raw.tree)
+  // Every cast below is backed by the validation that just passed: the schema's, or the draft schema's.
+  const manifest = servedManifest(toManifest(raw.tree))
   const nodes = new Map<string, Node>()
-  for (const node of raw.tree.nodes as Mapping[]) nodes.set(node.id as string, toNode(node))
+  for (const node of raw.tree.nodes as Mapping[]) nodes.set(node.id as string, toNode(node, manifest.languages))
   const themeReferences = referencedThemeFiles(manifest.theme)
   const imageReferences = new Set([...nodes.values()].flatMap((node) => node.images.map((image) => image.file)))
 
@@ -438,22 +446,44 @@ function toDraftNode(raw: Mapping): DraftNode {
   return node
 }
 
-function toNode(raw: Mapping): Node {
+/**
+ * **[#279]** `text` holding every language of `languages`, in their order, `""` where the file
+ * has none: a served Tree's text may lack a language (19.4), and `shown()` reads the order as
+ * the order of declaration.
+ */
+function whole(text: LocalisedText | undefined, languages: string[]): LocalisedText {
+  return Object.fromEntries(languages.map((language) => [language, text?.[language] ?? '']))
+}
+
+/** **[#279]** The manifest with each text `whole`; a description or a tag list the file lacks stays absent. */
+function servedManifest(manifest: Manifest): Manifest {
+  const { languages, theme } = manifest
+  return {
+    ...manifest,
+    title: whole(manifest.title, languages),
+    ...(manifest.description ? { description: whole(manifest.description, languages) } : {}),
+    ...(manifest.tags ? { tags: manifest.tags.map((tag) => whole(tag, languages)) } : {}),
+    ...(theme?.logo ? { theme: { ...theme, logo: { ...theme.logo, alt: whole(theme.logo.alt, languages) } } } : {}),
+  }
+}
+
+function toNode(raw: Mapping, languages: string[]): Node {
+  const text = (value: unknown): LocalisedText => whole(value as LocalisedText | undefined, languages)
   const common = {
     id: raw.id as string,
-    title: raw.title as LocalisedText,
-    description: raw.description as LocalisedText,
+    title: text(raw.title),
+    description: text(raw.description),
     metadata: raw.metadata as Node['metadata'],
-    sources: (raw.sources as Source[] | undefined) ?? [],
-    images: (raw.images as Image[] | undefined) ?? [],
-    options: (raw.options as Option[] | undefined) ?? [],
-    explainers: (raw.explainers as Explainer[] | undefined) ?? [],
+    sources: ((raw.sources as Source[] | undefined) ?? []).map((source) => ({ ...source, label: text(source.label) })),
+    images: ((raw.images as Image[] | undefined) ?? []).map((image) => ({ ...image, description: text(image.description) })),
+    options: ((raw.options as Option[] | undefined) ?? []).map((option) => ({ ...option, title: text(option.title) })),
+    explainers: ((raw.explainers as Explainer[] | undefined) ?? []).map((explainer) => ({ ...explainer, term: text(explainer.term), text: text(explainer.text) })),
   }
   switch (nodeKind(raw)) {
     case 'question':
-      return { ...common, kind: 'question', answers: raw.answers as Answer[] }
+      return { ...common, kind: 'question', answers: (raw.answers as Answer[]).map((answer) => ({ ...answer, label: text(answer.label) })) }
     case 'terminal':
-      return { ...common, kind: 'terminal', label: (raw.terminal as { label: LocalisedText }).label }
+      return { ...common, kind: 'terminal', label: text((raw.terminal as { label: LocalisedText }).label) }
     case 'explanation':
       return { ...common, kind: 'explanation' }
   }

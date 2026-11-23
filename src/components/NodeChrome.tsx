@@ -51,7 +51,7 @@ export function NodeChrome({
     <header className="page-chrome node-chrome">
       <div className="page-brand">
         <BackToOverview href={overview} lang={lang} />
-        <Logo treeId={tree.id} theme={tree.manifest.theme} title={tree.manifest.title} lang={lang} href={themeHref} />
+        <Logo treeId={tree.id} theme={tree.manifest.theme} title={tree.manifest.title} lang={lang} href={themeHref} draft={edit !== undefined} />
       </div>
       <Authors names={authors} lang={lang} />
       <div className="page-controls">

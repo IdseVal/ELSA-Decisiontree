@@ -191,8 +191,8 @@ test.describe('autosave (29)', () => {
     await expect(page.locator('[data-field]')).toHaveCount(0)
     await shoot(page, 'public-after-publish')
 
-    // Published now: a later save that keeps the draft valid is public at once (19.4), and the
-    // indicator adds nothing; put the title back for the tests after this one.
+    // Published now: a later save is public at once (19.4), and the indicator adds nothing; put
+    // the title back for the tests after this one.
     await page.goto(`${origin}/admin/trees/hidden-draft/full`)
     await retype(page, 'full', 'title.en', FULL_TITLE)
     await expect(status(page)).toContainText(/^Saved \d/)

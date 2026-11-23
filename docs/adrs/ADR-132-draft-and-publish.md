@@ -1,6 +1,7 @@
 # ADR-132-draft-and-publish: the draft is the same `elsa-tree/4` file under a named set of advisory rules; Publish copies it when it validates in full; while published, every valid save is public at once
 
 - Status: ACCEPTED (frozen) -- 2026-09-23; decides core document 10.33
+- **[#279] Amended (2026-11-23)** by `ADR-279-to-do-is-support.md`, on the owner's decision of core document 10.33: decision 5's full validation at Publish and its 409 are gone -- Publish copies the draft as it is, refused only for an uneditable Tree -- and decision 6 copies every accepted write of a published Tree to `tree.json`, a to-do open or none; "the public never sees a Tree that fails section 7" no longer holds, and the store reads the copy under the draft rules. Decisions 1 to 4 and 7 to 9 stand.
 - **[#220] Amended (2026-10-09)** by `ADR-220-elsa-tree-6.md`: the draft schema relaxes `answers`' `minItems` from 2 to 1, in place of removing `yes` and `no` from its `required`.
 - Issue: #132 -- Architecture: freeze the store for the editor round
 - Spec: `docs/specs/application.md` section 19 (new); 5.1 amended; `docs/specs/tree-format.md`

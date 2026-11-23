@@ -383,23 +383,26 @@ test('2. the creator makes a Tree in English and Dutch, fills it, invites the co
   await expect(panel(page).locator('.panel-people li')).toHaveText([`${CREATOR.name} (creator)`, COLLABORATOR.name])
   await step(page, '20-creator-collaborator-invited')
 
-  // Publish with a text missing: refused, the missing text named and linked (33.3, 19.3), in
-  // **[#176]** the to-do bubble the Publish section points at.
+  // **[#279]** Publish with a text missing: published all the same (19.3), and the to-do bubble
+  // still names the missing text and links to it (33.3) -- support, nothing waits for it.
+  expect((await page.request.get(`${origin}/${tree}/start`)).status()).toBe(404)
   await publishSwitch(page).click()
-  await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'false')
-  await panel(page).getByRole('alert').getByRole('button', { name: 'See what to do' }).click()
+  await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'true')
+  await expect(panel(page).getByRole('alert')).toHaveCount(0)
+  expect((await page.request.get(`${origin}/${tree}/start`)).status()).toBe(200)
+  await page.keyboard.press('Escape')
+  await page.locator('.todo-sheet > .sheet-open').click()
   const todo = todoBubble(page).locator('.todo-list li')
   await expect(todo.first()).toBeVisible()
   await expect(todo.locator(`a[href^="/admin/trees/${tree}/${noId}"], a[href*="/${noId}"]`).first()).toBeVisible()
-  await step(page, '21-creator-publish-refused')
-  expect((await page.request.get(`${origin}/${tree}/start`)).status()).toBe(404)
+  await step(page, '21-creator-published-with-a-to-do')
 
-  // The text completed, and published.
+  // The text completed: public at once, the Tree still published (19.4).
   await page.goto(`${editor('start', noId)}?lang=nl`)
   await write(page, noId, 'description.nl', 'Wie geen systeem op de markt brengt, is er niet de aanbieder van.')
+  expect(await (await page.request.get(`${origin}/${tree}/start/${noId}?lang=nl`)).text()).toContain('Wie geen systeem op de markt brengt, is er niet de aanbieder van.')
   await page.goto(editor('start'))
   await openPanel(page)
-  await publishSwitch(page).click()
   await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'true')
   await expect(panelButton(page)).toHaveAccessibleName('Decision-tree settings: Published')
   await step(page, '22-creator-published')

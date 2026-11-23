@@ -68,7 +68,6 @@ export function editorWords(ui: Chrome): EditorWords {
     notEditable: ui.notEditable,
     changedElsewhere: ui.changedElsewhere,
     sessionExpired: ui.sessionExpired,
-    publicBehind: ui.publicBehind,
     toOverview: ui.toOverview,
     close: ui.close,
     mark: ui.mark,

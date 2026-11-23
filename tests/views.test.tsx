@@ -871,7 +871,7 @@ describe('the reuse rule (application.md 34.8, ADR-133-reuse-rule decision 8)', 
       Object.keys({
         missingText: 0, characters: 0, lines: 0, addSource: 0, editSource: 0, removeSource: 0, sourceKind: 0, sourceUrl: 0, sourceLegal: 0,
         sourceCaseLaw: 0, sourceLiterature: 0,
-        saving: 0, saved: 0, notSaved: 0, retrying: 0, retry: 0, notEditable: 0, changedElsewhere: 0, sessionExpired: 0, publicBehind: 0, toOverview: 0,
+        saving: 0, saved: 0, notSaved: 0, retrying: 0, retry: 0, notEditable: 0, changedElsewhere: 0, sessionExpired: 0, toOverview: 0,
       }).map((key) => [key, key]),
     ) as unknown as EditMode['words']
     for (const url of pages) {

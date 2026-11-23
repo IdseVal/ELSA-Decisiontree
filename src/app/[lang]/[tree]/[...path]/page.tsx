@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { chromeLanguage, text } from '../../../../chrome.ts'
+import { chromeLanguage, shown } from '../../../../chrome.ts'
 import { Disclaimer } from '../../../../components/Disclaimer.tsx'
 import { NodeChrome } from '../../../../components/NodeChrome.tsx'
 import { TreeView } from '../../../../components/TreeView.tsx'
@@ -95,12 +95,14 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const { addresses, alternates } = addressSet(tree, address.nodeId, base)
   const title = tree.getTitle(address.nodeId)
   const node = await tree.getNode(address.nodeId)
-  const description = node?.description[address.lang]
+  // **[#279]** As the page shows them (19.4): a text the Tree lacks in this language in the first
+  // that has it; a step no language titles yet leaves the Tree's title alone, and a Tree none
+  // titles is named by its id, as its tile is (27.1).
+  const description = node && shown(node.description, address.lang, `${address.nodeId}.description`).value
+  const names = [title && shown(title, address.lang, `${address.nodeId}.title`).value, shown(tree.manifest.title, address.lang, 'tree.title').value || tree.id]
   return {
     metadataBase: base,
-    title: title
-      ? `${text(title, address.lang, `${address.nodeId}.title`)} - ${text(tree.manifest.title, address.lang, 'tree.title')}`
-      : undefined,
+    title: title ? names.filter(Boolean).join(' - ') : undefined,
     description: description ? plainDescription(description).cut : undefined,
     alternates: {
       canonical: addresses.find((entry) => entry.lang === address.lang)?.url,

@@ -59,9 +59,16 @@ test('a creator builds, publishes and unpublishes a Tree through the API; the pu
     }
   }
   await fill('start', 'Start')
-  const refused = await api(page, anna, 'PUT', '/trees/api-tree/published', { published: true })
-  expect(refused.status()).toBe(409)
-  expect(((await refused.json()) as { violations: unknown[] }).violations.length).toBeGreaterThan(0)
+  // **[#279]** Publish takes the draft as it is (19.3): a first step with no next step yet is public
+  // at once, drawn as it stands, and the dataset is the draft's bytes. Hidden again for what follows.
+  const unfinished = await api(page, anna, 'PUT', '/trees/api-tree/published', { published: true })
+  expect(unfinished.status()).toBe(200)
+  expect(((await (await api(page, anna, 'GET', '/trees/api-tree')).json()) as { advisory: unknown[] }).advisory.length).toBeGreaterThan(0)
+  expect((await page.goto(`${origin}/api-tree/start`))?.status()).toBe(200)
+  await expect(page.getByRole('heading', { level: 1, name: 'Start' })).toBeVisible()
+  await expect(page.locator('.answer--start-again')).toBeVisible()
+  expect(await (await page.request.get(`${origin}/api-tree/tree.json`)).text()).toBe(await readFile(path.join(dir, 'trees', 'api-tree', 'draft.json'), 'utf8'))
+  expect((await api(page, anna, 'PUT', '/trees/api-tree/published', { published: false })).status()).toBe(200)
 
   const ends: string[] = []
   for (const [link, words] of [['yes', 'Applies'], ['no', 'Look elsewhere']] as const) {
@@ -89,10 +96,48 @@ test('a creator builds, publishes and unpublishes a Tree through the API; the pu
   await page.goto(`${origin}/api-tree/start`)
   await expect(page.getByRole('heading', { name: 'Start, edited' })).toBeVisible()
 
+  // **[#279]** And so is a save that opens a to-do, and the one after it (19.4): the owner's case.
+  const emptied = await api(page, anna, 'PATCH', `/trees/api-tree/nodes/${ends[0]}`, { path: 'description.en', value: '' })
+  expect(((await emptied.json()) as { tree: { advisory: number } }).tree.advisory).toBe(1)
+  await api(page, anna, 'PATCH', '/trees/api-tree/nodes/start', { path: 'title.en', value: 'Start, edited again' })
+  await page.goto(`${origin}/api-tree/start`)
+  await expect(page.getByRole('heading', { name: 'Start, edited again' })).toBeVisible()
+  expect((await page.goto(`${origin}/api-tree/start/${ends[0]}`))?.status()).toBe(200)
+  await expect(page.getByRole('heading', { level: 1, name: 'Ends yes' })).toBeVisible()
+  await expect(page.locator('[data-description-box]')).toHaveCount(0)
+  expect(await (await page.request.get(`${origin}/api-tree/tree.json`)).text()).toBe(await readFile(path.join(dir, 'trees', 'api-tree', 'draft.json'), 'utf8'))
+
   expect((await api(page, anna, 'PUT', '/trees/api-tree/published', { published: false })).status()).toBe(200)
   expect((await page.request.get(`${origin}/api-tree/start`)).status()).toBe(404)
   expect((await page.request.get(`${origin}/api-tree/tree.json`)).status()).toBe(404)
   expect(ends).toHaveLength(2)
+})
+
+test('**[#279]** the demo server\'s case: a tag written in English alone on a published Tree is in the filter of both overviews, and the Dutch page reads the Tree\'s English with its lang', async ({ page }) => {
+  const anna = (await login(page, origin, ANNA.email, ANNA.password)).cookie
+  expect((await api(page, anna, 'POST', '/trees', { id: 'demo-tags', languages: ['en', 'nl'], title: { en: 'Agrifood', nl: 'Agrifood' } })).status()).toBe(201)
+  expect((await api(page, anna, 'PATCH', '/trees/demo-tags/nodes/start', { path: 'title.en', value: 'Written in English only' })).status()).toBe(200)
+  expect((await api(page, anna, 'PUT', '/trees/demo-tags/published', { published: true })).status()).toBe(200)
+  // The save the owner made: a tag `Test` in English, its Dutch left empty -- one to-do, V-L10N.
+  const tagged = await api(page, anna, 'PATCH', '/trees/demo-tags', { path: 'tags', value: [{ en: 'Test', nl: '' }] })
+  expect(tagged.status()).toBe(200)
+  expect(((await tagged.json()) as { violations: Array<{ keyPath: string; rule: string }> }).violations).toContainEqual(expect.objectContaining({ keyPath: 'tags[0].nl', rule: 'V-L10N' }))
+
+  for (const query of ['', '?lang=nl']) {
+    await page.goto(`${origin}/${query}`)
+    await page.locator('.tag-filter > summary').click()
+    await expect(page.locator('.tag-filter-panel').getByRole('checkbox', { name: 'Test' })).toBeVisible()
+    await page.locator('.tag-filter-panel').getByRole('checkbox', { name: 'Test' }).check()
+    await expect(page.locator('a.tile:visible')).toHaveCount(1)
+    await expect(page.locator('a.tile:visible')).toHaveAttribute('data-tree', 'demo-tags')
+  }
+
+  // The step's title is written in English alone: the Dutch page shows it, marked `lang="en"` (19.4).
+  expect((await page.goto(`${origin}/demo-tags/start?lang=nl`))?.status()).toBe(200)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'nl')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Written in English only')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveAttribute('lang', 'en')
+  expect((await api(page, anna, 'PUT', '/trees/demo-tags/published', { published: false })).status()).toBe(200)
 })
 
 test('the refusals: no session, another account, no Origin, an SVG; a draft picture is not public', async ({ page }) => {

@@ -8,8 +8,8 @@
  * queue, applies the change to a copy of the draft, validates the copy under the draft rules
  * and refuses it whole (422) when a blocking rule breaks; otherwise it writes the draft in
  * the byte form of 3.7 and then `meta.json`, each atomically. While the Tree is published,
- * a draft that also passes the full validation is copied to `tree.json` in the same call and
- * the public set is swapped (19.4).
+ * **[#279]** every draft written is copied to `tree.json` in the same call and the public set
+ * is swapped, whatever is still to do in it (19.4).
  *
  * Every member takes the acting account and calls `permit` itself (21.3), so a route that
  * forgot the check is caught here.
@@ -38,11 +38,9 @@ export interface TreeEntry {
   manifest: Manifest | null
   /** Whether `tree.json` exists (17.2). */
   published: boolean
-  /** Whether the public routes serve it: published and valid in full (18.3). */
+  /** Whether the public routes serve it: published, and its copy not refused at start (18.3). */
   servable: boolean
-  /** False while an invalid draft leaves the last valid public copy in place (19.4). */
-  publicCopyCurrent: boolean
-  /** The draft's advisory violations: the Publish toggle's count and the to-do list (19.2). */
+  /** The draft's advisory violations: the to-do list, which holds nothing back (19.2, **[#279]** 19.4). */
   advisory: Violation[]
   /** The draft's blocking violations: non-empty only for an uneditable Tree (19.5). */
   blocking: Violation[]
@@ -59,7 +57,7 @@ export interface WriteResponse {
   node: DraftNode | null
   manifest?: Manifest
   violations: Violation[]
-  tree: { advisory: number; published: boolean; publicCopyCurrent: boolean }
+  tree: { advisory: number; published: boolean }
   also?: WriteResponse[]
 }
 
@@ -127,7 +125,6 @@ interface Held {
   published: boolean
   /** The pictures the published copy names: never removable while it names them (22.6). */
   publishedImages: Set<string>
-  publicCopyCurrent: boolean
   /** The last write accepted on this Tree, which the next one waits for (22.5). */
   queue: Promise<unknown>
 }
@@ -186,7 +183,6 @@ export async function openDrafts(
       manifest: tree.raw ? draftOf(rawOf(tree, tree.raw), tree.dir, []).manifest : null,
       published: tree.published,
       servable: tree.published && servable(tree.id),
-      publicCopyCurrent: tree.publicCopyCurrent,
       advisory: tree.advisory,
       blocking: tree.blocking,
       written: tree.raw ? writtenTexts(tree.raw) : {},
@@ -196,7 +192,7 @@ export async function openDrafts(
   /**
    * The one way a draft changes: `change` applied to a copy, the copy validated under the
    * draft rules, and written -- or refused whole with the blocking violations (22.3). Then
-   * the public copy follows when the Tree is published and the draft valid in full (19.4).
+   * **[#279]** the public copy follows when the Tree is published, an open to-do or none (19.4).
    * Answers the new draft, indexed.
    */
   async function commit(by: Account, tree: Held, change: (draft: Mapping) => void): Promise<Draft> {
@@ -212,17 +208,14 @@ export async function openDrafts(
     tree.advisory = found
     tree.meta = { ...tree.meta, revision: tree.meta.revision + 1, updatedAt: new Date().toISOString(), updatedBy: by.id }
     await writeMeta(tree)
-    if (tree.published) {
-      tree.publicCopyCurrent = validateTree(rawOf(tree, next)).length === 0
-      if (tree.publicCopyCurrent) await copyToPublic(tree, bytes)
-    }
+    if (tree.published) await copyToPublic(tree, bytes)
     return draftOf(rawOf(tree, next), tree.dir, found)
   }
 
   /** `tree.json` replaced by the draft's bytes, and the public set swapped in the same call (19.3, 19.4). */
   async function copyToPublic(tree: Held, bytes: string): Promise<void> {
     await writeAtomic(path.join(tree.dir, 'tree.json'), bytes)
-    const opened = await openTree(tree.dir)
+    const opened = await openTree(tree.dir, { served: true })
     tree.publishedImages = namedImages(tree.raw!)
     swap(tree.id, opened)
   }
@@ -238,7 +231,7 @@ export async function openDrafts(
       revision: tree.meta.revision,
       node: nodeId === null ? null : await draft.getNode(nodeId),
       violations: draft.advisory.filter((violation) => violation.file === where),
-      tree: { advisory: draft.advisory.length, published: tree.published, publicCopyCurrent: tree.publicCopyCurrent },
+      tree: { advisory: draft.advisory.length, published: tree.published },
     }
     if (nodeId === null) response.manifest = draft.manifest
     if (also.length > 0) response.also = await Promise.all(also.map((other) => respond(tree, draft, other)))
@@ -279,7 +272,6 @@ export async function openDrafts(
         themeFiles: new Set(),
         published: false,
         publishedImages: new Set(),
-        publicCopyCurrent: true,
         queue: Promise.resolve(),
       }
       // Held before the first await, so a second create of the same id is 409, not a race.
@@ -367,21 +359,20 @@ export async function openDrafts(
     async publish(by, id, published) {
       const tree = allowed(by, id, 'publish')
       return serial(tree, async () => {
-        const raw = editable(tree)
+        // **[#279]** The one refusal of 19.3: 409 for a draft a hand edit broke (19.5).
+        editable(tree)
         if (!published) {
           if (tree.published) {
             // Hidden from every public route in the same call (19.3, 23.1).
             await rm(path.join(tree.dir, 'tree.json'), { force: true })
             tree.published = false
-            tree.publicCopyCurrent = true
             tree.publishedImages = new Set()
             swap(id, null)
             log(by, 'unpublished', id)
           }
           return entryOf(tree)
         }
-        const violations = validateTree(rawOf(tree, raw))
-        if (violations.length > 0) throw new StoreError(409, 'invalid', violations)
+        // **[#279]** The draft as it is: what the editor accepted publishes, an open to-do or none (19.3).
         const publishCount = tree.meta.publishCount + 1
         await commit(by, tree, (next) => {
           next.metadata = { ...(next.metadata as Mapping), version: String(publishCount) }
@@ -389,7 +380,6 @@ export async function openDrafts(
         tree.meta = { ...tree.meta, publishCount, publishedAt: new Date().toISOString() }
         await writeMeta(tree)
         tree.published = true
-        tree.publicCopyCurrent = true
         await copyToPublic(tree, treeBytes(tree.raw!))
         await sweepImages(tree)
         log(by, 'published', id)
@@ -515,7 +505,7 @@ export async function openDrafts(
     async adopt(id) {
       const tree = await load(treesDir, id, admin().id)
       held.set(id, tree)
-      if (tree.published) swap(id, await openTree(tree.dir))
+      if (tree.published) swap(id, await openTree(tree.dir, { served: true }))
     },
   }
   return { drafts, roles: (id) => held.get(id)?.meta ?? null }
@@ -600,8 +590,7 @@ function joining(joined: string[], id: string): string[] {
 
 /**
  * One Tree folder as `openDrafts` holds it: `meta.json` (a folder without one is the
- * administrator's), the draft under the draft rules, the two folders' file names, and
- * whether the published copy is the draft's bytes.
+ * administrator's), the draft under the draft rules, and the two folders' file names.
  */
 async function load(treesDir: string, id: string, administrator: string): Promise<Held> {
   const dir = path.join(treesDir, id)
@@ -637,13 +626,11 @@ async function load(treesDir: string, id: string, administrator: string): Promis
     themeFiles: new Set(await listFiles(path.join(dir, 'theme'))),
     published: false,
     publishedImages: new Set(),
-    publicCopyCurrent: true,
     queue: Promise.resolve(),
   }
   const published = await readText(path.join(dir, 'tree.json'))
   const draftText = await readText(path.join(dir, 'draft.json'))
   tree.published = published !== null
-  tree.publicCopyCurrent = !tree.published || published === draftText
   if (published !== null) {
     try {
       tree.publishedImages = namedImages(JSON.parse(published) as Mapping)

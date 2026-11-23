@@ -27,9 +27,13 @@ describe('the list (26.6)', () => {
     ])
   })
 
-  test('a tag with no text in the tile\'s language is left out', () => {
-    expect(tagOptions([{ tags: [{ en: 'Food', nl: '' }], shown: 'nl' }], 'nl')).toEqual([])
-    expect(treeTagKeys([{ en: 'Food', nl: '  ' }, law], 'nl')).toEqual(['ai-verordening'])
+  test('**[#279]** a tag with no text in the tile\'s language is listed in the first language that has it; one no language has is left out (19.4)', () => {
+    expect(tagOptions([{ tags: [{ en: 'Food', nl: '' }], shown: 'nl' }], 'nl')).toEqual([{ key: 'food', label: 'Food' }])
+    expect(treeTagKeys([{ en: 'Food', nl: '  ' }, law], 'nl')).toEqual(['food', 'ai-verordening'])
+    // The demo server's case: `Test` written in English, its Dutch not yet.
+    expect(treeTagKeys([{ en: 'Test', nl: '' }], 'nl')).toEqual(['test'])
+    expect(tagOptions([{ tags: [{ en: '', nl: ' ' }], shown: 'nl' }], 'nl')).toEqual([])
+    expect(treeTagKeys([{ en: '', nl: '' }], 'en')).toEqual([])
   })
 })
 

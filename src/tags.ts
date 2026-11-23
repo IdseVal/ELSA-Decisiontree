@@ -23,11 +23,17 @@ export interface TagOption {
 export const TAG_PARAMETER = 'tag'
 
 /**
- * The keys of a Tree's tags in `shown`, the language its tile speaks (23.2); a tag with no text
- * in it -- possible in a draft only, since a published Tree is valid in full -- is left out.
+ * **[#279]** A tag's words in `shown`, the language its tile speaks (23.2); where the Tree has
+ * none there yet -- a to-do of its creator, which holds nothing back (19.4) -- in the first
+ * language that has them, in the order the Tree declares its languages (5.1); `""` where none has.
  */
+function tagWords(tag: LocalisedText, shown: string): string {
+  return tag[shown]?.trim() || (Object.values(tag).map((text) => text.trim()).find((text) => text !== '') ?? '')
+}
+
+/** The keys of a Tree's tags as `tagWords` reads them; a tag with no text in any language is left out. */
 export function treeTagKeys(tags: LocalisedText[] | undefined, shown: string): string[] {
-  return (tags ?? []).map((tag) => tag[shown]?.trim() ?? '').filter((text) => text !== '').map(tagKey)
+  return (tags ?? []).map((tag) => tagWords(tag, shown)).filter((text) => text !== '').map(tagKey)
 }
 
 /**
@@ -38,7 +44,7 @@ export function tagOptions(trees: Array<{ tags: LocalisedText[] | undefined; sho
   const options = new Map<string, string>()
   for (const { tags, shown } of trees) {
     for (const tag of tags ?? []) {
-      const label = tag[shown]?.trim() ?? ''
+      const label = tagWords(tag, shown)
       if (label !== '' && !options.has(tagKey(label))) options.set(tagKey(label), label)
     }
   }

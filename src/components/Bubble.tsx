@@ -33,7 +33,7 @@
  * their controls belong; absent, not one attribute differs from the public page.
  */
 import type { ReactNode } from 'react'
-import { text, type Chrome, type ChromeString } from '../chrome.ts'
+import { shown, type Chrome, type ChromeString, type Shown } from '../chrome.ts'
 import type { EditMode } from '../editor/mode.ts'
 import { richTextToHtml } from '../markdown.ts'
 import { linksOf, type DraftNode, type Node, type NodeContent, type Source } from '../tree/types.ts'
@@ -50,6 +50,14 @@ const LIMIT = {
   credit: { characters: 120 },
   terminalLabel: { characters: 19 },
 } as const
+
+/**
+ * **[#279]** A text as `shown()` read it, for element content: itself, or inside a `span` that
+ * carries its language where that is not the page's (19.4).
+ */
+export function marked(text: Shown): ReactNode {
+  return text.lang === undefined ? text.value : <span lang={text.lang}>{text.value}</span>
+}
 
 /** The most Sources a Node may hold (5.7): `+ addSource` is absent at that many. */
 const MAX_SOURCES = 3
@@ -86,6 +94,8 @@ export function Bubble({
   edit?: EditMode
 }) {
   const links = linksOf(node)
+  // **[#279]** An ending without words in any language draws no badge (19.4).
+  const ending = links.terminal === undefined ? null : shown(links.terminal, lang, `${node.id}.terminal.label`, edit !== undefined)
   return (
     // `data-node` names the Node a Bubble draws, so a response can be counted in Nodes (11.5).
     <article className={`bubble bubble--${node.kind}`} lang={lang} data-node={node.id}>
@@ -94,9 +104,12 @@ export function Bubble({
       {/* **[#179]** The ending's own words, Tree content in the page's language (36.1); the class
           is still `outcome`, one class for every ending. */}
       {links.terminal !== undefined &&
-        (edit?.slots.field?.(node, 'terminal.label', links.terminal[lang] ?? '', LIMIT.terminalLabel) ?? (
-          <p className="outcome">{text(links.terminal, lang, `${node.id}.terminal.label`)}</p>
-        ))}
+        (edit?.slots.field?.(node, 'terminal.label', links.terminal[lang] ?? '', LIMIT.terminalLabel) ??
+          (ending!.value !== '' && (
+            <p className="outcome" lang={ending!.lang}>
+              {ending!.value}
+            </p>
+          )))}
 
       <div className="bubble-text">
         <Interior node={node} treeId={treeId} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} pictures={pictures} edit={edit} />
@@ -149,18 +162,26 @@ export function Interior({
   edit?: EditMode
 }) {
   const field = edit?.slots.field
-  const title = field?.(node, 'title', node.title[lang] ?? '', LIMIT.title) ?? text(node.title, lang, `${node.id}.title`)
+  // **[#279]** On a public page a text the Tree lacks in `lang` is read in the first language that
+  // has it, and one no language has is not drawn: no heading, no box (19.4).
+  const draft = edit !== undefined
+  const heading = field ? null : shown(node.title, lang, `${node.id}.title`, draft)
+  const body = field ? null : shown(node.description, lang, `${node.id}.description`, draft)
+  const title = field?.(node, 'title', node.title[lang] ?? '', LIMIT.title) ?? heading!.value
+  const titled = draft || heading!.value !== ''
   const explainer = (
     <Explainer
-      html={richTextToHtml(field ? (node.description[lang] ?? '') : text(node.description, lang, `${node.id}.description`), {
+      html={richTextToHtml(body ? body.value : (node.description[lang] ?? ''), {
         explainers: node.explainers,
         lang,
         idPrefix,
+        served: !draft,
       })}
+      lang={body?.lang}
       termEvent={edit?.slots.onTermClick}
       // **[#264]** On every page a reader sees the description is its own scroll box, named by the
       // title (43.3, 43.5). **[#265]** In the editor the field's own elements are the box (43.9).
-      labelledBy={field ? undefined : `${idPrefix}node-title`}
+      labelledBy={field || !titled ? undefined : `${idPrefix}node-title`}
     />
   )
   return (
@@ -177,15 +198,17 @@ export function Interior({
         edit={edit}
       />
 
-      {href === undefined ? (
-        <h1 id={`${idPrefix}node-title`}>{title}</h1>
+      {!titled ? null : href === undefined ? (
+        <h1 id={`${idPrefix}node-title`} lang={heading?.lang}>
+          {title}
+        </h1>
       ) : (
-        <h2 id={`${idPrefix}node-title`}>
+        <h2 id={`${idPrefix}node-title`} lang={heading?.lang}>
           <a href={href}>{title}</a>
         </h2>
       )}
 
-      {field?.(node, 'description', node.description[lang] ?? '', LIMIT.description, explainer) ?? explainer}
+      {field?.(node, 'description', node.description[lang] ?? '', LIMIT.description, explainer) ?? ((draft || body!.value !== '') && explainer)}
 
       {(node.sources.length > 0 || edit?.slots.operation !== undefined) && (
         <Sources
@@ -237,6 +260,8 @@ function MainImage({
   if (!pictures) return <span className="main-image main-image--withheld" aria-hidden="true" />
 
   const href = (edit?.links ?? PUBLIC_LINKS).image(treeId, image.file)
+  // **[#279]** A picture without a description in any language has an empty `alt`, never an invented one (19.4).
+  const description = shown(image.description, lang, `${node.id}.images[${image.file}].description`, edit !== undefined)
   return (
     <>
       {/* Hidden, not clipped: read as a name and a description all the same, and never wider than themselves (10.6). */}
@@ -257,7 +282,8 @@ function MainImage({
         <img
           id={`${idPrefix}main-image-picture`}
           src={href}
-          alt={text(image.description, lang, `${node.id}.images[${image.file}].description`)}
+          alt={description.value}
+          lang={description.lang}
           width={90}
           height={60}
         />
@@ -297,14 +323,15 @@ function Sources({
   edit: EditMode | undefined
 }) {
   const { sources } = node
-  const entries = sources.map((source, index) => {
-    const label = SOURCE_LABEL[source.kind]
-    return {
-      kind: label && ui[label],
-      href: source.url,
-      label: text(source.label, lang, `${node.id}.sources[${index}].label`),
-    }
-  })
+  // **[#279]** A Source without a label in any language is not drawn on a public page: a link with no name (19.4).
+  const entries = sources
+    .map((source, index) => {
+      const label = SOURCE_LABEL[source.kind]
+      const said = shown(source.label, lang, `${node.id}.sources[${index}].label`, edit !== undefined)
+      return { kind: label && ui[label], href: source.url, label: said.value, lang: said.lang }
+    })
+    .filter((entry) => edit !== undefined || entry.label !== '')
+  if (entries.length === 0 && edit?.slots.operation === undefined) return null
   const words = sheetWords(ui)
 
   if (edit?.slots.field) {
@@ -405,6 +432,7 @@ function Sources({
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-describedby={`${idPrefix}sources-new-tab`}
+                lang={entry.lang}
               >
                 {entry.label}
               </a>

@@ -38,6 +38,8 @@ export interface SheetItem {
   kind?: string
   /** Opens in a new tab: a Source URL, which leaves the app (core document 3.1). */
   newTab?: boolean
+  /** **[#279]** The label's language where it is not the page's (application.md 19.4). */
+  lang?: string
 }
 
 /** The chrome words the Sheet says; strings, because a client component takes no module. */
@@ -140,6 +142,7 @@ export function Sheet({
             target={item.newTab ? '_blank' : undefined}
             rel={item.newTab ? 'noopener noreferrer' : undefined}
             aria-describedby={item.newTab ? `${idPrefix}${className}-new-tab` : undefined}
+            lang={item.lang}
           >
             {item.label}
           </a>
