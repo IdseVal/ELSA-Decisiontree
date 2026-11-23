@@ -114,7 +114,6 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
     const dir = path.join(/* turbopackIgnore: true */ treesDir, id)
     await convertAtStart(id, dir, path.join(/* turbopackIgnore: true */ dir, 'tree.json'))
     await convertAtStart(id, dir, path.join(/* turbopackIgnore: true */ dir, 'draft.json'))
-    await followDraft(id, dir)
   }
 
   const served = new Map<string, Tree>()
@@ -289,23 +288,6 @@ async function convertAtStart(id: string, dir: string, file: string): Promise<vo
         : messageOf(error)
     console.error(`Not converted: Tree "${id}" ${path.basename(file)}: ${why}`)
   }
-}
-
-/**
- * **[#279]** At the start, a published Tree's copy that is not its draft's bytes becomes them
- * (19.4): a store an earlier release wrote held the copy back while a to-do was open, and a
- * crash may fall between the two files' writes. Only for a draft the store could have written --
- * one that passes every blocking rule (19.2); the copy of an uneditable Tree stays (19.5). One
- * line is logged; `meta.json` is not touched, since no creator wrote.
- */
-async function followDraft(id: string, dir: string): Promise<void> {
-  const file = path.join(/* turbopackIgnore: true */ dir, 'tree.json')
-  const published = await readText(file)
-  const draft = await readText(path.join(/* turbopackIgnore: true */ dir, 'draft.json'))
-  if (published === null || draft === null || published === draft) return
-  if ((await violationsOf(dir, draft, 'draft')).some((violation) => !violation.advisory)) return
-  await writeAtomic(file, draft)
-  console.log(`Published copy of Tree "${id}" brought to its draft`)
 }
 
 /** Refuses a 1.0 environment rather than half-reading it (17.1). */

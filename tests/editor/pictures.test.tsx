@@ -23,7 +23,7 @@ import type { DraftNode } from '../../src/tree/types.ts'
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 const words = Object.fromEntries(
-  ['characters', 'lines', 'saving', 'saved', 'notSaved', 'retrying', 'retry', 'notEditable', 'changedElsewhere', 'sessionExpired', 'publicBehind', 'toOverview'].map((key) => [key, key]),
+  ['characters', 'lines', 'saving', 'saved', 'notSaved', 'retrying', 'retry', 'notEditable', 'changedElsewhere', 'sessionExpired', 'toOverview'].map((key) => [key, key]),
 ) as EditorWords
 const loginWords = { email: 'email', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '', sessionNotKept: '' }
 const pickerWords = {
@@ -59,7 +59,7 @@ const writeResponse = (stored: DraftNode) => ({
   revision: 2,
   node: stored,
   violations: [],
-  tree: { advisory: 0, published: false, publicCopyCurrent: true },
+  tree: { advisory: 0, published: false },
 })
 
 let root: Root
@@ -88,7 +88,7 @@ afterEach(() => {
 function mount(children: React.ReactNode, files: string[] = []): void {
   act(() => {
     root.render(
-      <Editor treeId="t" lang="en" languages={['en']} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: node(files) }} violations={[]} tree={{ advisory: 0, published: false, publicCopyCurrent: true, servable: false }}>
+      <Editor treeId="t" lang="en" languages={['en']} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: node(files) }} violations={[]} tree={{ advisory: 0, published: false, servable: false }}>
         <SaveIndicator words={words} />
         {children}
       </Editor>,

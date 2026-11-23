@@ -205,10 +205,13 @@ describe('**[#252]** a later start of the current format keeps the data director
     await first.accounts.create(admin, 'Bram Jansen', 'bram@example.org', 'brams first password')
     await first.drafts.addCollaborator(admin, 'ai-act-example', anna.id)
     await first.drafts.uploadImage(admin, 'ai-act-example', PNG, 'new.png')
-    // An unfinished draft does not reach the public copy (19.4): the two files differ.
-    await first.drafts.write(admin, 'ai-act-example', 'start', { path: 'title.en', value: '' })
     await first.drafts.publish(admin, 'cycle', false)
     await first.drafts.write(admin, 'cycle', 'first', { path: 'title.en', value: 'A draft title, after hiding' })
+    // **[#279]** What a release before #279 left: it held the public copy back while a to-do was
+    // open, so the two files differ. No write of this release leaves that (19.4), so it is made by hand.
+    await rewrite(path.join(data, 'trees', 'ai-act-example', 'draft.json'), (tree) => {
+      tree.nodes.find((node) => node.id === 'start')!.title = { en: '', nl: 'Een titel' }
+    })
     const before = await filesOf(data)
     // The directory holds what the test says it does.
     expect(first.accounts.all()).toHaveLength(3)
@@ -220,8 +223,15 @@ describe('**[#252]** a later start of the current format keeps the data director
     // Started again with the administrator's two variables equal to what is stored, then without them (20.3, 38.3).
     await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
     expect(await filesOf(data)).toEqual(before)
-    await openStore(data, { ELSA_SEED_DIR: seed })
+    const later = await openStore(data, { ELSA_SEED_DIR: seed })
     expect(await filesOf(data)).toEqual(before)
+
+    // **[#279]** The copy that release held back is served as it is, and follows its draft at the first save (19.4).
+    expect((await later.published('ai-act-example')!.getNode('start'))!.title.en).not.toBe('')
+    await later.drafts.write(later.accounts.all().find((account) => account.administrator)!, 'ai-act-example', 'start', { path: 'title.nl', value: 'Opgeslagen na de release' })
+    const after = await filesOf(data)
+    expect(after['trees/ai-act-example/tree.json']).toEqual(after['trees/ai-act-example/draft.json'])
+    expect((await later.published('ai-act-example')!.getNode('start'))!.title).toEqual({ en: '', nl: 'Opgeslagen na de release' })
   })
 
   test('a seed Tree changed in the seed folder after the first start does not reach the store', async () => {
@@ -434,15 +444,16 @@ describe('importTree (17.4)', () => {
     const source = path.join(await seedOf([path.join(fixtures, 'carousel'), 'carousel']), 'carousel')
     const file = path.join(source, 'tree.json')
     await writeAs4(file, ['refer'])
-    // A title one character over 5.7's limit: a content rule, which the /4 file's own schema errors would hide.
+    // A title of two lines: a content rule, which the /4 file's own schema errors would hide, and
+    // **[#279]** a blocking one -- a title over 5.7's limit is a to-do, which an import accepts (17.4).
     const tree = JSON.parse(await readFile(file, 'utf8')) as { title: { en: string } }
-    tree.title.en = 'T'.repeat(81)
+    tree.title.en = 'T\nT'
     await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
     const before = await readFile(file)
 
     await expect(importTree(source, treesDir, null)).rejects.toThrow(TreeInvalid)
     await expect(importTree(source, treesDir, null)).rejects.toMatchObject({
-      violations: [{ file: 'manifest', keyPath: 'title.en', rule: 'V-LENGTH', message: '81 characters; at most 80' }],
+      violations: [{ file: 'manifest', keyPath: 'title.en', rule: 'V-PLAIN', message: 'plain text must be a single line' }],
     })
     expect(await readFile(file)).toEqual(before)
     expect(await readdir(treesDir)).toEqual([])
@@ -523,7 +534,7 @@ describe('**[#179]** a data directory written by a release before elsa-tree/5 (3
     // No creator wrote.
     expect(await readFile(path.join(data, 'trees', 'cycle', 'meta.json'), 'utf8')).toBe(meta)
     const admin = store.accounts.all().find((account) => account.administrator)!
-    expect(store.drafts.entry(admin, 'carousel')).toMatchObject({ publicCopyCurrent: true, blocking: [] })
+    expect(store.drafts.entry(admin, 'carousel')).toMatchObject({ blocking: [] })
     const written = await store.drafts.write(admin, 'carousel', 'done', { path: 'terminal.label.en', value: 'Not allowed' })
     expect(written.node!.label).toEqual({ en: 'Not allowed', nl: 'Verboden' })
 

@@ -186,7 +186,7 @@ describe('a Node that lacks a text in a language the Tree declares', () => {
     damaged = { ...start, title: { en: start.title.en! } }
   })
 
-  test('shows a placeholder the reader can see, and warns on the server', async () => {
+  test('**[#279]** shows the text in the first language that has it, marked with that language, and logs nothing (19.4)', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const address = parseUrl('/ai-act-example/start', 'nl', tree)!
     const page = (await loadPage(tree, address))!
@@ -195,8 +195,9 @@ describe('a Node that lacks a text in a language the Tree declares', () => {
       <TreeView page={{ ...page, centre: { ...page.centre, node: damaged } }} tree={tree} />,
     )
 
-    expect(html).toContain('[Tekst ontbreekt in deze taal]')
-    expect(warn).toHaveBeenCalledWith('Tree text missing: start.title has no text for the language "nl"')
+    expect(html).toContain(`<h1 id="node-title" lang="en">${damaged.title.en}</h1>`)
+    expect(html).not.toContain('[Tekst ontbreekt in deze taal]')
+    expect(warn).not.toHaveBeenCalled()
     // The rest of the Node is unharmed: only the field that is gone is stood in for.
     expect(html).toContain('De AI-verordening bestrijkt AI-systemen')
     warn.mockRestore()

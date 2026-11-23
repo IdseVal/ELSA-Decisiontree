@@ -50,9 +50,19 @@ test('a valid Tree is imported, published, the administrator its creator; twice 
   expect(again.output).toContain('the store already has a Tree with this id')
 })
 
-test('a Tree that fails validation is refused with its violations, and nothing is written', async () => {
-  const refused = run('tests/fixtures/invalid/v-answers')
+test('a Tree that fails a blocking rule is refused with its violations, and nothing is written', async () => {
+  const refused = run('tests/fixtures/invalid/v-keys')
   expect(refused.status).toBe(1)
-  expect(refused.output).toContain("v-answers  tree.json  /nodes/0/answers  schema  must NOT have fewer than 2 items")
+  expect(refused.output).toContain('v-keys  tree.json  /nodes/0  schema  must NOT have additional properties: "notes"')
   expect(await readdir(path.join(data, 'trees'))).toEqual(['cycle'])
+})
+
+test('**[#279]** a Tree with a to-do open is imported, as Publish takes one (17.4, 19.3)', async () => {
+  // One next step where the format asks two: advisory in a draft, so no reason to refuse the file.
+  const imported = run('tests/fixtures/invalid/v-answers')
+  expect(imported.output).toContain('Imported Tree "v-answers"')
+  expect(imported.status).toBe(0)
+  const folder = path.join(data, 'trees', 'v-answers')
+  expect(await readFile(path.join(folder, 'tree.json'))).toEqual(await readFile('tests/fixtures/invalid/v-answers/tree.json'))
+  expect(await readFile(path.join(folder, 'draft.json'))).toEqual(await readFile(path.join(folder, 'tree.json')))
 })

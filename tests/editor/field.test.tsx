@@ -30,7 +30,7 @@ import type { DraftNode } from '../../src/tree/types.ts'
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 const words = Object.fromEntries(
-  ['characters', 'lines', 'saving', 'saved', 'notSaved', 'retrying', 'retry', 'notEditable', 'changedElsewhere', 'sessionExpired', 'publicBehind', 'toOverview'].map((key) => [key, key]),
+  ['characters', 'lines', 'saving', 'saved', 'notSaved', 'retrying', 'retry', 'notEditable', 'changedElsewhere', 'sessionExpired', 'toOverview'].map((key) => [key, key]),
 ) as EditorWords
 const loginWords = { email: 'email', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '', sessionNotKept: '' }
 const fieldWords = { characters: 'characters', lines: 'lines' }
@@ -87,14 +87,14 @@ afterEach(() => {
 })
 
 /** The Tree's state at load: a hidden draft (22.1). */
-const HIDDEN = { advisory: 0, published: false, publicCopyCurrent: true, servable: false }
+const HIDDEN = { advisory: 0, published: false, servable: false }
 
 /** A write response carrying `node`, as the store answers a field write (22.3). */
 const responseWith = (stored: DraftNode, violations: unknown[] = []) => ({
   revision: 2,
   node: stored,
   violations,
-  tree: { advisory: violations.length, published: false, publicCopyCurrent: true },
+  tree: { advisory: violations.length, published: false },
 })
 
 function mount(draft: DraftNode, field: Parameters<typeof Field>[0]): void {

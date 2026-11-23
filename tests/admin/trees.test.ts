@@ -288,13 +288,15 @@ describe('what the routes refuse whatever the role', () => {
     expect((await call('node', 'DELETE', { tree: id, node: 'start' }, { role: 'creator' })).status).toBe(409)
   })
 
-  test('publish of an invalid draft is 409 with the violations', async () => {
+  test('**[#279]** publish of a draft with to-dos open is 200, and the Tree is served with them (19.3)', async () => {
     const created = await call('trees', 'POST', {}, { role: 'creator', body: { id: 'not-yet', languages: ['en'], title: { en: 'Not yet' } } })
     expect(created.status).toBe(201)
-    const refused = await call('published', 'PUT', { tree: 'not-yet' }, { role: 'creator', body: { published: true } })
-    expect(refused.status).toBe(409)
-    const body = (await refused.json()) as { violations: Array<{ rule: string }> }
-    expect(body.violations.length).toBeGreaterThan(0)
-    expect(opened.published('not-yet')).toBeNull()
+    const published = await call('published', 'PUT', { tree: 'not-yet' }, { role: 'creator', body: { published: true } })
+    expect(published.status).toBe(200)
+    expect(await published.json()).toMatchObject({ published: true })
+    const entry = (await (await call('tree', 'GET', { tree: 'not-yet' }, { role: 'creator' })).json()) as { servable: boolean; advisory: unknown[] }
+    expect(entry.servable).toBe(true)
+    expect(entry.advisory.length).toBeGreaterThan(0)
+    expect(opened.published('not-yet')!.manifest.title).toEqual({ en: 'Not yet' })
   })
 })

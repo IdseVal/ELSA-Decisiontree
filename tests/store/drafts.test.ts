@@ -13,6 +13,7 @@ import type { Account } from '../../src/store/accounts.ts'
 import type { Drafts } from '../../src/store/drafts.ts'
 import { isStoreError, type StoreError } from '../../src/store/errors.ts'
 import { openStore, type Store } from '../../src/store/index.ts'
+import { violationsOf } from '../../src/tree/loader.ts'
 import { treeBytes } from '../../src/tree/serialise.ts'
 import { ADMIN } from './admin.ts'
 import { GIF, JPEG, PNG, SVG, TEXT, WEBP } from './pictures.ts'
@@ -238,7 +239,7 @@ describe('the unit of a write (22.2)', () => {
       message: '601 characters; at most 600',
       advisory: true,
     })
-    expect(response.tree).toEqual({ advisory: response.tree.advisory, published: false, publicCopyCurrent: true })
+    expect(response.tree).toEqual({ advisory: response.tree.advisory, published: false })
     expect(JSON.parse(await text('t', 'draft.json')).nodes[0].description.en).toBe(long)
   })
 
@@ -511,21 +512,42 @@ describe('concurrency: last write wins, per field (22.5)', () => {
 })
 
 describe('publish and unpublish (19.3, 19.4)', () => {
-  test('publish is refused with every violation while the draft is not valid in full; nothing changes', async () => {
-    await drafts.create(cees, 't', ['en'], { en: 'T' })
-    const before = await text('t', 'draft.json')
-    const refused = await refusal(drafts.publish(cees, 't', true))
-    expect(refused.status).toBe(409)
-    expect(refused.rules).toEqual(expect.arrayContaining(['schema']))
-    expect(await text('t', 'draft.json')).toBe(before)
+  test('**[#279]** publish copies the draft as it is: a fresh Tree with every to-do open is public at once, its list unchanged', async () => {
+    await drafts.create(cees, 't', ['en', 'nl'], { en: 'T' })
+    const todo = drafts.entry(cees, 't').advisory
+    expect(todo.map((violation) => violation.rule)).toEqual(expect.arrayContaining(['V-L10N', 'V-NODE']))
+
+    const entry = await drafts.publish(cees, 't', true)
+    expect(entry).toMatchObject({ published: true, servable: true })
+    expect(entry.advisory).toEqual(todo)
+    const published = await text('t', 'tree.json')
+    expect(published).toBe(await text('t', 'draft.json'))
+    // The file is not a valid elsa-tree/9 file, and the validator still says so (tree-format.md 7).
+    expect((await violationsOf(path.join(data, 'trees', 't'), published, 'published')).length).toBeGreaterThan(0)
+    // Served all the same, a text `""` in each language it has none for.
+    expect(store.publishedIds()).toContain('t')
+    expect(store.published('t')!.manifest.title).toEqual({ en: 'T', nl: '' })
+    expect((await store.published('t')!.getNode('start'))!.title).toEqual({ en: '', nl: '' })
+  })
+
+  test('**[#279]** publish is refused for an uneditable Tree alone: 409, nothing written (19.5)', async () => {
+    await smallTree('t')
+    const draft = JSON.parse(await text('t', 'draft.json')) as { nodes: Array<{ notes?: string }> }
+    draft.nodes[0]!.notes = 'a key the format does not have'
+    await writeFile(file('t', 'draft.json'), treeBytes(draft as never))
+    const again = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: data })
+
+    const refused = await refusal(again.drafts.publish(again.accounts.byEmail('cees@example.org')!, 't', true))
+    expect(refused).toMatchObject({ status: 409, code: 'uneditable' })
+    expect(refused.rules).toEqual(['schema'])
     await expect(stat(file('t', 'tree.json'))).rejects.toThrow()
-    expect(store.published('t')).toBeNull()
+    expect(again.published('t')).toBeNull()
   })
 
   test('a valid draft is published: the copy is the draft’s bytes, versioned, public at once', async () => {
     await smallTree('t')
     const entry = await drafts.publish(cees, 't', true)
-    expect(entry).toMatchObject({ published: true, servable: true, publicCopyCurrent: true })
+    expect(entry).toMatchObject({ published: true, servable: true })
     expect(entry.meta.publishCount).toBe(1)
     const published = await text('t', 'tree.json')
     expect(published).toBe(await text('t', 'draft.json'))
@@ -534,25 +556,40 @@ describe('publish and unpublish (19.3, 19.4)', () => {
     expect(store.publishedIds()).toContain('t')
   })
 
-  test('while published, a valid write reaches the public copy; an invalid one leaves the last valid copy', async () => {
+  test('**[#279]** while published, every write reaches the public copy at once, a to-do open or none (19.4)', async () => {
     const { yes } = await smallTree('t')
     await drafts.publish(cees, 't', true)
 
     const valid = await drafts.write(cees, 't', yes, { path: 'title.en', value: 'Yes, changed' })
-    expect(valid.tree).toEqual({ advisory: 0, published: true, publicCopyCurrent: true })
+    expect(valid.tree).toEqual({ advisory: 0, published: true })
     expect(await text('t', 'tree.json')).toBe(await text('t', 'draft.json'))
     expect((await store.published('t')!.getNode(yes))!.title.en).toBe('Yes, changed')
 
-    const lastValid = await text('t', 'tree.json')
-    const invalid = await drafts.write(cees, 't', yes, { path: 'title.en', value: '' })
-    expect(invalid.tree).toEqual({ advisory: 1, published: true, publicCopyCurrent: false })
-    expect(await text('t', 'tree.json')).toBe(lastValid)
-    expect((await store.published('t')!.getNode(yes))!.title.en).toBe('Yes, changed')
-    expect(drafts.entry(cees, 't').publicCopyCurrent).toBe(false)
-
-    await drafts.write(cees, 't', yes, { path: 'title.en', value: 'Yes again' })
+    // A write that opens a to-do: the public copy follows it all the same.
+    const unfinished = await drafts.write(cees, 't', yes, { path: 'title.en', value: '' })
+    expect(unfinished.tree).toEqual({ advisory: 1, published: true })
     expect(await text('t', 'tree.json')).toBe(await text('t', 'draft.json'))
-    expect(drafts.entry(cees, 't').publicCopyCurrent).toBe(true)
+    expect((await store.published('t')!.getNode(yes))!.title).toEqual({ en: '', nl: 'Yes nl' })
+
+    // And the next one, while that to-do is still open: the owner's case (#279).
+    const next = await drafts.write(cees, 't', 'start', { path: 'description.en', value: 'Changed while a to-do was open.' })
+    expect(next.tree).toEqual({ advisory: 1, published: true })
+    expect(await text('t', 'tree.json')).toBe(await text('t', 'draft.json'))
+    expect((await store.published('t')!.getNode('start'))!.description.en).toBe('Changed while a to-do was open.')
+
+    // A blocking write is still refused, and the public copy stays what it was (22.3).
+    const before = await text('t', 'tree.json')
+    expect(await refusal(drafts.write(cees, 't', 'start', { path: 'title.en', value: 'a\nb' }))).toMatchObject({ status: 422 })
+    expect(await text('t', 'tree.json')).toBe(before)
+  })
+
+  test('**[#279]** the demo server\'s case: a tag written in one language on a published Tree reaches the public copy', async () => {
+    await smallTree('t')
+    await drafts.publish(cees, 't', true)
+    const written = await drafts.write(cees, 't', null, { path: 'tags', value: [{ en: 'Test', nl: '' }] })
+    expect(written.violations.map((violation) => `${violation.keyPath} ${violation.rule}`)).toEqual(['tags[0].nl V-L10N'])
+    expect(await text('t', 'tree.json')).toBe(await text('t', 'draft.json'))
+    expect(store.published('t')!.manifest.tags).toEqual([{ en: 'Test', nl: '' }])
   })
 
   test('unpublish hides the Tree from every public route in the same call; delete wants it hidden', async () => {

@@ -16,7 +16,7 @@ import type { LocalisedText } from '../../src/tree/types.ts'
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 const words = Object.fromEntries(
-  ['characters', 'lines', 'saving', 'saved', 'notSaved', 'retrying', 'retry', 'notEditable', 'changedElsewhere', 'sessionExpired', 'publicBehind', 'toOverview'].map((key) => [key, key]),
+  ['characters', 'lines', 'saving', 'saved', 'notSaved', 'retrying', 'retry', 'notEditable', 'changedElsewhere', 'sessionExpired', 'toOverview'].map((key) => [key, key]),
 ) as EditorWords
 const loginWords = { email: 'email', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '', sessionNotKept: '' }
 const tagsWords: TagsWords = {
@@ -40,7 +40,7 @@ beforeEach(() => {
   vi.stubGlobal('fetch', (_url: string, init: RequestInit) => {
     const body = JSON.parse(String(init.body)) as { value: LocalisedText[] }
     sent.push({ method: init.method ?? 'GET', body })
-    const answer = { revision: 2, manifest: { tags: body.value }, violations: [], tree: { advisory: 0, published: false, publicCopyCurrent: true, servable: false } }
+    const answer = { revision: 2, manifest: { tags: body.value }, violations: [], tree: { advisory: 0, published: false, servable: false } }
     return Promise.resolve(new Response(JSON.stringify(answer), { status: 200 }))
   })
   container = document.createElement('div')
@@ -58,7 +58,7 @@ afterEach(() => {
 function mount(tags: LocalisedText[]): void {
   act(() => {
     root.render(
-      <Editor treeId="t" lang="nl" languages={['en', 'nl']} words={words} loginWords={loginWords} adminHref="/admin" nodes={{}} violations={[]} tree={{ advisory: 0, published: false, publicCopyCurrent: true, servable: false }}>
+      <Editor treeId="t" lang="nl" languages={['en', 'nl']} words={words} loginWords={loginWords} adminHref="/admin" nodes={{}} violations={[]} tree={{ advisory: 0, published: false, servable: false }}>
         <TagsField treeId="t" lang="nl" defaultLanguage="en" tags={tags} words={tagsWords} />
       </Editor>,
     )
