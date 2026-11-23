@@ -32,7 +32,6 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import type { Chrome } from '../chrome.ts'
-import type { Violation } from '../tree/types.ts'
 import { useEditor, type TreeState } from './Editor.tsx'
 import { LanguageTags, type LanguageTagWords } from './LanguageTags.tsx'
 import { panelCalls, type AccountAnswer, type EntryAnswer } from './writes.ts'
