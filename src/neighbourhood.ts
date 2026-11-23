@@ -239,8 +239,15 @@ export interface NodePage<N extends Node | DraftNode = Node> {
  * lost a Node of.
  */
 export async function loadPage(tree: Tree, address: PageAddress): Promise<NodePage | null> {
-  const centre = await centreOf(tree, address)
+  let centre = await centreOf(tree, address)
   if (!centre) return null
+  // **[#279]** A served Tree may hold a next step its creator has not finished (19.4): an
+  // explanation Node by its kind, which `centreOf` reads as an Overlay over the step before. Where
+  // that step names it as a next step, it is the centre, as in the preview (`draftCentre`, 40.2).
+  // No valid Tree has such a Link (V-ANSWERS), so nothing changes for one.
+  for (let first = centre.chain[0]; first && linksOf(centre.node).answers.some((answer) => answer.target === first!.node.id); first = centre.chain[0]) {
+    centre = { address: first.address, node: first.node, chain: centre.chain.slice(1), known: centre.known }
+  }
   const neighbours = await neighbourhood(tree, centre.address, centre.node, centre.known)
   return { address, centre, neighbours }
 }

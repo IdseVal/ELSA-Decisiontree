@@ -14,7 +14,7 @@
 import { themeLogo, type ThemeHref } from '../theme.ts'
 import type { LocalisedText, Theme } from '../tree/types.ts'
 import { themeHref } from '../url.ts'
-import { chrome, chromeLang, text } from '../chrome.ts'
+import { chrome, chromeLang, shown } from '../chrome.ts'
 
 export function Logo({
   treeId,
@@ -23,6 +23,7 @@ export function Logo({
   title,
   lang,
   href = themeHref,
+  draft = false,
 }: {
   /** The Tree the logo is of: its theme files are under its id (application.md 18.1). */
   treeId: string
@@ -31,23 +32,28 @@ export function Logo({
   lang: string
   /** **[#144]** How the logo's file is addressed: the editor's draft through the admin route. */
   href?: ThemeHref
+  /** **[#279]** The editor's bar, which reads its draft as before: no other language stands in (19.4). */
+  draft?: boolean
 }) {
   const logo = themeLogo(theme)
   if (!logo) {
-    const name = text(title, lang, 'tree.title')
+    // **[#279]** A title no language has yet leaves the place empty: the bar invents none (19.4).
+    const name = shown(title, lang, 'tree.title', draft)
     return (
-      <span className="tree-title" data-clamp="" title={name}>
-        {name}
+      <span className="tree-title" data-clamp="" title={name.value} lang={name.lang}>
+        {name.value}
       </span>
     )
   }
 
+  const alt = shown(logo.alt, lang, 'theme.logo.alt', draft)
   const image = (
     <img
       className="logo"
       src={href(treeId, logo.file)}
       // The lab's name, from the Theme (tree-format.md 4.3.1) and in the language on screen.
-      alt={text(logo.alt, lang, 'theme.logo.alt')}
+      alt={alt.value}
+      lang={alt.lang}
     />
   )
   if (!logo.url) return image

@@ -14,7 +14,7 @@
  * **[#197]** Its bottom row names the Tree's Authors after the language tags and before the state
  * mark (39.5), on both overviews.
  */
-import { chrome, text } from '../chrome.ts'
+import { chrome, shown as shownText } from '../chrome.ts'
 import { plainDescription } from '../markdown.ts'
 import type { Manifest } from '../tree/types.ts'
 import { contentLanguage, rootHref, themeHref } from '../url.ts'
@@ -43,10 +43,15 @@ export function Tile({
   const { manifest } = tree
   // The Tree's own language when it does not declare the page's, marked on the tile (23.2).
   const shown = manifest ? contentLanguage({ manifest }, lang) : lang
-  const title = manifest ? text(manifest.title, shown, 'tree.title') : ''
-  const description = manifest?.description && plainDescription(text(manifest.description, shown, 'tree.description')).cut
+  // **[#279]** On the public overview a text the Tree lacks in that language is read in the first
+  // that has it, marked on its own element (19.4); the creators' overview reads its drafts as before.
+  const draft = state !== undefined
+  const title = manifest ? shownText(manifest.title, shown, 'tree.title', draft) : { value: '', lang: undefined }
+  const summary = manifest?.description ? shownText(manifest.description, shown, 'tree.description', draft) : null
+  const description = summary && plainDescription(summary.value).cut
   // A Theme's files are served for a servable published Tree only (13.2, 23.1).
   const logo = state === undefined || state === 'published' ? manifest?.theme?.logo : undefined
+  const alt = logo && shownText(logo.alt, shown, 'theme.logo.alt', draft)
 
   return (
     <li>
@@ -57,12 +62,12 @@ export function Tile({
         data-tree={tree.id}
       >
         {logo && (
-          <img className="tile-logo" src={themeHref(tree.id, logo.light)} alt={text(logo.alt, shown, 'theme.logo.alt')} />
+          <img className="tile-logo" src={themeHref(tree.id, logo.light)} alt={alt!.value} lang={alt!.lang} />
         )}
         {/* A new Tree's title may still be empty in this language (27.1): the id names it until then. */}
-        <span className="tile-title" data-clamp="">{title || tree.id}</span>
+        <span className="tile-title" data-clamp="" lang={title.lang}>{title.value || tree.id}</span>
         {description && (
-          <span className="tile-description" data-clamp="">
+          <span className="tile-description" data-clamp="" lang={summary!.lang}>
             {description}
           </span>
         )}

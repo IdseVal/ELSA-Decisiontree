@@ -33,14 +33,14 @@
  * attribute differs.
  */
 import type { CSSProperties, ReactNode } from 'react'
-import { chrome, chromeLang, text, type Chrome } from '../chrome.ts'
+import { chrome, chromeLang, shown, type Chrome } from '../chrome.ts'
 import type { EditMode } from '../editor/mode.ts'
 import type { Across, Aside, NodePage, Placed } from '../neighbourhood.ts'
 import type { Readable } from '../tree/loader.ts'
 import { linksOf, type DraftNode, type Node } from '../tree/types.ts'
 import { PUBLIC_LINKS, type Links, type PageAddress } from '../url.ts'
 import { Branch } from './Branch.tsx'
-import { Bubble, Interior, sheetWords } from './Bubble.tsx'
+import { Bubble, Interior, marked, sheetWords } from './Bubble.tsx'
 import { Carousel } from './Carousel.tsx'
 import { Sheet } from './Sheet.tsx'
 import { Slider } from './Slider.tsx'
@@ -118,9 +118,10 @@ export function TreeView<N extends AnyNode>({ page, tree, edit }: { page: NodePa
     ui: chrome(lang),
     uiLang: chromeLang(lang),
     // Every id a Branch names was accepted by `parseUrl` or validated by the loader, so the
-    // index knows it; the empty fallback only makes a stale index show the placeholder
-    // `text` reserves for a missing text, instead of a crash.
-    titleOf: (id) => text(tree.getTitle(id) ?? {}, lang, `${id}.title`),
+    // index knows it; the empty fallback only makes a stale index show no title, instead of a
+    // crash. **[#279]** On a public page a title the Tree lacks in `lang` is read in the first
+    // language that has it (19.4).
+    titleOf: (id) => shown(tree.getTitle(id) ?? {}, lang, `${id}.title`, edit !== undefined).value,
     root: tree.manifest.root,
     idPrefix,
     pictures: isCentre,
@@ -280,7 +281,12 @@ function UpArrow({ view }: { view: View }) {
 function Options({ node, view }: { node: AnyNode; view: View }) {
   const { address, ui, uiLang, idPrefix, asides, open, links, edit } = view
   const lang = address.lang
-  const count = node.options.length
+  const draft = edit !== undefined
+  // **[#279]** On a public page an Option without a title in any language is not drawn: a button with no words (19.4).
+  const options = node.options
+    .map((option, index) => ({ option, index, title: shown(option.title, lang, `${node.id}.options[${index}].title`, draft) }))
+    .filter(({ title }) => draft || title.value !== '')
+  const count = options.length
   const sideAdd = edit?.slots.sideAdd?.(node) ?? null
   // The add slot is one more button of the fan (28.1's sketch), so the rows count it.
   const drawn = count + (sideAdd ? 1 : 0)
@@ -296,22 +302,20 @@ function Options({ node, view }: { node: AnyNode; view: View }) {
       {/* The count is what the stylesheet collapses the fan on (10.5, step 4). */}
       {drawn > 0 && (
         <ul className="options" aria-labelledby={`${idPrefix}options-label`} data-count={count}>
-          {node.options.map((option, index) => {
-            const side = sideOf(index)
+          {options.map(({ option, index, title: said }, at) => {
+            const side = sideOf(at)
             // A neighbour frame carries no asides (11.3): its buttons are drawn empty and closed.
             const target = asides.find((aside) => aside.node.id === option.target) ?? null
-            const title =
-              edit?.slots.field?.(node, `options[${index}].title`, option.title[lang] ?? '', OPTION_TITLE) ??
-              text(option.title, lang, `${node.id}.options[${index}].title`)
+            const title = edit?.slots.field?.(node, `options[${index}].title`, option.title[lang] ?? '', OPTION_TITLE) ?? marked(said)
             return (
               <li
                 key={option.target}
                 data-side={side}
-                style={{ '--i': Math.floor(index / 2), '--m': rows(side) } as CSSProperties}
+                style={{ '--i': Math.floor(at / 2), '--m': rows(side) } as CSSProperties}
               >
                 <Overlay
                   title={title}
-                  picture={optionPicture(target, view.address.treeId, lang, links)}
+                  picture={optionPicture(target, view.address.treeId, lang, links, draft)}
                   aside={target}
                   open={target !== null && open?.href === target.href}
                   view={view}
@@ -331,7 +335,7 @@ function Options({ node, view }: { node: AnyNode; view: View }) {
       {extra && (
         <div className="options-extra">
           <Overlay
-            title={text(extra.node.title, lang, `${extra.node.id}.title`)}
+            title={marked(shown(extra.node.title, lang, `${extra.node.id}.title`, draft))}
             picture={null}
             aside={extra}
             open
@@ -346,10 +350,7 @@ function Options({ node, view }: { node: AnyNode; view: View }) {
           <Sheet
             className="options-sheet"
             summary={<span lang={uiLang}>{`${ui.options} (${count})`}</span>}
-            items={node.options.map((option, index) => ({
-              href: links.follow(address, option.target),
-              label: text(option.title, lang, `${node.id}.options[${index}].title`),
-            }))}
+            items={options.map(({ option, title }) => ({ href: links.follow(address, option.target), label: title.value, lang: title.lang }))}
             words={sheetWords(ui)}
             uiLang={uiLang}
             idPrefix={idPrefix}
@@ -364,13 +365,11 @@ function Options({ node, view }: { node: AnyNode; view: View }) {
  * The picture on an Option button (10.3): the target's main image, the file its Overlay
  * shows. An Option has no Images of its own (tree-format.md 5.4).
  */
-function optionPicture(target: Aside<AnyNode> | null, treeId: string, lang: string, links: Links): { src: string; alt: string } | null {
+function optionPicture(target: Aside<AnyNode> | null, treeId: string, lang: string, links: Links, draft: boolean): { src: string; alt: string; lang: string | undefined } | null {
   const image = target?.node.images[0]
   if (!target || !image) return null
-  return {
-    src: links.image(treeId, image.file),
-    alt: text(image.description, lang, `${target.node.id}.images[${image.file}].description`),
-  }
+  const description = shown(image.description, lang, `${target.node.id}.images[${image.file}].description`, draft)
+  return { src: links.image(treeId, image.file), alt: description.value, lang: description.lang }
 }
 
 /**
@@ -395,7 +394,7 @@ function Overlay({
   /** The target's title; in edit mode the Option's title as a field (28.1). */
   title: ReactNode
   /** The picture on the button, as tall as it (#175); null for the empty slot, and in a neighbour frame. */
-  picture: { src: string; alt: string } | null
+  picture: { src: string; alt: string; lang: string | undefined } | null
   /** The target as the page carries it; null in a neighbour frame. */
   aside: Aside<AnyNode> | null
   open: boolean
@@ -416,7 +415,7 @@ function Overlay({
         <>
           {/* `option-image` is the name the first Tree's walk (tests/first-tree/walk.spec.ts) finds an Option's picture by. */}
           {picture ? (
-            <img className="option-image" src={picture.src} alt={picture.alt} width={100} height={100} loading="lazy" />
+            <img className="option-image" src={picture.src} alt={picture.alt} lang={picture.lang} width={100} height={100} loading="lazy" />
           ) : (
             <span className="option-image option-image--empty" />
           )}
@@ -437,13 +436,19 @@ function Overlay({
                     </span>
                     {/* A second-level Option is a plain link to the deeper address, which renders this page with that Overlay open (10.9). */}
                     <ul className="overlay-options" aria-labelledby={`${idPrefix}options-label`}>
-                      {aside.node.options.map((option, index) => (
-                        <li key={option.target}>
-                          <a href={links.follow(aside.address, option.target)}>
-                            {text(option.title, lang, `${aside.node.id}.options[${index}].title`)}
-                          </a>
-                        </li>
-                      ))}
+                      {aside.node.options.map((option, index) => {
+                        const said = shown(option.title, lang, `${aside.node.id}.options[${index}].title`, edit !== undefined)
+                        // **[#279]** As in the fan: no title in any language, no link (19.4).
+                        return (
+                          (edit !== undefined || said.value !== '') && (
+                            <li key={option.target}>
+                              <a href={links.follow(aside.address, option.target)} lang={said.lang}>
+                                {said.value}
+                              </a>
+                            </li>
+                          )
+                        )
+                      })}
                     </ul>
                   </>
                 )}
@@ -490,17 +495,27 @@ function Answers({ node, view }: { node: AnyNode; view: View }) {
   const { answers } = linksOf(node)
   const lang = address.lang
   const offered = edit?.slots.structure?.(node) ?? []
-  const counted = node.kind === 'question' || offered.length > 0
+  const draft = edit !== undefined
+  // **[#279]** On a public page a next step without words in any language is not drawn -- a button
+  // with nothing on it -- and a step none of whose next steps can be drawn shows `startAgain`, as
+  // one that has none (19.4). A name is its parts that exist: no colon before a title no language has.
+  const steps = answers
+    .map((answer, index) => ({ answer, index, label: shown(answer.label, lang, `${node.id}.answers[${index}].label`, draft) }))
+    .filter(({ label }) => draft || label.value !== '')
+  const question = node.kind === 'question' && (draft || steps.length > 0)
+  const counted = question || offered.length > 0
+  const named = (word: string, id: string): string => (draft || titleOf(id) !== '' ? `${word}: ${titleOf(id)}` : word)
+  // The row is named by the step's title, where one is drawn (`Interior`).
+  const titled = draft || shown(node.title, lang, `${node.id}.title`).value !== ''
 
   return (
-    <div className={counted ? `answers answers--${answers.length + offered.length}` : 'answers'} role="group" aria-labelledby={`${idPrefix}node-title`}>
-      {node.kind === 'question' ? (
-        answers.map((answer, index) => {
+    <div className={counted ? `answers answers--${steps.length + offered.length}` : 'answers'} role="group" aria-labelledby={titled ? `${idPrefix}node-title` : undefined}>
+      {question ? (
+        steps.map(({ answer, index, label }) => {
           const href = links.follow(address, answer.target)
-          const label = text(answer.label, lang, `${node.id}.answers[${index}].label`)
-          const shown = edit?.slots.field?.(node, `answers[${index}].label`, answer.label[lang] ?? '', ANSWER_LABEL) ?? label
+          const words = edit?.slots.field?.(node, `answers[${index}].label`, answer.label[lang] ?? '', ANSWER_LABEL) ?? marked(label)
           return (
-            <Branch key={index} className="answer answer--next" href={href} slides={placed(href)} title={shown} name={`${label}: ${titleOf(answer.target)}`}>
+            <Branch key={index} className="answer answer--next" href={href} slides={placed(href)} title={words} name={named(label.value, answer.target)}>
               {edit?.slots.answerMoves?.(node, index)}
             </Branch>
           )
@@ -512,7 +527,7 @@ function Answers({ node, view }: { node: AnyNode; view: View }) {
           word={ui.startAgain}
           wordLang={uiLang}
           title={titleOf(root)}
-          name={`${ui.startAgain}: ${titleOf(root)}`}
+          name={named(ui.startAgain, root)}
         />
       )}
       {offered}

@@ -208,12 +208,15 @@ export function Explainer({
   html,
   termEvent,
   labelledBy,
+  lang,
 }: {
   html: string
   /** The event a click on a term dispatches instead of the tap toggle (34.2). */
   termEvent?: string
   /** **[#264]** The id of the title that names the description's box; absent where the text is no box (43.3). */
   labelledBy?: string
+  /** **[#279]** The text's language where it is not the page's (19.4). */
+  lang?: string
 }) {
   // Until the script runs the stylesheet opens the panels (section 14); once it does, the
   // attribute hands them to the handlers below and the CSS-only rules stand down.
@@ -249,6 +252,7 @@ export function Explainer({
     <div
       ref={element}
       className="prose"
+      lang={lang}
       data-enhanced={enhanced ? '' : undefined}
       data-description-box={labelledBy === undefined ? undefined : ''}
       role={labelledBy === undefined ? undefined : 'region'}

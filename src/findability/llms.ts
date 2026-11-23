@@ -14,7 +14,7 @@
  * schema and a validator behind it (16.5).
  */
 import { CODE_LICENCE_URL, CONTENT_LICENCE_URL } from '../assets.ts'
-import { chrome, text } from '../chrome.ts'
+import { chrome, shown } from '../chrome.ts'
 import { plainDescription } from '../markdown.ts'
 import type { Tree } from '../tree/loader.ts'
 import { absolute, datasetHref, overviewHref, rootHref, SCHEMA_HREF } from '../url.ts'
@@ -63,16 +63,16 @@ export function llmsTxt(trees: LlmsTree[], base: URL): string {
     '',
     ...trees.map(({ tree, rootDescription }) => {
       const { title, description, defaultLanguage: lang } = tree.manifest
-      const summary = description ? text(description, lang, 'tree.description') : rootDescription
+      const summary = shown(description ?? {}, lang, 'tree.description').value || rootDescription
       // The description as written, with no period of this file's added to its own.
-      return `- [${oneLine(text(title, lang, 'tree.title'))}](${url(rootHref(tree, lang))}): ${plainDescription(summary).reduced}`
+      return `- [${oneLine(shown(title, lang, 'tree.title').value || tree.id)}](${url(rootHref(tree, lang))}): ${plainDescription(summary).reduced}`
     }),
     '',
     '## The datasets',
     '',
     ...trees.map(({ tree }) =>
       entry(
-        `${oneLine(text(tree.manifest.title, tree.manifest.defaultLanguage, 'tree.title'))}: the Tree file`,
+        `${oneLine(shown(tree.manifest.title, tree.manifest.defaultLanguage, 'tree.title').value || tree.id)}: the Tree file`,
         url(datasetHref(tree.id)),
         'every step of the tree, its text, its legal sources and its pictures, as one JSON file -- byte for byte the file this site serves its pages from',
       ),

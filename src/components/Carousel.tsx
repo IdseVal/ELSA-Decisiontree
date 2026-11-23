@@ -19,7 +19,7 @@
  * `field` and `enlargedControls` slots where they answer; absent, nothing differs.
  */
 import type { ReactNode } from 'react'
-import { text, type Chrome } from '../chrome.ts'
+import { shown, type Chrome } from '../chrome.ts'
 import type { EditMode } from '../editor/mode.ts'
 import type { NodeContent } from '../tree/types.ts'
 import { PUBLIC_LINKS } from '../url.ts'
@@ -54,11 +54,10 @@ export function Carousel({
   edit?: EditMode
 }) {
   const links = edit?.links ?? PUBLIC_LINKS
-  const images: EnlargedImage[] = node.images.map((image) => ({
-    href: links.image(treeId, image.file),
-    description: text(image.description, lang, `${node.id}.images[${image.file}].description`),
-    credit: image.credit,
-  }))
+  const images: EnlargedImage[] = node.images.map((image) => {
+    const description = shown(image.description, lang, `${node.id}.images[${image.file}].description`, edit !== undefined)
+    return { href: links.image(treeId, image.file), description: description.value, lang: description.lang, credit: image.credit }
+  })
   if (images.length === 0) return <div className="carousel">{edit?.slots.stripAdd?.(node)}</div>
   const strip = images.slice(1)
   const captions = edit && editedCaptions(node, lang, ui, uiLang, edit)
@@ -90,7 +89,7 @@ export function Carousel({
                   aria-labelledby={`carousel-enlarge carousel-image-${index}`}
                   aria-describedby={`carousel-credit-${index}`}
                 >
-                  <img id={`carousel-image-${index}`} src={image.href} alt={image.description} width={67} height={67} loading="lazy" />
+                  <img id={`carousel-image-${index}`} src={image.href} alt={image.description} lang={image.lang} width={67} height={67} loading="lazy" />
                 </a>
               </li>
             ))}
@@ -134,7 +133,7 @@ function editedCaptions(node: NodeContent, lang: string, ui: Chrome, uiLang: str
           <span className="kind" lang={uiLang}>
             {ui.imageDescription}
           </span>{' '}
-          {description ?? text(image.description, lang, `${node.id}.images[${image.file}].description`)}
+          {description ?? shown(image.description, lang, `${node.id}.images[${image.file}].description`, true).value}
         </p>
         <p className="credit">
           <span className="kind" lang={uiLang}>

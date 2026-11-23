@@ -51,6 +51,12 @@ export interface ExplainerContext {
   lang: string
   /** Prepended to every panel id, for a copy of the text in a neighbour frame or an Overlay. */
   idPrefix: string
+  /**
+   * **[#279]** On a public page (application.md 19.4): a panel's term and text are read in the
+   * first language that has them, each in a `lang` of its own, and a mark that names no
+   * explainer -- one removed, a to-do -- is drawn as its words alone.
+   */
+  served?: boolean
 }
 
 /** Escapes text for use in element content and in an attribute value alike. */
@@ -75,8 +81,23 @@ function term(words: string, explainer: Explainer, context: ExplainerContext, se
   return (
     `<span class="term" tabindex="0" aria-describedby="${panel}">${escape(words)}</span>` +
     `<span class="explainer" role="tooltip" id="${panel}">` +
-    `<b>${escape(explainer.term[context.lang] ?? '')}</b> ${escape(explainer.text[context.lang] ?? '')}</span>`
+    `${part('b', explainer.term, context)} ${part(null, explainer.text, context)}</span>`
   )
+}
+
+/**
+ * One text of a panel, in `tag` where it has one. **[#279]** `served`, a text the Tree lacks in
+ * the page's language is read in the first that has it, in an element that carries that `lang`.
+ */
+function part(tag: 'b' | null, localised: Record<string, string>, context: ExplainerContext): string {
+  let value = localised[context.lang] ?? ''
+  let lang = ''
+  if (value === '' && context.served) {
+    const other = Object.entries(localised).find(([, text]) => text !== '')
+    if (other) [lang, value] = [` lang="${escape(other[0])}"`, other[1]]
+  }
+  const element = tag ?? (lang === '' ? null : 'span')
+  return element === null ? escape(value) : `<${element}${lang}>${escape(value)}</${element}>`
 }
 
 /** The subset's inline marks. Text outside a mark is escaped and emitted as it stands. */
@@ -90,7 +111,7 @@ function inline(text: string, context: ExplainerContext | undefined, seen: Map<s
     if (url?.startsWith('#')) {
       const explainer = context?.explainers.find((candidate) => candidate.id === url.slice(1))
       // A mark naming no explainer it was given fails V-MARK at load; shown as written.
-      html += explainer && context && linkText.trim() !== '' ? term(linkText, explainer, context, seen) : escape(whole)
+      html += explainer && context && linkText.trim() !== '' ? term(linkText, explainer, context, seen) : escape(context?.served ? linkText : whole)
     } else if (url !== undefined) {
       // A link with no text would be a link with no accessible name, so it stays text.
       html += /^https?:\/\//i.test(url) && linkText.trim() !== ''

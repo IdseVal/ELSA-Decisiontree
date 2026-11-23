@@ -1,5 +1,5 @@
 import { headers } from 'next/headers'
-import { text } from '../../../chrome.ts'
+import { shown } from '../../../chrome.ts'
 import { baseUrl, store } from '../../../config.ts'
 import { llmsTxt, type LlmsTree } from '../../../findability/llms.ts'
 
@@ -28,7 +28,7 @@ export async function GET() {
       // carries none: it is optional in the format, the root Node's is not (16.5).
       const root = await tree.getNode(tree.manifest.root)
       const lang = tree.manifest.defaultLanguage
-      return { tree, rootDescription: root ? text(root.description, lang, `${tree.manifest.root}.description`) : '' }
+      return { tree, rootDescription: root ? shown(root.description, lang, `${tree.manifest.root}.description`).value : '' }
     }),
   )
 

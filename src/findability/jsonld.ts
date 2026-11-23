@@ -19,10 +19,10 @@
  * value is that it is trustworthy.
  */
 import { CONTENT_LICENCE_URL } from '../assets.ts'
-import { chrome, text } from '../chrome.ts'
+import { chrome, shown } from '../chrome.ts'
 import { plainDescription } from '../markdown.ts'
 import type { Tree } from '../tree/loader.ts'
-import type { Node } from '../tree/types.ts'
+import type { LocalisedText, Node } from '../tree/types.ts'
 import { absolute, addressSet, datasetHref } from '../url.ts'
 import { CONTENT_HOLDER } from './llms.ts'
 
@@ -210,15 +210,14 @@ async function dataset(tree: Tree, root: Node, lang: string, base: URL): Promise
   const { manifest } = tree
   // The manifest's description is optional in the format and `description` is one of
   // Google's two requirements, so a required field is not left resting on an optional one.
-  const summary = manifest.description
-    ? text(manifest.description, lang, 'tree.description')
-    : text(root.description, lang, `${root.id}.description`)
+  const summary = said(manifest.description ?? {}, lang) || said(root.description, lang)
   const isBasedOn = await mostCitedLegalSource(tree)
 
   return {
     '@type': 'Dataset',
     '@id': datasetId(tree, base),
-    name: text(manifest.title, lang, 'tree.title'),
+    // **[#279]** A Tree no language titles yet is named by its id, as its tile is (19.4, 27.1).
+    name: said(manifest.title, lang) || tree.id,
     description: plainDescription(summary).reduced,
     url: addressOf(tree, manifest.root, lang, base),
     license: CONTENT_LICENCE_URL,
@@ -241,30 +240,33 @@ async function dataset(tree: Tree, root: Node, lang: string, base: URL): Promise
 /** The `WebPage` every Node page carries, with a question Node's `Question` under it. */
 function webPage(tree: Tree, node: Node, lang: string, base: URL): WebPage {
   const url = addressOf(tree, node.id, lang, base)
-  const description = node.description[lang]
+  const description = said(node.description, lang)
+  // **[#279]** The next steps the page draws (19.4): one without words in any language is on no button.
+  const steps = node.kind === 'question' ? node.answers.filter((step) => said(step.label, lang) !== '') : []
 
   return {
     '@type': 'WebPage',
     '@id': url,
     url,
-    name: text(node.title, lang, `${node.id}.title`),
+    name: said(node.title, lang),
     // The cut string, byte for byte what `<meta name="description">` carries: the WebPage
     // is the record of this page, and the two may not describe it differently (16.3).
-    ...(description === undefined ? {} : { description: plainDescription(description).cut }),
+    ...(description === '' ? {} : { description: plainDescription(description).cut }),
     inLanguage: lang,
     isPartOf: { '@id': datasetId(tree, base) },
     // A Terminal is an outcome, not a question; an explanation Node has no answers of its
     // own. Both carry the WebPage and nothing more, and the Options are mapped nowhere:
     // an Option opens an aside the reader comes back from, which `schema.org` has no term
     // for, and inventing a `suggestedAnswer` for it would say the opposite of what it means.
-    ...(node.kind === 'question' ? { mainEntity: question(tree, node, lang, base, url) } : {}),
+    ...(steps.length > 0 ? { mainEntity: question(tree, node, steps, lang, base, url) } : {}),
   }
 }
 
 /** The `Question`, with **[#221]** one Answer per next step, in the order the buttons stand (41.6). */
 function question(
   tree: Tree,
-  node: Extract<Node, { kind: 'question' }>,
+  node: Node,
+  steps: Extract<Node, { kind: 'question' }>['answers'],
   lang: string,
   base: URL,
   pageUrl: string,
@@ -272,10 +274,10 @@ function question(
   return {
     '@type': 'Question',
     '@id': `${pageUrl}#question`,
-    name: text(node.title, lang, `${node.id}.title`),
-    text: plainDescription(text(node.description, lang, `${node.id}.description`)).reduced,
+    name: said(node.title, lang),
+    text: plainDescription(said(node.description, lang)).reduced,
     inLanguage: lang,
-    suggestedAnswer: node.answers.map((step, index) => answer(tree, text(step.label, lang, `${node.id}.answers[${index}].label`), step.target, lang, base)),
+    suggestedAnswer: steps.map((step) => answer(tree, said(step.label, lang), step.target, lang, base)),
   }
 }
 
@@ -285,8 +287,17 @@ function question(
  * as the button's does, so the two cannot differ.
  */
 function answer(tree: Tree, label: string, targetId: string, lang: string, base: URL): Answer {
-  const title = text(tree.getTitle(targetId) ?? {}, lang, `${targetId}.title`)
-  return { '@type': 'Answer', text: `${label}: ${title}`, url: addressOf(tree, targetId, lang, base) }
+  const title = said(tree.getTitle(targetId) ?? {}, lang)
+  // The button's name: no colon before a title no language has (19.4).
+  return { '@type': 'Answer', text: title === '' ? label : `${label}: ${title}`, url: addressOf(tree, targetId, lang, base) }
+}
+
+/**
+ * **[#279]** A text as the page shows it (application.md 19.4): in `lang`, else in the first
+ * declared language that has it, else `""`.
+ */
+function said(localised: LocalisedText, lang: string): string {
+  return shown(localised, lang, '').value
 }
 
 /** The canonical URL of `nodeId` in `lang`, from the one address set of 16.3. */

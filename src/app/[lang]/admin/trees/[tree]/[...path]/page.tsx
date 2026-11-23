@@ -113,7 +113,7 @@ export default async function EditorPage({ params }: Props) {
         <div className="page-brand">
           <BackToOverview href={adminHref('/admin', uiLang)} lang={address.lang} />
           {/* **[#180]** The Tree's logo on the default's bar: the variant for that bar's background, not the draft's (13.1). */}
-          <Logo treeId={draft.id} theme={draft.manifest.theme && { ...draft.manifest.theme, colours: undefined }} title={draft.manifest.title} lang={address.lang} href={adminThemeHref} />
+          <Logo treeId={draft.id} theme={draft.manifest.theme && { ...draft.manifest.theme, colours: undefined }} title={draft.manifest.title} lang={address.lang} href={adminThemeHref} draft />
         </div>
         <div className="page-controls">
           <LanguageSwitch address={address} languages={draft.manifest.languages} edit={edit} />

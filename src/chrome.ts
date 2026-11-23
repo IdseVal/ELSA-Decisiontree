@@ -974,3 +974,27 @@ export function text(localised: LocalisedText, lang: string, where: string): str
   console.warn(`Tree text missing: ${where} has no text for the language "${lang}"`)
   return `[${chrome(lang).missingText}]`
 }
+
+/** What `shown` answers: the text, and its language where that is not the page's. */
+export interface Shown {
+  value: string
+  /** The `lang` of the element that draws `value`; undefined where it is in the page's language, or empty. */
+  lang: string | undefined
+}
+
+/**
+ * **[#279]** A localised text as a reader of a public page is shown it (docs/specs/application.md
+ * 19.4): in `lang`; where the Tree has none there yet -- a to-do of its creator -- in the first
+ * language it declares that has one, with that language for the element's `lang`, so a screen
+ * reader pronounces it; and `""` where no language has it, which the caller does not draw. The
+ * loader hands a served Tree's texts out in the order the languages are declared (5.1).
+ *
+ * `draft` is the editor's and the preview's reading, unchanged: `text()`, whose placeholder says
+ * what is missing to the one who can write it (40.7).
+ */
+export function shown(localised: LocalisedText, lang: string, where: string, draft = false): Shown {
+  if (draft) return { value: text(localised, lang, where), lang: undefined }
+  if (localised[lang]) return { value: localised[lang], lang: undefined }
+  for (const [other, value] of Object.entries(localised)) if (value) return { value, lang: other }
+  return { value: '', lang: undefined }
+}
