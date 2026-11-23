@@ -187,7 +187,6 @@ export interface Chrome {
   notEditable: string
   changedElsewhere: string
   sessionExpired: string
-  publicBehind: string
   /** **[#137]** The state mark on a tile of the creators' overview (26.4). */
   published: string
   hidden: string
@@ -214,10 +213,10 @@ export interface Chrome {
   /** **[#142]** The top panel (33): its sections and the confirmations; **[#176]** its button and heading say `settings`. */
   publish: string
   todoCount: string
-  todoBefore: string
+  /** **[#279]** The to-do bubble's heading: what is left, which nothing waits for (33.3). */
+  todoStill: string
   publishedAt: string
   publicLink: string
-  publicBehindBecause: string
   notServableBecause: string
   confirmUnpublish: string
   confirm: string
@@ -319,8 +318,6 @@ export interface Chrome {
   settings: string
   todoCountOne: string
   todoNone: string
-  publishRefused: string
-  showTodo: string
   /** **[#174]** What the strip's `+` says beside it and is named by (31.1), and the information hint behind an Image's two fields: its name and its two explanations (31.2, 31.3). */
   addExtraPicture: string
   hint: string
@@ -536,7 +533,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     notEditable: 'This tree can no longer be edited here',
     changedElsewhere: 'changed by a collaborator',
     sessionExpired: 'Your session has expired. Sign in to keep editing; nothing typed is lost.',
-    publicBehind: 'the public copy is behind',
     published: 'Published',
     hidden: 'Hidden',
     notServable: 'Not served',
@@ -558,10 +554,9 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     notMarkedIn: 'Not marked in the text',
     publish: 'Publish',
     todoCount: 'things to do',
-    todoBefore: 'To do before publishing:',
+    todoStill: 'Still to do:',
     publishedAt: 'Published',
     publicLink: 'Public link',
-    publicBehindBecause: 'The public copy stays as it was until these are done:',
     notServableBecause: 'The public page is not served because of:',
     confirmUnpublish: 'Hide this tree? Links to it will stop working until it is published again.',
     confirm: 'Confirm',
@@ -633,8 +628,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     settings: 'Decision-tree settings',
     todoCountOne: 'thing to do',
     todoNone: 'Nothing to do',
-    publishRefused: 'Not published: some things must be done first.',
-    showTodo: 'See what to do',
     addExtraPicture: 'Add an extra image',
     hint: 'Why this is asked',
     creditHint: 'The maker and the licence of a picture must be named, for copyright reasons. The credit is shown with the enlarged picture.',
@@ -794,7 +787,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     notEditable: 'Deze boom kan hier niet meer worden bewerkt',
     changedElsewhere: 'gewijzigd door een medewerker',
     sessionExpired: 'Uw sessie is verlopen. Log in om verder te werken; niets van wat u typte gaat verloren.',
-    publicBehind: 'de openbare versie loopt achter',
     published: 'Gepubliceerd',
     hidden: 'Verborgen',
     notServable: 'Niet getoond',
@@ -816,10 +808,9 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     notMarkedIn: 'Niet gemarkeerd in de tekst',
     publish: 'Publiceren',
     todoCount: 'punten te doen',
-    todoBefore: 'Te doen voor publicatie:',
+    todoStill: 'Nog te doen:',
     publishedAt: 'Gepubliceerd',
     publicLink: 'Openbare link',
-    publicBehindBecause: 'De openbare versie blijft zoals ze was tot dit is gedaan:',
     notServableBecause: 'De openbare pagina wordt niet getoond vanwege:',
     confirmUnpublish: 'Deze boom verbergen? Links ernaar werken niet meer tot hij weer gepubliceerd is.',
     confirm: 'Bevestigen',
@@ -891,8 +882,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     settings: 'Beslisboominstellingen',
     todoCountOne: 'punt te doen',
     todoNone: 'Niets te doen',
-    publishRefused: 'Niet gepubliceerd: eerst moet er nog iets gebeuren.',
-    showTodo: 'Bekijk wat er te doen is',
     addExtraPicture: 'Extra afbeelding toevoegen',
     hint: 'Waarom dit gevraagd wordt',
     creditHint: 'De maker en de licentie van een afbeelding moeten genoemd worden, vanwege het auteursrecht. De bronvermelding staat bij de vergrote afbeelding.',

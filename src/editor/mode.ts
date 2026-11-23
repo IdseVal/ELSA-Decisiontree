@@ -100,7 +100,6 @@ export type EditorWords = Pick<
   | 'notEditable'
   | 'changedElsewhere'
   | 'sessionExpired'
-  | 'publicBehind'
   | 'toOverview'
   | 'close'
   | 'mark'

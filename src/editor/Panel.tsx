@@ -5,8 +5,9 @@
  * the body of the Sheet it opens down the right edge -- Publish, the collaborators, this Tree,
  * and the administrator's two actions. **[#176]** The button floats under the chrome bar at the
  * top right and says what it opens, `settings`, with the Tree's state as a tag after it; the
- * to-do list left the Publish section for a bubble of its own (`Todo.tsx`), to which a refused
- * publish points (ADR-176-floating-settings-and-to-do).
+ * to-do list left the Publish section for a bubble of its own (`Todo.tsx`,
+ * ADR-176-floating-settings-and-to-do). **[#279]** Publish asks nothing of that list: the switch
+ * publishes the draft as it is (19.3), so the section has no refusal to show.
  *
  * The page draws both inside a `Sheet` (10.5: Escape, the cross, a click outside, one Sheet
  * at a time); this module draws what is in it. The state comes from the page's load and every
@@ -41,8 +42,6 @@ export type PanelWords = Pick<
   Chrome,
   | 'settings'
   | 'publish'
-  | 'publishRefused'
-  | 'showTodo'
   | 'publishedAt'
   | 'publicLink'
   | 'confirmUnpublish'
@@ -64,7 +63,6 @@ export type PanelWords = Pick<
   | 'published'
   | 'hidden'
   | 'notServable'
-  | 'publicBehind'
   | 'languages'
   | 'treeId'
   | 'administrator'
@@ -75,26 +73,24 @@ export type PanelWords = Pick<
 /** The caller's role on this Tree (21.1): the administrator's wins over any other it has. */
 export type PanelRole = 'creator' | 'collaborator' | 'administrator'
 
-/** The Tree's four states (33.1), each its dot's colour. */
-type Shown = 'hidden' | 'published' | 'notServable' | 'publicBehind'
+/** The Tree's three states (33.1), each its dot's colour; **[#279]** a public copy is never behind (19.4). */
+type Shown = 'hidden' | 'published' | 'notServable'
 
 export function shownOf(tree: TreeState): Shown {
   if (!tree.published) return 'hidden'
-  if (!tree.servable) return 'notServable'
-  return tree.publicCopyCurrent ? 'published' : 'publicBehind'
+  return tree.servable ? 'published' : 'notServable'
 }
 
 /**
  * The button (33.1, amended by #176): a gear and what it opens, `settings`, then the Tree's state
- * as a tag -- a dot and a word, as a tile's mark (26.4). The public copy being behind is the
- * dot's colour on `published`, and the indicator's words (29.3). Its name says both, the same at
+ * as a tag -- a dot and a word, as a tile's mark (26.4). Its name says both, the same at
  * every width: below 1000 pixels the words give way to the gear and the dot.
  */
-export function PanelButton({ words }: { words: Pick<PanelWords, 'settings' | 'published' | 'hidden' | 'notServable' | 'publicBehind'> }) {
+export function PanelButton({ words }: { words: Pick<PanelWords, 'settings' | 'published' | 'hidden' | 'notServable'> }) {
   const { tree } = useEditor()
   const shown = shownOf(tree)
   const state = shown === 'hidden' ? words.hidden : shown === 'notServable' ? words.notServable : words.published
-  const name = `${words.settings}: ${state}${shown === 'publicBehind' ? `, ${words.publicBehind}` : ''}`
+  const name = `${words.settings}: ${state}`
   return (
     <span className="float-control" role="img" aria-label={name}>
       <svg className="float-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
@@ -153,12 +149,10 @@ export function Panel({
   tags?: ReactNode
 }) {
   const router = useRouter()
-  const { tree, setTree, openTodo } = useEditor()
+  const { tree, setTree } = useEditor()
   const [role, setRole] = useState(initialRole)
   const [meta, setMeta] = useState(initialMeta)
   const [publishedAt, setPublishedAt] = useState(initialPublishedAt)
-  // **[#176]** What a refused publish answered: the to-do list the Publish section points at (33.3).
-  const [refused, setRefused] = useState<Violation[] | null>(null)
   const [accounts, setAccounts] = useState(initialAccounts)
   const [asking, setAsking] = useState<'unpublish' | 'delete' | null>(null)
   const [languages, setLanguages] = useState(initialLanguages)
@@ -177,7 +171,6 @@ export function Panel({
       if (!sheet.open) return
       setAsking(null)
       setRemoving(null)
-      setRefused(null)
       setError(null)
       const [entry, listed] = await Promise.all([panelCalls.entry(treeId), panelCalls.accounts()])
       if (entry.status === 200 && entry.body && 'meta' in entry.body) {
@@ -185,7 +178,7 @@ export function Panel({
         setMeta(read.meta)
         setPublishedAt(read.meta.publishedAt ?? null)
         setWritten(read.written)
-        setTree({ advisory: read.advisory.length, published: read.published, publicCopyCurrent: read.publicCopyCurrent, servable: read.servable })
+        setTree({ advisory: read.advisory.length, published: read.published, servable: read.servable })
       }
       if (listed.status === 200 && Array.isArray(listed.body)) setAccounts(listed.body)
     }
@@ -213,18 +206,8 @@ export function Panel({
       const answer = await panelCalls.publish(treeId, true)
       if (answer.status === 200 && answer.body && 'published' in answer.body) {
         setPublishedAt(answer.body.publishedAt)
-        setRefused(null)
-        setTree({ published: true, publicCopyCurrent: true, servable: true, advisory: 0 })
-      } else if (answer.status === 409 && answer.body && 'violations' in answer.body) {
-        // Refused: the switch stays off (19.3). The full validation stops at the schema, whose
-        // lines name `tree.json` and a JSON Pointer, not a Node; the draft's advisory list names
-        // the same gaps by Node, so that is the to-do list while it has any.
-        const violations = answer.body.violations ?? []
-        const entry = await panelCalls.entry(treeId)
-        const held = entry.status === 200 && entry.body && 'advisory' in entry.body ? entry.body.advisory : []
-        const list = held.length > 0 ? held : violations
-        setRefused(list)
-        setTree({ advisory: list.length })
+        // **[#279]** The to-do count stays what it was: Publish asked nothing of it (19.3).
+        setTree({ published: true, servable: true })
       } else setError({ where: 'publish', text: words.requestFailed })
     })
 
@@ -232,7 +215,7 @@ export function Panel({
     run(async () => {
       setAsking(null)
       const answer = await panelCalls.publish(treeId, false)
-      if (answer.status === 200) setTree({ published: false, publicCopyCurrent: true, servable: false })
+      if (answer.status === 200) setTree({ published: false, servable: false })
       else setError({ where: 'publish', text: words.requestFailed })
     })
 
@@ -351,14 +334,6 @@ export function Panel({
               </button>
               <span>{tree.published ? words.published : words.hidden}</span>
             </div>
-          )}
-          {refused !== null && (
-            <p className="panel-refused" role="alert">
-              {words.publishRefused}{' '}
-              <button type="button" className="admin-link" onClick={() => openTodo(refused)}>
-                {words.showTodo}
-              </button>
-            </p>
           )}
           {errorAt('publish')}
           {tree.published && (

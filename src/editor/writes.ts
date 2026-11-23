@@ -29,7 +29,7 @@ export interface WriteResponse {
   node: DraftNode | null
   manifest?: Manifest
   violations: Violation[]
-  tree: { advisory: number; published: boolean; publicCopyCurrent: boolean }
+  tree: { advisory: number; published: boolean }
   also?: WriteResponse[]
 }
 
@@ -75,7 +75,6 @@ export interface EntryAnswer {
   meta: { creator: string; collaborators: string[]; publishedAt?: string }
   published: boolean
   servable: boolean
-  publicCopyCurrent: boolean
   advisory: Violation[]
   /** **[#147]** How many texts are written in each declared language (33.5). */
   written: Record<string, number>

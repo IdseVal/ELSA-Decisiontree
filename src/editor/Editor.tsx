@@ -10,7 +10,7 @@
  * `SaveIndicator` is the `role="status"` region of the chrome bar (29.3): saving, saved with
  * the time for five seconds, or not saved with the reason -- a refusal's message, the retry
  * ladder with its button, an uneditable Tree -- and after the state word the message of
- * the field being edited, `publicBehind` on a published Tree whose public copy is behind,
+ * the field being edited,
  * and `changedElsewhere` for five seconds after a collaborator's value arrived (29.7).
  *
  * **[#141]** It also holds which explainer's Sheet is open, of which Node (32.2): the `mark`
@@ -85,17 +85,12 @@ export interface EditorApi {
   tree: TreeState
   /** **[#142]** The panel's own answers -- publish, unpublish, a re-read -- which no write response carries. */
   setTree(change: Partial<TreeState>): void
-  /** **[#176]** Opens the to-do bubble on `list`, not re-read: what a refused publish answered (33.3). */
-  openTodo(list: Violation[]): void
-  /** **[#176]** The last `openTodo`'s list, a new object each time: what the to-do bubble's opening effect keys on. */
-  todoAsked: { list: Violation[] } | null
 }
 
 /** **[#142]** The whole Tree's state of 22.3's `tree`, and whether the public routes serve it (18.3). */
 export interface TreeState {
   advisory: number
   published: boolean
-  publicCopyCurrent: boolean
   servable: boolean
 }
 
@@ -168,7 +163,6 @@ export function Editor({
   const [version, setVersion] = useState(0)
   const [explainer, setExplainer] = useState<{ nodeId: string; id: string } | null>(null)
   const openExplainer = useCallback((nodeId: string, id: string) => setExplainer({ nodeId, id }), [])
-  const [todoAsked, setTodoAsked] = useState<{ list: Violation[] } | null>(null)
   const [, tick] = useState(0)
   // The latest Nodes, for the diff of 29.7 inside the queue's callback.
   const known = useRef(initialNodes)
@@ -329,10 +323,8 @@ export function Editor({
       openExplainer,
       tree,
       setTree: (change) => setTreeState((held) => ({ ...held, ...change })),
-      openTodo: (list) => setTodoAsked({ list }),
-      todoAsked,
     }),
-    [treeId, lang, words, notEditable, nodes, version, focusKey, advisory, refusals, changed, openExplainer, tree, todoAsked],
+    [treeId, lang, words, notEditable, nodes, version, focusKey, advisory, refusals, changed, openExplainer, tree],
   )
 
   // **[#234]** What a slide asks before it navigates (42.8): the queue is the page's, made once.
@@ -348,7 +340,6 @@ export function Editor({
   const indicator: IndicatorState = {
     queue: queueState,
     notEditable,
-    publicBehind: tree.published && !tree.publicCopyCurrent,
     changedElsewhere: changedUntil > Date.now(),
     message: current ? api.violationsAt(current.nodeId, current.keyPath)[0] ?? null : null,
     refusedCode: current ? (refusals[keyOf(current.nodeId, current.keyPath)]?.code ?? null) : null,
@@ -389,7 +380,6 @@ export function Editor({
 interface IndicatorState {
   queue: QueueState
   notEditable: string | null
-  publicBehind: boolean
   changedElsewhere: boolean
   /** The first violation at the field being edited, if any (28.4, 29.4). */
   message: Violation | null
@@ -406,7 +396,7 @@ const IndicatorContext = createContext<IndicatorState | null>(null)
 export function SaveIndicator({ words }: { words: EditorWords }) {
   const state = useContext(IndicatorContext)
   if (!state) throw new Error('outside the Editor')
-  const { queue, notEditable, publicBehind, changedElsewhere, message, refusedCode, pictureRefused } = state
+  const { queue, notEditable, changedElsewhere, message, refusedCode, pictureRefused } = state
   const refused = message !== null && !(message.advisory ?? true)
   const notSaved = notEditable !== null || queue.failure !== null || refused || refusedCode !== null || pictureRefused !== null
   const recent = queue.savedAt !== null && queue.savedAt + SHOWN_MS > Date.now()
@@ -440,7 +430,6 @@ export function SaveIndicator({ words }: { words: EditorWords }) {
       </span>,
     )
   } else if (refusedCode !== null) parts.push(refusedCode)
-  if (publicBehind) parts.push(words.publicBehind)
   if (changedElsewhere) parts.push(words.changedElsewhere)
 
   return (

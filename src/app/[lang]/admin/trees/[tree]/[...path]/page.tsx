@@ -99,7 +99,7 @@ export default async function EditorPage({ params }: Props) {
       nodes={nodes}
       revision={entry.meta.revision}
       violations={draft.advisory.filter((violation) => violation.file in nodes)}
-      tree={{ advisory: entry.advisory.length, published: entry.published, publicCopyCurrent: entry.publicCopyCurrent, servable: entry.servable }}
+      tree={{ advisory: entry.advisory.length, published: entry.published, servable: entry.servable }}
     >
       {/*
         The draft's Theme, so a colour changed in the draft is seen before publishing (13.1,
@@ -248,8 +248,7 @@ function TodoSheet({ entry, draft, address, role, ui }: { entry: TreeEntry; draf
     todoCount: ui.todoCount,
     todoCountOne: ui.todoCountOne,
     todoNone: ui.todoNone,
-    todoBefore: ui.todoBefore,
-    publicBehindBecause: ui.publicBehindBecause,
+    todoStill: ui.todoStill,
     notServableBecause: ui.notServableBecause,
     thisTree: ui.thisTree,
     removeStep: ui.removeStep,
@@ -293,8 +292,6 @@ function panelWords(ui: Chrome): PanelWords {
   return {
     settings: ui.settings,
     publish: ui.publish,
-    publishRefused: ui.publishRefused,
-    showTodo: ui.showTodo,
     publishedAt: ui.publishedAt,
     publicLink: ui.publicLink,
     confirmUnpublish: ui.confirmUnpublish,
@@ -322,7 +319,6 @@ function panelWords(ui: Chrome): PanelWords {
     published: ui.published,
     hidden: ui.hidden,
     notServable: ui.notServable,
-    publicBehind: ui.publicBehind,
     languages: ui.languages,
     treeId: ui.treeId,
     administrator: ui.administrator,

@@ -21,7 +21,7 @@ import type { Environment } from '../config.ts'
 import { convertAnswers, convertBackground, convertFormat, convertLimit, convertTree } from '../tree/convert.ts'
 import { formatViolation, openTree, readTreeText, TreeInvalid, violationsOf, type Tree } from '../tree/loader.ts'
 import { treeBytes } from '../tree/serialise.ts'
-import { isMapping, type Mode } from '../tree/validate.ts'
+import { isMapping } from '../tree/validate.ts'
 import { openAccounts, type Accounts } from './accounts.ts'
 import { authorsOf } from './authors.ts'
 import { openDrafts, RESERVED_TREE_IDS, type Drafts } from './drafts.ts'
@@ -112,8 +112,9 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
   // by a published copy that cannot, or the other way round.
   for (const id of await listFolders(treesDir)) {
     const dir = path.join(/* turbopackIgnore: true */ treesDir, id)
-    await convertAtStart(id, dir, path.join(/* turbopackIgnore: true */ dir, 'tree.json'), 'published')
-    await convertAtStart(id, dir, path.join(/* turbopackIgnore: true */ dir, 'draft.json'), 'draft')
+    await convertAtStart(id, dir, path.join(/* turbopackIgnore: true */ dir, 'tree.json'))
+    await convertAtStart(id, dir, path.join(/* turbopackIgnore: true */ dir, 'draft.json'))
+    await followDraft(id, dir)
   }
 
   const served = new Map<string, Tree>()
@@ -127,7 +128,7 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
       continue
     }
     try {
-      served.set(id, await openTree(dir))
+      served.set(id, await openTree(dir, { served: true }))
     } catch (error) {
       refused.push({ id, reason: messageOf(error) })
     }
@@ -204,8 +205,8 @@ export async function importTree(folder: string, treesDir: string, creator: stri
     // whose last segment is a variable makes Turbopack trace the whole project into the build.
     await copyEntry(path.join(/* turbopackIgnore: true */ source, 'images'), path.join(/* turbopackIgnore: true */ copy, 'images'))
     await copyEntry(path.join(/* turbopackIgnore: true */ source, 'theme'), path.join(/* turbopackIgnore: true */ copy, 'theme'))
-    await convertFile(id, copy, path.join(/* turbopackIgnore: true */ copy, 'tree.json'), 'published')
-    await openTree(copy)
+    await convertFile(id, copy, path.join(/* turbopackIgnore: true */ copy, 'tree.json'))
+    await openTree(copy, { served: true })
   } catch (error) {
     await rm(staging, { recursive: true, force: true })
     throw error
@@ -227,7 +228,7 @@ export async function importTree(folder: string, treesDir: string, creator: stri
   await writeAtomic(path.join(/* turbopackIgnore: true */ copy, 'meta.json'), `${JSON.stringify(meta, null, 2)}\n`)
   await rename(copy, target)
   await rm(staging, { recursive: true, force: true })
-  return openTree(target)
+  return openTree(target, { served: true })
 }
 
 /**
@@ -237,8 +238,8 @@ export async function importTree(folder: string, treesDir: string, creator: stri
  * 12.9.1, **[#264]** and from `elsa-tree/7` to `elsa-tree/8` by 12.10.1, **[#274]** and from
  * `elsa-tree/8` to `elsa-tree/9` by 12.11.1 last, in memory, so a `/4` file takes all five and is
  * checked and written once, with a line for each (12.8.4 to 12.11.4) -- and replaces it atomically when the
- * result passes `mode`'s rules -- a draft its blocking ones (19.2), the published copy every
- * one (19.3) -- logging one line (36.4). A file that is not `/4` to `/8`, or that the loader would not
+ * result passes the blocking rules (19.2) -- **[#279]** the published copy's too, which is served
+ * with its to-dos as a draft is held with them (19.4) -- logging one line (36.4). A file that is not `/4` to `/8`, or that the loader would not
  * read, is left as it is, for opening it to answer. A result that would not pass is not
  * written: it rejects with a `TreeInvalid` holding the violations that stopped it (step 8), as
  * a write the disk refuses rejects with the disk's error. `meta.json` is not touched: no
@@ -251,7 +252,7 @@ export async function importTree(folder: string, treesDir: string, creator: stri
  * `type` (19.2) -- and it changes nothing but the order of keys, which no rule reads: the
  * file written holds what was checked.
  */
-async function convertFile(id: string, dir: string, file: string, mode: Mode): Promise<void> {
+async function convertFile(id: string, dir: string, file: string): Promise<void> {
   const text = await readText(file)
   const value = text === null ? null : readTreeText(text).value
   if (!isMapping(value)) return
@@ -261,8 +262,7 @@ async function convertFile(id: string, dir: string, file: string, mode: Mode): P
   const widened = convertLimit(renamed ?? stepped ?? ended ?? value)
   const tree = convertBackground(widened ?? renamed ?? stepped ?? ended ?? value)
   if (tree === null) return
-  // In published mode no violation carries `advisory`, so every one of them stops the write.
-  const blocking = (await violationsOf(dir, JSON.stringify(tree), mode)).filter((violation) => !violation.advisory)
+  const blocking = (await violationsOf(dir, JSON.stringify(tree), 'draft')).filter((violation) => !violation.advisory)
   if (blocking.length > 0) throw new TreeInvalid(id, blocking)
   await writeAtomic(file, treeBytes(tree))
   if (ended !== null) console.log(`Converted Tree "${id}" ${path.basename(file)} from elsa-tree/4 to elsa-tree/5: ${endings} endings`)
@@ -279,9 +279,9 @@ async function convertFile(id: string, dir: string, file: string, mode: Mode): P
  * (12.7.1 step 8) -- not the `/4` file's own, which opening it answers with the schema alone,
  * before any content rule -- or the disk's refusal.
  */
-async function convertAtStart(id: string, dir: string, file: string, mode: Mode): Promise<void> {
+async function convertAtStart(id: string, dir: string, file: string): Promise<void> {
   try {
-    await convertFile(id, dir, file, mode)
+    await convertFile(id, dir, file)
   } catch (error) {
     const why =
       error instanceof TreeInvalid
@@ -289,6 +289,23 @@ async function convertAtStart(id: string, dir: string, file: string, mode: Mode)
         : messageOf(error)
     console.error(`Not converted: Tree "${id}" ${path.basename(file)}: ${why}`)
   }
+}
+
+/**
+ * **[#279]** At the start, a published Tree's copy that is not its draft's bytes becomes them
+ * (19.4): a store an earlier release wrote held the copy back while a to-do was open, and a
+ * crash may fall between the two files' writes. Only for a draft the store could have written --
+ * one that passes every blocking rule (19.2); the copy of an uneditable Tree stays (19.5). One
+ * line is logged; `meta.json` is not touched, since no creator wrote.
+ */
+async function followDraft(id: string, dir: string): Promise<void> {
+  const file = path.join(/* turbopackIgnore: true */ dir, 'tree.json')
+  const published = await readText(file)
+  const draft = await readText(path.join(/* turbopackIgnore: true */ dir, 'draft.json'))
+  if (published === null || draft === null || published === draft) return
+  if ((await violationsOf(dir, draft, 'draft')).some((violation) => !violation.advisory)) return
+  await writeAtomic(file, draft)
+  console.log(`Published copy of Tree "${id}" brought to its draft`)
 }
 
 /** Refuses a 1.0 environment rather than half-reading it (17.1). */
