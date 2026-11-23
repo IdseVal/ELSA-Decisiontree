@@ -16,8 +16,8 @@
  *
  * **[#181]** And the focus never stops under the heading of the to-do bubble or the panel (33.2,
  * amended): walked up each with Shift+Tab, under each heading the bubble shows -- `todo-before`,
- * `behind` and `unservable` are the full Node with all thirteen Dutch titles (**[#221]** eleven until its step had four next steps) emptied, hidden, behind
- * its public copy (19.4), and refused at start (18.3) -- in both languages, at the sizes of #181's
+ * `behind` and `unservable` are the full Node with all thirteen Dutch titles (**[#221]** eleven until its step had four next steps) emptied, hidden, published
+ * (**[#279]** with its to-dos open, which holds nothing back: the hidden Tree's heading, 19.4), and refused at start (18.3) -- in both languages, at the sizes of #181's
  * walk and at 360 x 640.
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
@@ -58,8 +58,8 @@ const VIEWPORTS = [
 
 /** **[#181]** A Tree per heading of the to-do bubble (33.3), each with thirteen things to do (**[#221]** eleven before the full Node's two new Terminals). */
 const HEADED = [
-  ['todo-before', 'todoBefore'],
-  ['behind', 'publicBehindBecause'],
+  ['todo-before', 'todoStill'],
+  ['behind', 'todoStill'],
   ['unservable', 'notServableBecause'],
 ] as const
 
@@ -95,9 +95,11 @@ test.beforeAll(async ({ browser }) => {
     ],
     accounts: [ANNA, BRAM],
   })
-  // **[#181]** The drafts without their Dutch titles; `unservable`'s public copy too, which the store refuses at start (18.3).
+  // **[#181]** The drafts without their Dutch titles. **[#279]** `unservable`'s public copy holds a key the
+  // format does not have, which the store refuses at start (18.3): an empty title no longer is a reason.
   for (const [id] of HEADED) await emptyDutchTitles(path.join(dir, 'trees', id, 'draft.json'))
-  await emptyDutchTitles(path.join(dir, 'trees', 'unservable', 'tree.json'))
+  const copy = path.join(dir, 'trees', 'unservable', 'tree.json')
+  await writeFile(copy, JSON.stringify({ ...(JSON.parse(await readFile(copy, 'utf8')) as object), notes: 'no key of the format' }))
   origin = await serveStore(dir, PORT, ADMIN_ENV)
   const { page, cookie } = await loggedIn(browser, ANNA)
   for (const id of EMPTIED) expect((await api(page, cookie, 'PATCH', `/trees/hidden-draft/nodes/${id}`, { path: 'title.nl', value: '' })).status()).toBe(200)

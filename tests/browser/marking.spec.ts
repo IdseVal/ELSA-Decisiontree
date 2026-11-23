@@ -211,9 +211,9 @@ test('a 201-character text stored by another route is shown over the limit at th
   await expect(status(page).locator('.editor-violation')).toHaveAttribute('data-rule', 'V-LENGTH')
   await expect.poll(async () => (await nodeOf(page, cookie, 'no-end')).explainers[0]?.text.en).toBe(long)
 
-  const refused = await api(page, cookie, 'PUT', '/trees/marking/published', { published: true })
-  expect(refused.status()).toBe(409)
-  const rules = ((await refused.json()) as { violations: Array<{ rule: string; keyPath: string }> }).violations
+  // **[#279]** A to-do of the draft, which holds nothing back (19.3): the list names it.
+  const entry = await api(page, cookie, 'GET', '/trees/marking')
+  const rules = ((await entry.json()) as { advisory: Array<{ rule: string; keyPath: string }> }).advisory
   expect(rules).toContainEqual(expect.objectContaining({ rule: 'V-LENGTH', keyPath: 'explainers[0].text.en' }))
 
   await text.locator('textarea').fill(EN_TEXT)
