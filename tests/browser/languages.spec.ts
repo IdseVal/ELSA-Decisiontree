@@ -167,7 +167,7 @@ test('a complete Dutch Tree: English added in the panel, one to-do per localised
   await expect(tag).toHaveAttribute('href', `/admin/trees/${TREE}/start?lang=en`)
 })
 
-test('one English title written is one to-do fewer; Publish is refused until every English text is written', async ({ browser }) => {
+test('one English title written is one to-do fewer; **[#279]** Publish takes the Tree with the rest to do, and the English page reads the Dutch with its lang', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   const before = await advisory(page, cookie)
   await page.goto(`${origin}/admin/trees/${TREE}/start?lang=en`)
@@ -178,14 +178,23 @@ test('one English title written is one to-do fewer; Publish is refused until eve
   await expect(button(page)).toHaveAccessibleName('Decision-tree settings: Hidden')
   await expect(todo(page)).toHaveAccessibleName(things(before - 1))
 
+  // The to-do list is support only (19.3): the switch publishes, and the count stays.
+  expect((await page.request.get(`${origin}/${TREE}/start`)).status()).toBe(404)
   await openPanel(page)
   await publishSwitch(page).click()
-  const pointer = panel(page).getByRole('alert')
-  await expect(pointer).toBeVisible()
-  await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'false')
-  await pointer.getByRole('button', { name: 'See what to do' }).click()
-  await expect(todoBubble(page).locator('.todo-list li').first()).toBeVisible()
-  expect((await page.request.get(`${origin}/${TREE}/start`)).status()).toBe(404)
+  await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'true')
+  await expect(panel(page).getByRole('alert')).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await expect(todo(page)).toHaveAccessibleName(things(before - 1))
+  // The English page: the one title written in English, and the Dutch text where English has none, marked (19.8).
+  await page.goto(`${origin}/${TREE}/start?lang=en`)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Is it so')
+  expect(await page.getByRole('heading', { level: 1 }).getAttribute('lang')).toBeNull()
+  await expect(page.locator('.bubble [data-description-box]')).toHaveAttribute('lang', 'nl')
+  await expect(page.locator('.answer--next .branch-title > span[lang="nl"]')).toHaveCount(2)
+  expect((await api(page, cookie, 'PUT', `/trees/${TREE}/published`, { published: false })).status()).toBe(200)
+  await page.goto(`${origin}/admin/trees/${TREE}/start?lang=en`)
 
   // Every other English text written, the same switch publishes.
   expect((await api(page, cookie, 'PATCH', `/trees/${TREE}`, { path: 'title.en', value: 'A tree' })).status()).toBe(200)

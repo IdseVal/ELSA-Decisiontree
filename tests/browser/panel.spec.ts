@@ -94,7 +94,7 @@ async function overviewTiles(page: Page): Promise<string[]> {
   return [...html.matchAll(/data-tree="([^"]+)"/g)].map((match) => match[1]!)
 }
 
-test('a fresh Tree: the button says Hidden and the count; publishing it is refused and the to-do line links to the Node', async ({ browser }) => {
+test('a fresh Tree: the button says Hidden and the count; **[#279]** it publishes with its to-dos open, and the to-do line links to the Node', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser, ANNA)
   expect((await api(page, cookie, 'POST', '/trees', { id: 'fresh', languages: ['en'], title: { en: 'Fresh' } })).status()).toBe(201)
   const entry = (await (await api(page, cookie, 'GET', '/trees/fresh')).json()) as { advisory: { file: string }[] }
@@ -108,20 +108,29 @@ test('a fresh Tree: the button says Hidden and the count; publishing it is refus
   await openPanel(page)
   await expect(panel(page).locator('.sheet-close--cross')).toBeFocused()
   await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'false')
+  expect((await page.request.get(`${origin}/fresh/start`)).status()).toBe(404)
   await publishSwitch(page).click()
-  // Refused (19.3): the switch stays off, and the full validation's list is the to-do list,
-  // **[#176]** in the bubble the Publish section points at (33.3).
-  await expect(panel(page).getByRole('alert')).toBeVisible()
-  await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'false')
-  await panel(page).getByRole('alert').getByRole('button', { name: 'See what to do' }).click()
-  await expect(todoBubble(page).locator('.todo-list li').first()).toBeVisible()
+  // Published as it is (19.3): the switch goes on, nothing is refused, the count stays, and the
+  // first step -- no title, no text, no next step yet -- is a public page.
+  await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'true')
+  await expect(panel(page).getByRole('alert')).toHaveCount(0)
+  await shoot(page, 'published-with-to-dos')
+  await page.keyboard.press('Escape')
+  await expect(button(page)).toHaveAccessibleName('Decision-tree settings: Published')
+  await expect(todo(page)).toHaveAccessibleName(things(entry.advisory.length))
+  const served = await page.request.get(`${origin}/fresh/start`)
+  expect(served.status()).toBe(200)
+  expect(await served.text()).not.toContain('Text missing in this language')
+
+  // The to-do bubble is the list still, each line a link to its Node (33.3).
+  await todo(page).click()
+  await expect(todoBubble(page).getByRole('heading', { level: 2 })).toHaveText('Still to do:')
   const line = todoBubble(page).locator('.todo-list li a[href="/admin/trees/fresh/start"]').first()
   await expect(line).toBeVisible()
-  await shoot(page, 'refused-publish')
-  expect((await page.request.get(`${origin}/fresh/start`)).status()).toBe(404)
-
   await line.click()
   await expect(page).toHaveURL(`${origin}/admin/trees/fresh/start`)
+  // Hidden again for the tests after this one.
+  expect((await api(page, cookie, 'PUT', '/trees/fresh/published', { published: false })).status()).toBe(200)
 })
 
 test('publishing a complete Tree: the switch turns on, the public link, the overview lists it and its root Node is served', async ({ browser }) => {
